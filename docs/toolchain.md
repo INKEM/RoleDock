@@ -36,6 +36,14 @@ after rollback: {"n":1}
 
 验证内容：内存库建表（STRICT）、预编译插入、查询、显式事务回滚。结果符合官方文档行为；实验警告符合稳定性 1.1 的预期。
 
+### 锁行为验证（P1，2026-10-12）
+
+单协调器约束（ADR-0001）采用 `PRAGMA locking_mode = EXCLUSIVE` 的主连接持有文件锁：
+
+- 同进程第二连接：打开成功（SQLite 延迟加锁），首条语句抛 `errcode: 5`（SQLITE_BUSY）→ 映射为 `WORKSPACE_LOCKED`。
+- 跨进程：持锁进程存活期间，另一进程首条语句同样 `errcode: 5`；进程退出（含 SIGKILL）后 OS 立即释放文件锁，重新打开成功，无陈锁。
+- 以上行为由 `tests/integration/workspace-lock.process.test.ts` 以真实子进程持续验证。
+
 ## 网络与注册表
 
 - npm registry `https://registry.npmjs.org/` 可达，`npm view` 查询正常（TypeScript/vitest/ajv/@types/node 均现场核查）。

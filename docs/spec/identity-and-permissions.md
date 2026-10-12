@@ -19,6 +19,11 @@
 
 ## 3. 权限校验模型
 
+P1 起的两个入口（实现于 `@roledock/core`）：
+
+- **所有者管理入口**（`WorkspaceAdmin`，CLI `admin policy/grant/revoke`）：本地可信面，唯一能把能力写入授权（workspace.config_json.policy.grants）的地方。安装角色包永不写授权。
+- **会话调用入口**（`Coordinator`）：操作者必须持有受信会话身份（P3 起由 sessions.open 签发落库）；输入中的 role_id 只是目标或声明，不参与授权。
+
 P0 固化校验顺序（实现于 P1+）：
 
 1. 解析调用身份（会话绑定 → 实例 → 角色与代次）；

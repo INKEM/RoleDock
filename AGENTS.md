@@ -18,8 +18,8 @@ CLI 本地运行：`node packages/cli/dist/bin.js --help`（先 `npm run build`�
 ## 仓库结构
 
 - `packages/protocol` — JSON Schema（draft 2020-12）、TS 类型镜像、错误码注册表、ajv 校验。Schema 是契约的代码侧权威。
-- `packages/core` — 协调器操作面（`Coordinator`）。P0 只定义操作面与失败契约：所有方法抛 `NOT_IMPLEMENTED`。
-- `packages/cli` — `roledock` 命令行；默认人类可读，`--json` 输出机器信封；退出码 0 成功 / 1 运行错误 / 2 用法错误。
+- `packages/core` — 协调器与状态层。P1 已实现：角色包加载/安装/查询（`WorkspaceStore` 带校验和迁移、单协调器独占锁、事务）、能力策略与 `WorkspaceAdmin` 所有者入口；会话/交接/文档/请求操作仍抛 `NOT_IMPLEMENTED`。
+- `packages/cli` — `roledock` 命令行；默认人类可读，`--json` 输出机器信封；退出码 0 成功 / 1 运行错误 / 2 用法错误。已接通：`roles install/list/resolve`、`admin policy/grant/revoke`。
 - `adapters/`、`examples/` — 目录约定（P1/P5 交付），不放置不可运行的空壳包。
 - `docs/spec/` — 规范（对象与状态机、身份与权限、SDK 操作、适配契约）。
 - `docs/adr/` — 架构决策记录；改架构先补 ADR。
