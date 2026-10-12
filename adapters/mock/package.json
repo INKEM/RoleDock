@@ -1,0 +1,20 @@
+{
+  "name": "@roledock/adapter-mock",
+  "version": "0.1.0-alpha.0",
+  "description": "RoleDock mock Harness adapter: proves core state mechanics (handoff, isolation, failure modes) without a real host. Not evidence of real-harness verification.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@roledock/core": "0.1.0-alpha.0",
+    "@roledock/protocol": "0.1.0-alpha.0"
+  }
+}

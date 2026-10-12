@@ -171,6 +171,44 @@ export const MIGRATIONS: readonly Migration[] = [
       )`,
     ],
   },
+  {
+    id: 3,
+    name: "sessions-handoff",
+    statements: [
+      // P3 marks handoff predecessors as "superseded" (they lost formal
+      // publish rights); SQLite cannot alter a CHECK, so agent_instances is
+      // rebuilt and backfilled.
+      `CREATE TABLE agent_instances_new (
+        id TEXT PRIMARY KEY,
+        role_id TEXT NOT NULL REFERENCES roles(role_id),
+        generation INTEGER NOT NULL,
+        predecessor_instance_id TEXT,
+        state TEXT NOT NULL CHECK (state IN ('active', 'retired', 'superseded')),
+        created_at TEXT NOT NULL
+      )`,
+      `INSERT INTO agent_instances_new SELECT * FROM agent_instances`,
+      `DROP TABLE agent_instances`,
+      `ALTER TABLE agent_instances_new RENAME TO agent_instances`,
+      `CREATE TABLE bootstrap_bundles (
+        bundle_id TEXT PRIMARY KEY,
+        workspace_id TEXT NOT NULL,
+        role_id TEXT NOT NULL,
+        source_generation INTEGER NOT NULL,
+        source_knowledge_revision INTEGER NOT NULL,
+        checkpoint_id TEXT NOT NULL,
+        checkpoint_hash TEXT NOT NULL,
+        contract_package_name TEXT NOT NULL,
+        contract_package_version TEXT NOT NULL,
+        contract_content_hash TEXT NOT NULL,
+        payload_hash TEXT NOT NULL,
+        state TEXT NOT NULL CHECK (state IN ('prepared', 'provisioned', 'activated', 'abandoned')),
+        provisioned_host_session TEXT,
+        creation_key TEXT UNIQUE,
+        created_at TEXT NOT NULL,
+        activated_at TEXT
+      )`,
+    ],
+  },
 ];
 
 function migrationChecksum(migration: Migration): string {

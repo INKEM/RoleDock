@@ -51,3 +51,11 @@
 | 真实 Harness | 角色载入、上下文隔离、端到端 | 唯一可证明"真实接入"的层 |
 
 规则：Mock 与固定回答夹具的通过记录**不得**被写成真实 Harness 验证证据；真实 Harness 测试单独标记，跳过不算通过。
+
+## 5. Mock 参考实现（P3 交付）
+
+`@roledock/adapter-mock`（`adapters/mock/`）：内存宿主，可配置能力声明与故障注入（创建硬失败 / 创建后不确定、前 N 次不确定），记录宿主会话 transcript 与已载入 bundle，createSession 校验 bundle 内容哈希；nativeFork 拒绝跨角色全量私人历史。P3 的全部交接状态测试以它运行——**这些测试只证明核心状态机制，不构成真实宿主验证**。
+
+## 6. 术语映射
+
+交接指针冲突在阶段提示词中曾称 HEAD_CONFLICT；协议错误码注册表（P0 固化）定名 **`GENERATION_CONFLICT`**，两者同义，规范与实现统一使用后者。

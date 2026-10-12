@@ -38,22 +38,22 @@
 - 错误：`NOT_FOUND`、`ROLE_UNINITIALIZED`（无主实例时以状态字段表达）
 - 原子性：只读
 
-## 2. sessions
+## 2. sessions（P3 交付）
 
 ### sessions.open
-- 输入：角色 ID、宿主适配器选择、创建键（幂等）、首代初始化参数
-- 输出：会话 ID、绑定的实例与代次；首次打开时含自动初始化的 BootstrapBundle 内容
+- 输入：角色 ID、`inherit:"latest"`（已初始化角色必填）、创建键（幂等）、适配器注入
+- 输出：会话 ID、实例 ID、代次、前任实例、交接信息（bundle_id/checkpoint_id/reprepared）
 - 身份：工作空间用户（产生新的受信绑定）
-- 前置：角色已安装；目标代次状态一致
-- 错误：`NOT_FOUND`、`VALIDATION_FAILED`、`ADAPTER_CAPABILITY_MISSING`
-- 幂等：创建键同键同内容 → 返回原会话；异内容 → `IDEMPOTENCY_CONFLICT`
-- 原子性：A（绑定与状态）+ O（宿主会话创建）
+- 语义：未初始化角色自动初始化第 1 代；已初始化角色执行 prepare→provision→activate 完整交接；准备期知识漂移自动重准备（上限 3 次）；指针被并发移动 → `GENERATION_CONFLICT` 不重准备
+- 错误：`NOT_FOUND`、`VALIDATION_FAILED`、`GENERATION_CONFLICT`、`REVISION_CONFLICT`、`IDEMPOTENCY_CONFLICT`、`ADAPTER_CAPABILITY_MISSING`
+- 幂等：创建键同键同内容 → 返回原会话；同键不确定态 → 按创建键对账恢复，不盲目新建
+- 原子性：A（绑定与指针切换）+ O（宿主会话创建）
 
 ### sessions.resume
 - 输入：已有会话 ID
-- 输出：会话当前状态
-- 语义：恢复 ≠ 继承；不加代次、不触发交接
-- 错误：`NOT_FOUND`、`INVALID_STATE_TRANSITION`
+- 输出：{resumed, method:"native"|null, generation, alternative?}
+- 语义：仅适配器声明 `nativeResume` 时原生恢复；适配器不持有宿主时如实 `resumed:false` 并指向语义继承；**永不加代次、不动主指针**
+- 错误：`NOT_FOUND`
 - 原子性：只读 + 适配器协商
 
 ## 3. documents
@@ -88,23 +88,22 @@
 - 错误：`PERMISSION_DENIED`、`INVALID_STATE_TRANSITION`（旧代次）、`REVISION_CONFLICT`
 - 原子性：A（发布 + knowledge_revision 递增同一事务）
 
-## 4. handoffs
+## 4. handoffs（P3 交付）
 
 ### handoffs.prepare
-- 输入：角色 ID；可选来源 Checkpoint
-- 输出：BootstrapBundle（含 bundle_id、source_generation、source_knowledge_revision）
-- 身份：当前主实例
-- 前置：角色有主实例；读取期间 knowledge_revision 不变，否则重新准备
-- 错误：`ROLE_UNINITIALIZED`、`REVISION_CONFLICT`
+- 输入：当前主实例会话 ID（+ 可选角色 ID，缺省取绑定角色）
+- 输出：bundle_id、source_generation、source_knowledge_revision、checkpoint_id、bundle payload 及其哈希
+- 身份：当前主实例会话（咨询分支与旧代次拒绝）
+- 语义：固化 checkpoint（文档快照）与角色包契约三元组；不改主指针
+- 错误：`ROLE_UNINITIALIZED`、`INVALID_STATE_TRANSITION`、`VALIDATION_FAILED`
 - 原子性：A（Checkpoint/bundle 落库）
 
 ### handoffs.activate
-- 输入：bundle_id、已创建宿主会话的确认凭据
-- 输出：新 RoleHead（generation+1）；旧实例撤权
-- 前置：比较并交换——RoleHead 的 generation/knowledge_revision 仍等于 bundle 来源值；并发仅一个成功
-- 错误：`GENERATION_CONFLICT`、`REVISION_CONFLICT`、`NOT_FOUND`
-- 幂等：同一 bundle 已激活 → 幂等返回
-- 原子性：A（指针切换 + 撤权）；宿主创建属上一步 O
+- 输入：bundle_id（bundle 尚未 provision 时由协调器适配器按需 provision）
+- 输出：新会话/实例 ID、generation、predecessor_instance_id
+- 前置：比较并交换——generation 与 knowledge_revision 仍等于 bundle 来源值；并发仅一个成功
+- 错误：`GENERATION_CONFLICT`、`REVISION_CONFLICT`、`INVALID_STATE_TRANSITION`、`NOT_FOUND`、`ADAPTER_CAPABILITY_MISSING`
+- 原子性：A（指针切换 + 旧实例 superseded）；宿主创建为 O
 
 ## 5. requests
 

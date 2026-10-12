@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { Coordinator, WorkspaceAdmin } from "@roledock/core";
+import { MockHarnessAdapter } from "@roledock/adapter-mock";
 import { RoleDockError, toErrorEnvelope } from "@roledock/protocol";
 import type { Envelope } from "@roledock/protocol";
 
@@ -45,9 +46,13 @@ Session identity: documents.* operations require a trusted session — pass
 --session <id>. Sessions are created through the RoleDock SDK session flow
 (production surface lands in P3); the CLI does not mint sessions itself.
 
+  sessions open <role-id>                open a primary session (first initializes;
+                                         later opens run the handoff, inherit=latest)
+  sessions resume <session-id>           resume via the adapter's native capability
+  handoffs prepare [--session id]        freeze a bootstrap bundle (primary session)
+  handoffs activate <bundle-id>          provision + CAS-activate a prepared bundle
+
 Specified but not implemented in this build (they fail with NOT_IMPLEMENTED):
-  sessions open | resume
-  handoffs prepare | activate
   requests create | get | reply | cancel
   artifacts read
 
@@ -217,10 +222,10 @@ const COMMANDS: ReadonlyMap<string, CommandSpec> = new Map([
   ],
   ["knowledge import", { buildInput: (p: readonly string[]) => ({ bundle_dir: requirePositional(p, 0, "bundle directory") }) }],
   // Specified operations without an implementation yet: input is not consumed.
-  ["sessions open", { buildInput: () => ({}) }],
-  ["sessions resume", { buildInput: () => ({}) }],
-  ["handoffs prepare", { buildInput: () => ({}) }],
-  ["handoffs activate", { buildInput: () => ({}) }],
+  ["sessions open", { buildInput: (p: readonly string[]) => ({ role_id: requirePositional(p, 0, "role id"), ...(p[1] !== undefined ? { inherit: p[1] } : { inherit: "latest" }) }) }],
+  ["sessions resume", { buildInput: (p: readonly string[]) => ({ session_id: requirePositional(p, 0, "session id") }) }],
+  ["handoffs prepare", { buildInput: (p: readonly string[], ctx: { session?: string }) => ({ session_id: requireSession(ctx), ...(p[0] !== undefined ? { role_id: p[0] } : {}) }) }],
+  ["handoffs activate", { buildInput: (p: readonly string[]) => ({ bundle_id: requirePositional(p, 0, "bundle id") }) }],
   ["requests create", { buildInput: () => ({}) }],
   ["requests get", { buildInput: () => ({}) }],
   ["requests reply", { buildInput: () => ({}) }],
@@ -374,7 +379,7 @@ export async function runCli(argv: readonly string[], io: CliIo): Promise<CliRes
         admin.close();
       }
     } else {
-      const coordinator = Coordinator.open({ root });
+      const coordinator = Coordinator.open({ root, adapter: new MockHarnessAdapter() });
       try {
         const handler = (coordinator as unknown as Record<string, (input: unknown) => Promise<unknown>>)[
           target.method

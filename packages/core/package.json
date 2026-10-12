@@ -19,5 +19,8 @@
   ],
   "dependencies": {
     "@roledock/protocol": "0.1.0-alpha.0"
+  },
+  "devDependencies": {
+    "@roledock/adapter-mock": "0.1.0-alpha.0"
   }
 }

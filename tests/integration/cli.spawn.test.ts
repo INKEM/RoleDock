@@ -37,7 +37,7 @@ describe("roledock CLI subprocess smoke", () => {
   });
 
   it("fails an unimplemented operation with a valid NOT_IMPLEMENTED envelope on stderr and exit code 1", () => {
-    const result = runCli(["--json", "sessions", "open"]);
+    const result = runCli(["--json", "requests", "get"]);
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
     const envelope = JSON.parse(result.stderr) as ErrorEnvelope;

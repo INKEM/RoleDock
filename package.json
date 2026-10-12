@@ -10,7 +10,8 @@
     "npm": ">=10.9.8"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "adapters/*"
   ],
   "scripts": {
     "build": "tsc -b",

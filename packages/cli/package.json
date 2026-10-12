@@ -17,6 +17,7 @@
     "dist"
   ],
   "dependencies": {
+    "@roledock/adapter-mock": "0.1.0-alpha.0",
     "@roledock/core": "0.1.0-alpha.0",
     "@roledock/protocol": "0.1.0-alpha.0"
   }

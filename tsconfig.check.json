@@ -9,13 +9,16 @@
     "paths": {
       "@roledock/protocol": ["packages/protocol/src/index.ts"],
       "@roledock/core": ["packages/core/src/index.ts"],
-      "@roledock/cli": ["packages/cli/src/index.ts"]
+      "@roledock/cli": ["packages/cli/src/index.ts"],
+      "@roledock/adapter-mock": ["adapters/mock/src/index.ts"]
     }
   },
   "include": [
     "vitest.config.ts",
     "packages/*/src/**/*.ts",
     "packages/*/test/**/*.ts",
+    "adapters/*/src/**/*.ts",
+    "adapters/*/test/**/*.ts",
     "tests/**/*.ts"
   ]
 }

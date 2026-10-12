@@ -39,8 +39,21 @@ prepare → provision → activate → retire
 补充规则：
 
 - 角色首次打开时自动初始化第 1 代主实例；协作请求发现目标角色没有主实例时返回 `ROLE_UNINITIALIZED`，初始化只由显式打开角色完成。
-- **恢复已有会话不等于继承**：`sessions.resume` 不增加代次、不替换主指针、不触发交接校验。
+- **恢复已有会话不等于继承**：`sessions.resume` 只在适配器声明 `nativeResume` 时执行原生恢复；适配器实例不持有该宿主会话时如实返回 `resumed:false` 并指向语义继承（`sessions.open inherit=latest`）。resume 永不加代次、不动主指针。
+- **原生 fork 不是必需能力**（ADR-0002）：核心的继承路径永远是"新建宿主会话 + BootstrapBundle"；跨角色携带全量私人历史的原生分支被拒绝。
 - 交接摘要的完备性通过 Checkpoint 的引用、更新时间与待办登记帮助用户判断；框架不保证模型总结无遗漏，也不承诺"交接后不丢任何上下文"。
+
+### 2a. 交接恢复流程（P3）
+
+| 故障 | 行为 |
+| --- | --- |
+| 准备期间知识变化 | activate CAS 检出 `REVISION_CONFLICT`；编排路径自动**重新准备**（新 checkpoint、新宿主会话，旧 provisioned 宿主废弃关闭），上限 3 次后如实失败 |
+| 两个继承者并发激活 | 单事务比较并交换，恰好一个成功；失败者 `GENERATION_CONFLICT`（即 P3 提示词所称 HEAD_CONFLICT），不得对其重新准备 |
+| 适配器创建失败（宿主侧无效果） | 旧主指针保持不动，bundle → abandoned，会话行 → failed，错误带 `stage:"provision"` 上抛 |
+| 创建状态不明（宿主可能已创建） | 会话行标记 `uncertain`；适配器声明 `lookupSessionByCreationKey` 时按创建键对账续接；未声明时返回带 `execution_uncertain` 的结构化错误。**同 creation_key 重试按创建键对账恢复，不盲目新建宿主会话** |
+| 协调器中途退出 | sessions/bootstrap_bundles 行已先于宿主调用落库；重启后用同一 creation_key 打开即触发上述对账恢复 |
+
+旧实例交接后置 **superseded**：其正式发布即刻被核心拒绝（`INVALID_STATE_TRANSITION`）；原宿主会话的既有对话不被注入任何交接指令——核心在 prepare/provision/activate 中从不调用旧会话的 runTurn。角色包契约在 prepare 时冻结进 bundle，交接载入同一契约（无静默换约；显式升级流程为后续扩展）。
 
 ## 3. 请求（CollaborationRequest）状态机
 

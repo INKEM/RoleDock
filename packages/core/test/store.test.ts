@@ -45,7 +45,7 @@ describe("workspace store", () => {
     const migrations = second.prepare("SELECT count(*) AS n FROM schema_migrations").get() as {
       n: number;
     };
-    expect(migrations.n).toBe(2);
+    expect(migrations.n).toBe(3);
     second.close();
   });
 

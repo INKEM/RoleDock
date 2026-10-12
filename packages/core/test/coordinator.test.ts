@@ -51,15 +51,19 @@ describe("coordinator operation surface", () => {
       "resumeSession",
     ].sort());
     expect(IMPLEMENTED_OPERATIONS).toEqual([
+      "activateHandoff",
       "exportKnowledge",
       "importKnowledge",
       "installRolePack",
       "listDocuments",
       "listRoles",
+      "openSession",
+      "prepareHandoff",
       "proposeDocumentUpdate",
       "publishDocument",
       "readDocument",
       "resolveRole",
+      "resumeSession",
     ]);
   });
 });
@@ -161,7 +165,7 @@ describe("P0 failure contract for the remaining operations", () => {
     const { root } = coordinatorRoot();
     const coordinator = Coordinator.open({ root });
     try {
-      await expect(coordinator.openSession({})).rejects.toSatisfy((error: unknown) => {
+      await expect(coordinator.createRequest({})).rejects.toSatisfy((error: unknown) => {
         return (
           isRoleDockError(error) &&
           error.details !== undefined &&

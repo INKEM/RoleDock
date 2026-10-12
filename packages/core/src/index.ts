@@ -36,6 +36,18 @@ export { buildCheckpoint, getLatestCheckpoint } from "./documents/checkpoint.js"
 export type { BuildCheckpointInput, BuiltCheckpoint } from "./documents/checkpoint.js";
 export { exportKnowledge, importKnowledge } from "./knowledge/transfer.js";
 export type { ExportResult, ImportResult, ImportSkip } from "./knowledge/transfer.js";
+export type {
+  AdapterCapabilities,
+  AdapterSessionHandle,
+  AdapterSessionResult,
+  BootstrapLoad,
+  CreateSessionInput,
+  HarnessAdapter,
+  NativeForkRequest,
+  TurnInput,
+  TurnResult,
+} from "./ports/adapter.js";
+export { isFullAccess } from "./ports/adapter.js";
 export {
   resolveSessionIdentity,
   openPrimarySession,
@@ -43,6 +55,9 @@ export {
   listReceiptsForSession,
 } from "./sessions/internal.js";
 export type { SessionRow, NewReadReceipt } from "./sessions/internal.js";
+export { prepareHandoff, provisionHandoff, activateHandoff } from "./sessions/handoff.js";
+export type { HandoffPreparation, BundleRow, ActivationResult } from "./sessions/handoff.js";
+export type { OpenSessionInput, OpenSessionResult, ResumeSessionResult } from "./sessions/open.js";
 export { evaluate, assertCapabilityName } from "./policy.js";
 export type { CapabilityGrants } from "./policy.js";
 export type { TrustedIdentity } from "./identity.js";

@@ -154,10 +154,10 @@ describe("cli implemented operations (P1)", () => {
 });
 
 describe("cli unimplemented operations fail honestly", () => {
-  it("exits 1 with a NOT_IMPLEMENTED envelope for sessions open in json mode", async () => {
+  it("exits 1 with a NOT_IMPLEMENTED envelope for requests create in json mode", async () => {
     const root = makeRoot();
     const cap = capture();
-    const result = await runCli(["--json", "--root", root, "sessions", "open"], cap.io);
+    const result = await runCli(["--json", "--root", root, "requests", "create"], cap.io);
     expect(result.exitCode).toBe(1);
     expect(cap.out()).toBe("");
     const envelope = JSON.parse(cap.err()) as ErrorEnvelope;
@@ -177,10 +177,6 @@ describe("cli unimplemented operations fail honestly", () => {
   it("keeps all unimplemented commands wired to the SDK surface", async () => {
     const root = makeRoot();
     const commands: Array<[string, string]> = [
-      ["sessions", "open"],
-      ["sessions", "resume"],
-      ["handoffs", "prepare"],
-      ["handoffs", "activate"],
       ["requests", "create"],
       ["requests", "get"],
       ["requests", "reply"],
@@ -307,5 +303,84 @@ describe("cli P2 operations", () => {
     const importEnvelope = JSON.parse(importCap.out()) as OutputEnvelope<{ created_candidates: unknown[]; skipped: unknown[] }>;
     expect(importEnvelope.data?.created_candidates).toHaveLength(1);
     expect(importEnvelope.data?.skipped).toEqual([]);
+  });
+});
+
+describe("cli P3 session operations", () => {
+  it("opens a session through the full handoff via the CLI", async () => {
+    const root = makeRoot();
+    const packDir = join(root, "src-pack");
+    writePack({ dir: packDir, name: "p3-pack", roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }] }] });
+    expect((await runCli(["--json", "--root", root, "roles", "install", packDir], capture().io)).exitCode).toBe(0);
+
+    const firstCap = capture();
+    const first = await runCli(["--json", "--root", root, "sessions", "open", "keeper"], firstCap.io);
+    expect(first.exitCode).toBe(0);
+    const firstEnvelope = JSON.parse(firstCap.out()) as OutputEnvelope<{
+      session_id: string;
+      instance_id: string;
+      generation: number;
+      handoff: { performed: boolean };
+    }>;
+    expect(firstEnvelope.data).toMatchObject({ generation: 1, handoff: { performed: false } });
+
+    // Publish knowledge from the CLI-opened primary so the successor inherits it.
+    const bodyFile = join(root, "state.md");
+    (await import("node:fs")).writeFileSync(bodyFile, "inherited state");
+    expect(
+      (
+        await runCli([
+          "--json",
+          "--root",
+          root,
+          "--session",
+          firstEnvelope.data?.session_id ?? "",
+          "documents",
+          "publish",
+          "state",
+          bodyFile,
+          "0",
+          "1",
+        ], capture().io)
+      ).exitCode,
+    ).toBe(0);
+
+    const secondCap = capture();
+    const second = await runCli(["--json", "--root", root, "sessions", "open", "keeper"], secondCap.io);
+    expect(second.exitCode).toBe(0);
+    const secondEnvelope = JSON.parse(secondCap.out()) as OutputEnvelope<{
+      session_id: string;
+      generation: number;
+      predecessor_instance_id: string;
+      handoff: { performed: boolean; bundle_id: string };
+    }>;
+    expect(secondEnvelope.data).toMatchObject({
+      generation: 2,
+      predecessor_instance_id: firstEnvelope.data?.instance_id ?? "",
+      handoff: { performed: true },
+    });
+
+    // Resume from a fresh CLI process: the mock adapter is in-memory, so the
+    // predecessor process's host session is unknown to it — the result
+    // honestly reports that native resume did not happen and points at
+    // semantic inheritance. Generation stays untouched either way.
+    const resumeCap = capture();
+    const resumed = await runCli(["--json", "--root", root, "sessions", "resume", secondEnvelope.data?.session_id ?? ""], resumeCap.io);
+    expect(resumed.exitCode).toBe(0);
+    const resumeEnvelope = JSON.parse(resumeCap.out()) as OutputEnvelope<{ resumed: boolean; generation: number }>;
+    expect(resumeEnvelope.data).toMatchObject({ resumed: false, generation: 2 });
+  });
+
+  it("requires a handoff on an initialized role without inherit", async () => {
+    const root = makeRoot();
+    const packDir = join(root, "src-pack");
+    writePack({ dir: packDir, name: "p3b-pack", roles: [{ id: "keeper" }] });
+    expect((await runCli(["--json", "--root", root, "roles", "install", packDir], capture().io)).exitCode).toBe(0);
+    await runCli(["--json", "--root", root, "sessions", "open", "keeper"], capture().io);
+    const cap = capture();
+    const result = await runCli(["--json", "--root", root, "sessions", "open", "keeper", "none"], cap.io);
+    expect(result.exitCode).toBe(1);
+    const envelope = JSON.parse(cap.err()) as ErrorEnvelope;
+    expect(envelope.error.code).toBe("VALIDATION_FAILED");
   });
 });

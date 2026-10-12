@@ -25,6 +25,22 @@ import { WorkspaceStore } from "./store/workspace.js";
 import type { HandleOptions } from "./options.js";
 import { registerCoordinatorStore } from "./internal-store.js";
 import { asRecord, optionalString, requiredString } from "./parse.js";
+import type { HarnessAdapter } from "./ports/adapter.js";
+import {
+  activateHandoff,
+  prepareHandoff,
+  provisionHandoff,
+  rehydratePreparation as rehydratePreparationPublic,
+} from "./sessions/handoff.js";
+import { openSession, resumeSession } from "./sessions/open.js";
+import type {
+  ActivationResult,
+  HandoffPreparation,
+} from "./sessions/handoff.js";
+import type {
+  OpenSessionResult,
+  ResumeSessionResult,
+} from "./sessions/open.js";
 
 const SPEC = "docs/spec/sdk-operations.md";
 
@@ -54,12 +70,12 @@ function notImplemented(operation: string): RoleDockError {
  * same workspace fails with WORKSPACE_LOCKED. Close with close().
  *
  * Implemented operations: roles.install/list/resolve (P1),
- * documents.list/read/propose/publish and knowledge.export/import (P2) —
- * plus the owner-side WorkspaceAdmin entry for capability policy. Session
- * identity for P2 operations comes from session bindings created through the
- * test-only @roledock/core/testing entry; sessions.open lands in P3. Every
- * other operation rejects with NOT_IMPLEMENTED until its delivery phase;
- * none of them may fake success. Contracts: docs/spec/sdk-operations.md.
+ * documents.* and knowledge.export/import (P2), sessions.open/resume and
+ * handoffs.prepare/activate (P3) — plus the owner-side WorkspaceAdmin entry.
+ * Session operations need a HarnessAdapter passed to Coordinator.open; the
+ * core never constructs hosts itself. Every other operation rejects with
+ * NOT_IMPLEMENTED until its delivery phase; none of them may fake success.
+ * Contracts: docs/spec/sdk-operations.md.
  */
 export class Coordinator {
   static open(options: HandleOptions): Coordinator {
@@ -70,12 +86,26 @@ export class Coordinator {
       store.close();
       throw error;
     }
-    const coordinator = new Coordinator(store);
+    const coordinator = new Coordinator(store, options.adapter);
     registerCoordinatorStore(coordinator, store);
     return coordinator;
   }
 
-  private constructor(private readonly store: WorkspaceStore) {}
+  private constructor(
+    private readonly store: WorkspaceStore,
+    private readonly adapter?: HarnessAdapter,
+  ) {}
+
+  private requireAdapter(): HarnessAdapter {
+    if (this.adapter === undefined) {
+      throw new RoleDockError(
+        "VALIDATION_FAILED",
+        "This operation needs a Harness adapter; pass one via Coordinator.open({ adapter }).",
+        { details: { operation: "adapter" } },
+      );
+    }
+    return this.adapter;
+  }
 
   get workspaceId(): string {
     return this.store.workspaceId;
@@ -113,12 +143,76 @@ export class Coordinator {
     return resolveRoleRecord(this.store, requiredString(record, "role_id"));
   }
 
-  // -- sessions --------------------------------------------------------------
-  async openSession(_input: unknown): Promise<never> {
-    throw notImplemented("sessions.open");
+  // -- sessions & handoffs (implemented in P3) ---------------------------------
+  async openSession(input: unknown): Promise<OpenSessionResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const openInput: Parameters<typeof openSession>[2] = {
+      role_id: requiredString(record, "role_id"),
+    };
+    const inherit = optionalString(record, "inherit");
+    if (inherit !== undefined) {
+      if (inherit !== "latest") {
+        throw new RoleDockError("VALIDATION_FAILED", 'Input field "inherit" must be "latest".');
+      }
+      openInput.inherit = "latest";
+    }
+    const creationKey = optionalString(record, "creation_key");
+    if (creationKey !== undefined) openInput.creation_key = creationKey;
+    const workspaceId = optionalString(record, "workspace_id");
+    if (workspaceId !== undefined) openInput.workspace_id = workspaceId;
+    return openSession(this.store, this.requireAdapter(), openInput);
   }
-  async resumeSession(_input: unknown): Promise<never> {
-    throw notImplemented("sessions.resume");
+
+  async resumeSession(input: unknown): Promise<ResumeSessionResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    return resumeSession(this.store, this.requireAdapter(), {
+      session_id: requiredString(record, "session_id"),
+      workspace_id: optionalString(record, "workspace_id"),
+    });
+  }
+
+  async prepareHandoff(input: unknown): Promise<{
+    bundle_id: string;
+    role_id: string;
+    source_generation: number;
+    source_knowledge_revision: number;
+    checkpoint_id: string;
+    payload: string;
+    payload_hash: string;
+  }> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const prep = prepareHandoff(this.store, {
+      session_id: requiredString(record, "session_id"),
+      role_id: optionalString(record, "role_id"),
+    });
+    return {
+      bundle_id: prep.bundle_id,
+      role_id: prep.role_id,
+      source_generation: prep.source_generation,
+      source_knowledge_revision: prep.source_knowledge_revision,
+      checkpoint_id: prep.checkpoint_id,
+      payload: prep.payload,
+      payload_hash: prep.payload_hash,
+    };
+  }
+
+  async activateHandoff(input: unknown): Promise<ActivationResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const bundleId = requiredString(record, "bundle_id");
+    // Provision on demand so the public two-step surface (prepare/activate)
+    // covers the host creation; the internal orchestration uses the
+    // three-step flow directly.
+    const prep = this.rehydratePreparation(bundleId);
+    await provisionHandoff(this.store, this.requireAdapter(), prep);
+    return activateHandoff(this.store, { bundle_id: bundleId });
+  }
+
+  private rehydratePreparation(bundleId: string): HandoffPreparation {
+    return rehydratePreparationPublic(this.store, bundleId);
   }
 
   // -- documents (implemented in P2) ------------------------------------------
@@ -198,14 +292,6 @@ export class Coordinator {
     return publishDocument(this.store, publishInput);
   }
 
-  // -- handoffs --------------------------------------------------------------
-  async prepareHandoff(_input: unknown): Promise<never> {
-    throw notImplemented("handoffs.prepare");
-  }
-  async activateHandoff(_input: unknown): Promise<never> {
-    throw notImplemented("handoffs.activate");
-  }
-
   // -- requests --------------------------------------------------------------
   async createRequest(_input: unknown): Promise<never> {
     throw notImplemented("requests.create");
@@ -251,7 +337,7 @@ export class Coordinator {
 
 /** All SDK operation names, derived from the Coordinator surface itself. */
 /** Lifecycle and non-operation members that are not part of the SDK surface. */
-const NON_OPERATIONS = new Set(["constructor", "close"]);
+const NON_OPERATIONS = new Set(["constructor", "close", "requireAdapter", "rehydratePreparation"]);
 
 export function coordinatorOperations(): string[] {
   const proto = Coordinator.prototype as unknown as Record<string, unknown>;
@@ -279,6 +365,10 @@ export const IMPLEMENTED_OPERATIONS: readonly string[] = [
   "publishDocument",
   "exportKnowledge",
   "importKnowledge",
+  "openSession",
+  "resumeSession",
+  "prepareHandoff",
+  "activateHandoff",
 ].sort();
 
 /** P1 additions, kept for tests that split delivery phases. */

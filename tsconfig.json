@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/protocol" },
     { "path": "packages/core" },
-    { "path": "packages/cli" }
+    { "path": "packages/cli" },
+    { "path": "adapters/mock" }
   ]
 }
