@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:collaboration-request",
+  "title": "CollaborationRequest",
+  "description": "An isolated collaboration request from one role session to another role. Target generation and knowledge snapshot are fixed inside the accept transaction and never migrate afterwards. Terminal states are completed, failed, cancelled, expired; terminal requests cannot run again or publish results.",
+  "type": "object",
+  "properties": {
+    "request_id": { "$ref": "#/$defs/id" },
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Client-supplied. Same key plus same content returns the original request; same key with different content is an IDEMPOTENCY_CONFLICT."
+    },
+    "initiating": {
+      "type": "object",
+      "description": "Trusted session identity of the requester, recorded from the session binding. A client-asserted role_id never grants role permissions.",
+      "properties": {
+        "session_id": { "$ref": "#/$defs/id" },
+        "instance_id": { "$ref": "#/$defs/id" },
+        "role_id": { "$ref": "#/$defs/id" }
+      },
+      "required": ["session_id", "instance_id", "role_id"],
+      "additionalProperties": false
+    },
+    "target_role_id": { "$ref": "#/$defs/id" },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "target_generation": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Generation of the target role's primary instance bound at receive time; the latest successor at that moment."
+        },
+        "knowledge_revision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Target role knowledge_revision bound at receive time. Queued and running requests keep this snapshot."
+        },
+        "checkpoint_id": {
+          "$ref": "#/$defs/id",
+          "description": "Optional reference to the knowledge snapshot material bound with the request."
+        }
+      },
+      "required": ["target_generation", "knowledge_revision"],
+      "additionalProperties": false
+    },
+    "budget": {
+      "type": "object",
+      "minProperties": 1,
+      "properties": {
+        "max_turns": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Upper bound on execution turns for the isolated branch."
+        },
+        "deadline": {
+          "$ref": "#/$defs/timestamp",
+          "description": "After this instant an unfinished request expires."
+        }
+      },
+      "additionalProperties": false
+    },
+    "state": {
+      "enum": [
+        "accepted",
+        "queued",
+        "running",
+        "awaiting_input",
+        "completed",
+        "failed",
+        "cancelled",
+        "expired"
+      ],
+      "description": "Request state machine: docs/spec/objects-and-state-machines.md. Transitions into terminal states are irreversible."
+    },
+    "execution_uncertain": {
+      "type": "boolean",
+      "description": "Sub-state for accepted/queued/running: the host-side creation outcome is unknown (e.g. coordinator restart during provisioning). An uncertain request must not be blindly retried with side effects; resolve by lookup first."
+    },
+    "read_receipts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/readReceipt" },
+      "description": "Documents the requesting session actually read before creating this request."
+    },
+    "read_exception_rationale": {
+      "type": "string",
+      "description": "Verifiable justification required when no document was read or none was readable."
+    },
+    "result": {
+      "type": "object",
+      "description": "Registered once, on entering completed. Terminal requests cannot publish new results.",
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/id" },
+        "content_hash": { "$ref": "#/$defs/sha256" },
+        "summary": { "type": "string" }
+      },
+      "required": ["artifact_id", "content_hash"],
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "$ref": "#/$defs/errorCode" },
+        "message": { "type": "string", "minLength": 1 }
+      },
+      "required": ["code", "message"],
+      "additionalProperties": false
+    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" },
+    "terminal_at": {
+      "$ref": "#/$defs/timestamp",
+      "description": "Required once the request is in a terminal state; must be absent otherwise."
+    }
+  },
+  "required": [
+    "request_id",
+    "workspace_id",
+    "idempotency_key",
+    "initiating",
+    "target_role_id",
+    "binding",
+    "state",
+    "created_at",
+    "updated_at"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "readReceipt": {
+      "type": "object",
+      "properties": {
+        "document_key": { "$ref": "#/$defs/id" },
+        "revision": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["document_key"],
+      "additionalProperties": false
+    },
+    "errorCode": {
+      "enum": [
+        "NOT_IMPLEMENTED",
+        "VALIDATION_FAILED",
+        "NOT_FOUND",
+        "PERMISSION_DENIED",
+        "ROLE_ALREADY_EXISTS",
+        "ROLE_UNINITIALIZED",
+        "GENERATION_CONFLICT",
+        "REVISION_CONFLICT",
+        "INVALID_STATE_TRANSITION",
+        "IDEMPOTENCY_CONFLICT",
+        "REQUEST_NOT_TERMINABLE",
+        "ADAPTER_CAPABILITY_MISSING",
+        "INTERNAL"
+      ]
+    }
+  }
+}

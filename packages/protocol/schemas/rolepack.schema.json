@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:rolepack",
+  "title": "RolePack manifest",
+  "description": "Declarative role package manifest. A role pack is data and templates only: it never grants execution or publish rights. requested_capabilities is a requirements declaration, not an authorization credential. Package-relative paths must stay inside the package root; the loader additionally rejects traversal and out-of-root symlinks.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "0.1",
+      "description": "Version of the RolePack manifest format."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$",
+      "description": "Package name, unique within a workspace after installation."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$",
+      "description": "Package version, semver shaped. Version plus content hash enters every BootstrapBundle and audit record."
+    },
+    "requires_protocol": {
+      "const": "0.1",
+      "description": "RoleDock protocol version the pack was written against."
+    },
+    "description": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/roleDefinition" }
+    }
+  },
+  "required": ["schema_version", "name", "version", "requires_protocol", "roles"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "packagePath": {
+      "type": "string",
+      "description": "Package-root-relative POSIX path. Must start with an alphanumeric character, which rejects absolute paths, drive letters, './' forms and backslashes; '..' segments are rejected by pattern. Deeper traversal and symlink escape checks happen in the installer (P1).",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]{0,255}$",
+      "not": { "pattern": "(^|/)\\.\\.(/|$)" }
+    },
+    "capabilityName": {
+      "type": "string",
+      "description": "Namespaced capability request such as 'documents.read'. Names are free-form in the protocol; the workspace owner's policy decides what is granted.",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+    },
+    "documentSpec": {
+      "type": "object",
+      "properties": {
+        "key": { "$ref": "#/$defs/id" },
+        "template": {
+          "$ref": "#/$defs/packagePath",
+          "description": "Path to the document template file inside the pack."
+        },
+        "visibility": {
+          "enum": ["project", "role", "private"],
+          "description": "Requested default visibility: project (all roles), role (owning role only), private (owning instance only). Actual access is enforced by the workspace policy."
+        },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string" }
+      },
+      "required": ["key", "template", "visibility"],
+      "additionalProperties": false
+    },
+    "outputSchemaSpec": {
+      "type": "object",
+      "properties": {
+        "key": { "$ref": "#/$defs/id" },
+        "schema": {
+          "$ref": "#/$defs/packagePath",
+          "description": "Path to a JSON Schema file inside the pack used to validate outputs of that kind."
+        }
+      },
+      "required": ["key", "schema"],
+      "additionalProperties": false
+    },
+    "roleDefinition": {
+      "type": "object",
+      "description": "One role. Role ids are pack-local identifiers; the core contains no role name enumeration of any kind.",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "description": { "type": "string" },
+        "instructions": {
+          "$ref": "#/$defs/packagePath",
+          "description": "Path to the role instruction document inside the pack."
+        },
+        "documents": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/documentSpec" }
+        },
+        "output_schemas": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/outputSchemaSpec" }
+        },
+        "requested_capabilities": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/capabilityName" }
+        }
+      },
+      "required": ["id", "title", "instructions"],
+      "additionalProperties": false
+    }
+  }
+}

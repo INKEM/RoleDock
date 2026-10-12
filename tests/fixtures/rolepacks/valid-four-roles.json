@@ -1,0 +1,49 @@
+{
+  "schema_version": "0.1",
+  "name": "conformance-four-roles",
+  "version": "0.1.0",
+  "requires_protocol": "0.1",
+  "description": "Conformance fixture: four mutually distinct roles with arbitrary, non-demo names.",
+  "roles": [
+    {
+      "id": "archivist",
+      "title": "Archivist",
+      "description": "Keeps records orderly.",
+      "instructions": "roles/archivist.md",
+      "documents": [
+        { "key": "catalog", "template": "templates/catalog.md", "visibility": "project" },
+        { "key": "notes", "template": "templates/notes.md", "visibility": "role" }
+      ],
+      "requested_capabilities": ["documents.read", "documents.publish"]
+    },
+    {
+      "id": "cartographer",
+      "title": "Cartographer",
+      "description": "Draws the map of what is known.",
+      "instructions": "roles/cartographer.md",
+      "documents": [
+        { "key": "atlas", "template": "templates/atlas.md", "visibility": "project" }
+      ],
+      "output_schemas": [
+        { "key": "map", "schema": "schemas/map.json" }
+      ],
+      "requested_capabilities": ["documents.read", "documents.propose", "requests.create"]
+    },
+    {
+      "id": "gardener",
+      "title": "Gardener",
+      "instructions": "roles/gardener.md",
+      "documents": [
+        { "key": "beds", "template": "templates/beds.md", "visibility": "project" },
+        { "key": "private-log", "template": "templates/private-log.md", "visibility": "private" }
+      ],
+      "requested_capabilities": ["documents.read"]
+    },
+    {
+      "id": "navigator",
+      "title": "Navigator",
+      "instructions": "roles/navigator.md",
+      "requested_capabilities": ["documents.read", "requests.create"]
+    }
+  ]
+}

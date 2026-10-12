@@ -1,0 +1,23 @@
+{
+  "name": "@roledock/cli",
+  "version": "0.1.0-alpha.0",
+  "description": "RoleDock command line interface. Human-readable by default, machine-readable JSON with --json.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "roledock": "dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@roledock/core": "0.1.0-alpha.0",
+    "@roledock/protocol": "0.1.0-alpha.0"
+  }
+}

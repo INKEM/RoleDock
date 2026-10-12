@@ -1,0 +1,10 @@
+{
+  "schema_version": "0.1",
+  "name": "invalid-unknown-property",
+  "version": "0.1.0",
+  "requires_protocol": "0.1",
+  "roles": [
+    { "id": "alpha", "title": "Alpha", "instructions": "roles/alpha.md" }
+  ],
+  "auto_grant_all_permissions": true
+}

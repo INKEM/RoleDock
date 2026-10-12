@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:output-envelope",
+  "title": "Output envelope",
+  "description": "Machine-readable success envelope used by SDK results and CLI --json output.",
+  "type": "object",
+  "properties": {
+    "ok": { "const": true },
+    "data": {
+      "description": "Operation-specific payload; shape is defined per SDK operation in docs/spec/sdk-operations.md."
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Optional correlation id carried through CLI and protocol bindings."
+    }
+  },
+  "required": ["ok"],
+  "additionalProperties": false
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@roledock/protocol",
+  "version": "0.1.0-alpha.0",
+  "description": "RoleDock protocol contracts: JSON Schemas, TypeScript types, the error code registry and validation.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./schemas/*": "./schemas/*"
+  },
+  "files": [
+    "dist",
+    "schemas"
+  ],
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
+  }
+}

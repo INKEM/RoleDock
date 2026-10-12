@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:checkpoint",
+  "title": "Checkpoint",
+  "description": "Immutable knowledge snapshot a role prepares for handoff: document snapshots, a handoff summary, user decision references, outstanding todos and provenance sources. Completeness is signalled through references, update times and todo registration; the framework never claims the summary is lossless.",
+  "type": "object",
+  "properties": {
+    "checkpoint_id": { "$ref": "#/$defs/id" },
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "role_id": { "$ref": "#/$defs/id" },
+    "generation": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Generation of the instance that prepared this checkpoint."
+    },
+    "knowledge_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Role knowledge_revision at preparation time. If the role's knowledge_revision changes before activation, the handoff must be re-prepared."
+    },
+    "document_snapshots": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/documentSnapshot" }
+    },
+    "handoff_summary": {
+      "type": "object",
+      "properties": {
+        "format": { "enum": ["markdown"] },
+        "body": { "type": "string" },
+        "content_hash": {
+          "$ref": "#/$defs/sha256",
+          "description": "SHA-256 of body."
+        }
+      },
+      "required": ["format", "body", "content_hash"],
+      "additionalProperties": false
+    },
+    "user_decision_refs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/userDecisionRef" }
+    },
+    "todos": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/todo" }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "created_by_instance_id": { "$ref": "#/$defs/id" },
+    "created_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "required": [
+    "checkpoint_id",
+    "workspace_id",
+    "role_id",
+    "generation",
+    "knowledge_revision",
+    "document_snapshots",
+    "handoff_summary",
+    "todos",
+    "sources",
+    "created_by_instance_id",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "documentSnapshot": {
+      "type": "object",
+      "properties": {
+        "document_key": { "$ref": "#/$defs/id" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "content_hash": { "$ref": "#/$defs/sha256" }
+      },
+      "required": ["document_key", "revision", "content_hash"],
+      "additionalProperties": false
+    },
+    "userDecisionRef": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the user decided and when, in the author role's own words."
+        },
+        "document_key": {
+          "$ref": "#/$defs/id",
+          "description": "Optional document anchoring the decision."
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Document revision the decision was recorded against."
+        }
+      },
+      "required": ["summary"],
+      "additionalProperties": false
+    },
+    "todo": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string", "minLength": 1 },
+        "done": { "type": "boolean" }
+      },
+      "required": ["description", "done"],
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": ["document", "request", "external"],
+          "description": "document: own document revision; request: completed collaboration request; external: material outside the workspace."
+        },
+        "document_key": { "$ref": "#/$defs/id" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "description": { "type": "string" }
+      },
+      "required": ["kind"],
+      "additionalProperties": false
+    }
+  }
+}

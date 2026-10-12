@@ -1,0 +1,9 @@
+{
+  "schema_version": "0.1",
+  "name": "invalid-path-traversal",
+  "version": "0.1.0",
+  "requires_protocol": "0.1",
+  "roles": [
+    { "id": "alpha", "title": "Alpha", "instructions": "roles/../../outside/alpha.md" }
+  ]
+}

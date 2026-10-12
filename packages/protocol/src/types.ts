@@ -1,0 +1,248 @@
+/**
+ * TypeScript mirrors of the JSON Schemas in ../schemas/.
+ *
+ * The schemas are the source of truth. Conformance tests validate fixture
+ * values typed with these interfaces against the schemas, so a drift between
+ * the two breaks the test suite instead of silently diverging.
+ */
+import type { ErrorCode } from "./error-codes.js";
+
+/** RoleDock protocol version the schemas and types describe. */
+export const PROTOCOL_VERSION = "0.1";
+
+/**
+ * Identifier shape shared by workspace, role, instance, session, document key
+ * and artifact ids: ^[a-z][a-z0-9-]{0,63}$. Plain string aliases are kept on
+ * purpose; schema validation, not the type system, is the enforcement point.
+ */
+export type Id = string;
+/** Lowercase hex SHA-256 content hash. */
+export type Sha256 = string;
+/** ISO 8601 UTC timestamp, e.g. 2026-10-12T12:00:00Z. */
+export type Iso8601Timestamp = string;
+
+export type DocumentVisibility = "project" | "role" | "private";
+
+// ---------------------------------------------------------------------------
+// Role pack
+// ---------------------------------------------------------------------------
+
+export interface DocumentSpec {
+  key: Id;
+  template: string;
+  visibility: DocumentVisibility;
+  title?: string;
+  description?: string;
+}
+
+export interface OutputSchemaSpec {
+  key: Id;
+  schema: string;
+}
+
+export interface RoleDefinition {
+  id: Id;
+  title: string;
+  instructions: string;
+  description?: string;
+  documents?: DocumentSpec[];
+  output_schemas?: OutputSchemaSpec[];
+  /** Requirements declaration only; never an authorization credential. */
+  requested_capabilities?: string[];
+}
+
+export interface RolePack {
+  schema_version: "0.1";
+  name: Id;
+  version: string;
+  requires_protocol: "0.1";
+  description?: string;
+  roles: RoleDefinition[];
+}
+
+// ---------------------------------------------------------------------------
+// Coordination objects
+// ---------------------------------------------------------------------------
+
+/** Frozen identity of the installed role pack version a role is registered from. */
+export interface RoleContract {
+  package_name: string;
+  package_version: string;
+  content_hash: Sha256;
+}
+
+/** Unique primary pointer per (workspace_id, role_id). */
+export interface RoleHead {
+  workspace_id: Id;
+  role_id: Id;
+  /** >= 1; increments by exactly one per handoff activation. */
+  generation: number;
+  /** >= 0; increases on every formal publish of the role. */
+  knowledge_revision: number;
+  current_instance_id: Id;
+  role_contract: RoleContract;
+  updated_at: Iso8601Timestamp;
+}
+
+/** One immutable revision of a role-owned document. */
+export interface DocumentRevision {
+  workspace_id: Id;
+  role_id: Id;
+  document_key: Id;
+  /** >= 1, monotonic per (workspace_id, role_id, document_key). */
+  revision: number;
+  content_hash: Sha256;
+  visibility: DocumentVisibility;
+  created_by_instance_id: Id;
+  created_at: Iso8601Timestamp;
+}
+
+export interface DocumentSnapshot {
+  document_key: Id;
+  revision: number;
+  content_hash: Sha256;
+}
+
+export interface UserDecisionRef {
+  summary: string;
+  document_key?: Id;
+  revision?: number;
+}
+
+export interface CheckpointTodo {
+  description: string;
+  done: boolean;
+}
+
+export interface CheckpointSource {
+  kind: "document" | "request" | "external";
+  document_key?: Id;
+  revision?: number;
+  description?: string;
+}
+
+export interface Checkpoint {
+  checkpoint_id: Id;
+  workspace_id: Id;
+  role_id: Id;
+  generation: number;
+  knowledge_revision: number;
+  document_snapshots: DocumentSnapshot[];
+  handoff_summary: {
+    format: "markdown";
+    body: string;
+    content_hash: Sha256;
+  };
+  user_decision_refs?: UserDecisionRef[];
+  todos: CheckpointTodo[];
+  sources: CheckpointSource[];
+  created_by_instance_id: Id;
+  created_at: Iso8601Timestamp;
+}
+
+/** Immutable handoff bundle a new host session loads; shareable knowledge only. */
+export interface BootstrapBundle {
+  bundle_id: Id;
+  protocol_version: "0.1";
+  workspace_id: Id;
+  role_id: Id;
+  source_generation: number;
+  source_knowledge_revision: number;
+  role_contract: RoleContract;
+  checkpoint: {
+    checkpoint_id: Id;
+    content_hash: Sha256;
+  };
+  created_by_instance_id: Id;
+  created_at: Iso8601Timestamp;
+  provisioned_session_id?: Id;
+}
+
+// ---------------------------------------------------------------------------
+// Collaboration requests
+// ---------------------------------------------------------------------------
+
+export type CollaborationRequestState =
+  | "accepted"
+  | "queued"
+  | "running"
+  | "awaiting_input"
+  | "completed"
+  | "failed"
+  | "cancelled"
+  | "expired";
+
+export const TERMINAL_REQUEST_STATES = [
+  "completed",
+  "failed",
+  "cancelled",
+  "expired",
+] as const satisfies readonly CollaborationRequestState[];
+
+export type TerminalRequestState = (typeof TERMINAL_REQUEST_STATES)[number];
+
+export interface ReadReceipt {
+  document_key: Id;
+  revision?: number;
+}
+
+export interface CollaborationRequest {
+  request_id: Id;
+  workspace_id: Id;
+  idempotency_key: string;
+  initiating: {
+    session_id: Id;
+    instance_id: Id;
+    role_id: Id;
+  };
+  target_role_id: Id;
+  /** Fixed in the accept transaction; existing requests never migrate. */
+  binding: {
+    target_generation: number;
+    knowledge_revision: number;
+    checkpoint_id?: Id;
+  };
+  budget?: {
+    max_turns?: number;
+    deadline?: Iso8601Timestamp;
+  };
+  state: CollaborationRequestState;
+  execution_uncertain?: boolean;
+  read_receipts?: ReadReceipt[];
+  read_exception_rationale?: string;
+  result?: {
+    artifact_id: Id;
+    content_hash: Sha256;
+    summary?: string;
+  };
+  error?: {
+    code: ErrorCode;
+    message: string;
+  };
+  created_at: Iso8601Timestamp;
+  updated_at: Iso8601Timestamp;
+  terminal_at?: Iso8601Timestamp;
+}
+
+// ---------------------------------------------------------------------------
+// Envelopes
+// ---------------------------------------------------------------------------
+
+export interface OutputEnvelope<T = unknown> {
+  ok: true;
+  data?: T;
+  request_id?: string;
+}
+
+export interface ErrorEnvelope {
+  ok: false;
+  error: {
+    code: ErrorCode;
+    message: string;
+    details?: Record<string, unknown>;
+    retryable?: boolean;
+  };
+  request_id?: string;
+}
+
+export type Envelope<T = unknown> = OutputEnvelope<T> | ErrorEnvelope;

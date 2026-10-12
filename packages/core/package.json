@@ -1,0 +1,19 @@
+{
+  "name": "@roledock/core",
+  "version": "0.1.0-alpha.0",
+  "description": "RoleDock reference runtime: role coordination, versioned documents, session handoff and isolated collaboration requests. P0 delivers the operation surface and failure contract only.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@roledock/protocol": "0.1.0-alpha.0"
+  }
+}

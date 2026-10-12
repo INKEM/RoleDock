@@ -1,0 +1,9 @@
+{
+  "schema_version": "0.1",
+  "name": "invalid-uppercase-id",
+  "version": "0.1.0",
+  "requires_protocol": "0.1",
+  "roles": [
+    { "id": "Alpha", "title": "Alpha", "instructions": "roles/alpha.md" }
+  ]
+}

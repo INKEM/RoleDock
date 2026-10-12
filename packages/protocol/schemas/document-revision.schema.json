@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:document-revision",
+  "title": "DocumentRevision",
+  "description": "One immutable revision of a role-owned document. Revisions are never edited in place; publishing is validated by the core against ownership, current primary instance identity, generation and expected_revision.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "role_id": {
+      "$ref": "#/$defs/id",
+      "description": "Owning role. Cross-role impersonation is rejected: the trusted session identity must match this owner for publish."
+    },
+    "document_key": { "$ref": "#/$defs/id" },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Monotonically increasing per (workspace_id, role_id, document_key), starting at 1."
+    },
+    "content_hash": {
+      "$ref": "#/$defs/sha256",
+      "description": "SHA-256 of the revision body; bodies live in the content-addressed output area."
+    },
+    "visibility": {
+      "enum": ["project", "role", "private"],
+      "description": "project: readable by all roles in the workspace. role: readable within the owning role. private: readable by the owning instance only. Reads outside visibility are rejected."
+    },
+    "created_by_instance_id": {
+      "$ref": "#/$defs/id",
+      "description": "Primary instance that published this revision; old-generation instances cannot appear here."
+    },
+    "created_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "required": [
+    "workspace_id",
+    "role_id",
+    "document_key",
+    "revision",
+    "content_hash",
+    "visibility",
+    "created_by_instance_id",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

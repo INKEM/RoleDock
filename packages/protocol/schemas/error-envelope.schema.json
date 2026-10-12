@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:error-envelope",
+  "title": "Error envelope",
+  "description": "Machine-readable failure envelope used by SDK rejections and CLI --json output. The code enum is the complete protocol error registry; it must stay identical to ERROR_CODES in src/error-codes.ts, which a conformance test asserts.",
+  "type": "object",
+  "properties": {
+    "ok": { "const": false },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "$ref": "#/$defs/errorCode" },
+        "message": { "type": "string", "minLength": 1 },
+        "details": {
+          "type": "object",
+          "description": "Structured context, e.g. failing field paths or conflicting ids."
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "True only when an identical retry can plausibly succeed without caller-side changes."
+        }
+      },
+      "required": ["code", "message"],
+      "additionalProperties": false
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    }
+  },
+  "required": ["ok", "error"],
+  "additionalProperties": false,
+  "$defs": {
+    "errorCode": {
+      "enum": [
+        "NOT_IMPLEMENTED",
+        "VALIDATION_FAILED",
+        "NOT_FOUND",
+        "PERMISSION_DENIED",
+        "ROLE_ALREADY_EXISTS",
+        "ROLE_UNINITIALIZED",
+        "GENERATION_CONFLICT",
+        "REVISION_CONFLICT",
+        "INVALID_STATE_TRANSITION",
+        "IDEMPOTENCY_CONFLICT",
+        "REQUEST_NOT_TERMINABLE",
+        "ADAPTER_CAPABILITY_MISSING",
+        "INTERNAL"
+      ]
+    }
+  }
+}

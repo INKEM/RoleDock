@@ -1,0 +1,10 @@
+{
+  "schema_version": "0.1",
+  "name": "invalid-duplicate-role-ids",
+  "version": "0.1.0",
+  "requires_protocol": "0.1",
+  "roles": [
+    { "id": "twin", "title": "Twin one", "instructions": "roles/twin-one.md" },
+    { "id": "twin", "title": "Twin two", "instructions": "roles/twin-two.md" }
+  ]
+}
