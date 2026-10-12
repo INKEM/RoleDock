@@ -14,7 +14,8 @@
 | `098f346` | 基线：蓝图 `docs/DEVELOPMENT_PLAN.md` 与全部 `prompts/`（自 `development/` 提升至仓库根，文件内容未改动） |
 | `bcdbcde` | 协议契约 + core/cli 骨架 + 全部测试 |
 | `1c1ed16` | 规范、ADR、环境基线、CI、仓库顶层文件 |
-| （本报告所在提交） | P0 开发报告 |
+| `c66f65a` | P0 开发报告 |
+| （修复提交，验收时以 `git log` 为准） | ci-workflow 测试类型修正（`jobs.check` 形状收窄）；`npm run check` 重新全绿 |
 
 无用户未提交改动需要保留：工作目录在 P0 开始时仅含 `development/`（蓝图材料），已按蓝图布局提升至根级并纳入版本控制。
 
