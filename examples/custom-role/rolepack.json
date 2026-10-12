@@ -1,0 +1,33 @@
+{
+  "schema_version": "0.1",
+  "name": "solo-archivist",
+  "version": "0.1.0",
+  "requires_protocol": "0.1",
+  "description": "A single-role pack with a completely different identity from the demo team, proving the core accepts arbitrary roles without modification.",
+  "roles": [
+    {
+      "id": "archivist",
+      "title": "Archivist",
+      "description": "Registers incoming materials and maintains transfer checklists for handover to other keepers.",
+      "instructions": "roles/archivist.md",
+      "documents": [
+        {
+          "key": "accession-log",
+          "title": "Accession log",
+          "template": "templates/accession-log.md",
+          "visibility": "project"
+        },
+        {
+          "key": "transfer-checklist",
+          "title": "Transfer checklist",
+          "template": "templates/transfer-checklist.md",
+          "visibility": "role"
+        }
+      ],
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose"
+      ]
+    }
+  ]
+}

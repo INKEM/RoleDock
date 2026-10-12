@@ -31,6 +31,8 @@ export const ERROR_CODES = {
   REQUEST_NOT_TERMINABLE: "request not terminable",
   /** The harness adapter lacks a required capability; the binding must report a restricted level instead of pretending. */
   ADAPTER_CAPABILITY_MISSING: "adapter capability missing",
+  /** Another coordinator process holds the workspace write lock; only one coordinator may write a workspace (ADR-0001). */
+  WORKSPACE_LOCKED: "workspace locked",
   /** Unexpected internal failure; always report, never mask as a domain outcome. */
   INTERNAL: "internal error",
 } as const;

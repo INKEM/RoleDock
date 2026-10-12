@@ -181,6 +181,7 @@
 | `IDEMPOTENCY_CONFLICT` | 同幂等键不同内容 |
 | `REQUEST_NOT_TERMINABLE` | 请求当前状态不可取消 |
 | `ADAPTER_CAPABILITY_MISSING` | 适配器缺少必需能力，返回受限等级 |
+| `WORKSPACE_LOCKED` | 另一协调器进程持有工作空间写锁（ADR-0001：单协调器写入） |
 | `INTERNAL` | 未预期的内部失败，必须报告不得伪装为领域结果 |
 
 错误码注册表代码侧唯一来源：`@roledock/protocol` 的 `ERROR_CODES`；Schema 侧枚举必须与之完全一致（一致性测试保证）。

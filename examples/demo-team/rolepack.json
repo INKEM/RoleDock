@@ -1,0 +1,84 @@
+{
+  "schema_version": "0.1",
+  "name": "demo-team",
+  "version": "0.1.0",
+  "requires_protocol": "0.1",
+  "description": "RoleDock demo team: three roles showing documents, output schemas and capability requests. Role names here are demo data only; replace with your own pack.",
+  "roles": [
+    {
+      "id": "builder",
+      "title": "Builder",
+      "description": "Implements the work and maintains the project state documents.",
+      "instructions": "roles/builder.md",
+      "documents": [
+        {
+          "key": "state",
+          "title": "Project state",
+          "template": "templates/state.md",
+          "visibility": "project"
+        },
+        {
+          "key": "decisions",
+          "title": "Decision log",
+          "template": "templates/decisions.md",
+          "visibility": "project"
+        },
+        {
+          "key": "handoff",
+          "title": "Handoff summary",
+          "template": "templates/handoff.md",
+          "visibility": "role"
+        }
+      ],
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose",
+        "documents.publish",
+        "requests.create"
+      ]
+    },
+    {
+      "id": "reviewer",
+      "title": "Reviewer",
+      "description": "Reviews delivered work and records structured review results.",
+      "instructions": "roles/reviewer.md",
+      "documents": [
+        {
+          "key": "reviews",
+          "title": "Review notes",
+          "template": "templates/reviews.md",
+          "visibility": "project"
+        }
+      ],
+      "output_schemas": [
+        {
+          "key": "review-result",
+          "schema": "schemas/review-result.json"
+        }
+      ],
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose",
+        "requests.create"
+      ]
+    },
+    {
+      "id": "explainer",
+      "title": "Explainer",
+      "description": "Explains the project to newcomers and maintains the FAQ.",
+      "instructions": "roles/explainer.md",
+      "documents": [
+        {
+          "key": "faq",
+          "title": "Frequently asked questions",
+          "template": "templates/faq.md",
+          "visibility": "project"
+        }
+      ],
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose"
+      ]
+    }
+  ]
+}

@@ -1,20 +1,19 @@
 import { RoleDockError } from "@roledock/protocol";
-
-/**
- * Options for constructing a Coordinator. P0 fixes the shape; storage and
- * policy loading arrive with the phases that implement them.
- */
-export interface CoordinatorOptions {
-  /** Workspace root directory holding state and the content-addressed output area. */
-  root: string;
-}
+import { installRolePack } from "./roles/install.js";
+import type { InstallRequest, InstallResult } from "./roles/install.js";
+import { resolveRoleRecord, summarizeRoles } from "./roles/summary.js";
+import type { RoleResolution, RoleSummary } from "./roles/summary.js";
+import { WorkspaceStore } from "./store/workspace.js";
+import type { HandleOptions } from "./options.js";
+import { asRecord, optionalString, requiredString } from "./parse.js";
+import { checkWorkspaceId } from "./roles/install.js";
 
 const SPEC = "docs/spec/sdk-operations.md";
 
 function notImplemented(operation: string): RoleDockError {
   return new RoleDockError(
     "NOT_IMPLEMENTED",
-    `Operation "${operation}" is specified but not implemented in this build (P0 contracts only). See ${SPEC}.`,
+    `Operation "${operation}" is specified but not implemented in this build. See ${SPEC}.`,
     { details: { operation, spec: SPEC } },
   );
 }
@@ -22,23 +21,63 @@ function notImplemented(operation: string): RoleDockError {
 /**
  * The RoleDock coordinator: single writer per workspace (ADR-0001).
  *
- * P0 fixes this operation surface and its failure contract. Every method
- * rejects with a NOT_IMPLEMENTED RoleDockError until its delivery phase;
- * none of them may fake success. Signatures widen in the implementing
- * phases; operation contracts live in docs/spec/sdk-operations.md.
+ * Open with Coordinator.open({root}), which creates or attaches the
+ * workspace and takes the single-writer lock; a second coordinator on the
+ * same workspace fails with WORKSPACE_LOCKED. Close with close().
+ *
+ * Implemented operations (P1): roles.install/list/resolve — plus the
+ * owner-side WorkspaceAdmin entry for capability policy. Every other
+ * operation rejects with NOT_IMPLEMENTED until its delivery phase; none of
+ * them may fake success. Operation contracts: docs/spec/sdk-operations.md.
  */
 export class Coordinator {
-  constructor(readonly options: CoordinatorOptions) {}
+  static open(options: HandleOptions): Coordinator {
+    const store = WorkspaceStore.open({ root: options.root });
+    try {
+      checkWorkspaceId(store, options.workspaceId);
+    } catch (error) {
+      store.close();
+      throw error;
+    }
+    return new Coordinator(store);
+  }
 
-  // -- roles ---------------------------------------------------------------
-  async installRolePack(_input: unknown): Promise<never> {
-    throw notImplemented("roles.install");
+  private constructor(private readonly store: WorkspaceStore) {}
+
+  get workspaceId(): string {
+    return this.store.workspaceId;
   }
-  async listRoles(_input: unknown): Promise<never> {
-    throw notImplemented("roles.list");
+
+  get root(): string {
+    return this.store.root;
   }
-  async resolveRole(_input: unknown): Promise<never> {
-    throw notImplemented("roles.resolve");
+
+  /** Release the workspace write lock. */
+  close(): void {
+    this.store.close();
+  }
+
+  // -- roles (implemented in P1) --------------------------------------------
+  async installRolePack(input: unknown): Promise<InstallResult> {
+    const record = asRecord(input);
+    const request: InstallRequest = {
+      sourcePath: requiredString(record, "source_path"),
+    };
+    const workspaceId = optionalString(record, "workspace_id");
+    if (workspaceId !== undefined) request.workspaceId = workspaceId;
+    return installRolePack(this.store, request);
+  }
+
+  async listRoles(input: unknown): Promise<{ roles: RoleSummary[] }> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    return { roles: summarizeRoles(this.store) };
+  }
+
+  async resolveRole(input: unknown): Promise<RoleResolution> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    return resolveRoleRecord(this.store, requiredString(record, "role_id"));
   }
 
   // -- sessions --------------------------------------------------------------
@@ -100,9 +139,23 @@ export class Coordinator {
 }
 
 /** All SDK operation names, derived from the Coordinator surface itself. */
+/** Lifecycle and non-operation members that are not part of the SDK surface. */
+const NON_OPERATIONS = new Set(["constructor", "close"]);
+
 export function coordinatorOperations(): string[] {
   const proto = Coordinator.prototype as unknown as Record<string, unknown>;
   return Object.getOwnPropertyNames(proto)
-    .filter((name) => name !== "constructor" && typeof proto[name] === "function")
+    .filter((name) => {
+      if (NON_OPERATIONS.has(name)) return false;
+      // Descriptor-based: invoking proto[name] would fire property getters.
+      return typeof Object.getOwnPropertyDescriptor(proto, name)?.value === "function";
+    })
     .sort();
 }
+
+/** Operations implemented as of P1; everything else rejects with NOT_IMPLEMENTED. */
+export const IMPLEMENTED_OPERATIONS: readonly string[] = [
+  "installRolePack",
+  "listRoles",
+  "resolveRole",
+].sort();

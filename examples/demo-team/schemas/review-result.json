@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Review result",
+  "type": "object",
+  "properties": {
+    "reviewed_item": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "enum": ["approved", "approved-with-changes", "changes-requested", "rejected"]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": {
+            "enum": ["blocker", "major", "minor", "note"]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recommended_action": {
+            "type": "string"
+          }
+        },
+        "required": ["severity", "description"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["reviewed_item", "verdict", "findings"],
+  "additionalProperties": false
+}

@@ -46,6 +46,7 @@
         "IDEMPOTENCY_CONFLICT",
         "REQUEST_NOT_TERMINABLE",
         "ADAPTER_CAPABILITY_MISSING",
+        "WORKSPACE_LOCKED",
         "INTERNAL"
       ]
     }

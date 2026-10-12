@@ -1,5 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { validate } from "@roledock/protocol";
@@ -26,21 +28,21 @@ describe("roledock CLI subprocess smoke", () => {
     expect(result.stdout).toMatch(/^\d+\.\d+\.\d+/);
   });
 
-  it("fails an unimplemented operation with a valid NOT_IMPLEMENTED envelope on stderr and exit code 1", () => {
-    const result = runCli(["--json", "roles", "list"]);
-    expect(result.status).toBe(1);
-    expect(result.stdout).toBe("");
-    const envelope = JSON.parse(result.stderr) as ErrorEnvelope;
-    expect(validate("error-envelope", envelope).ok).toBe(true);
-    expect(envelope.error.code).toBe("NOT_IMPLEMENTED");
-  });
-
   it("returns a version envelope in json mode", () => {
     const result = runCli(["--json", "--version"]);
     expect(result.status).toBe(0);
     const envelope = JSON.parse(result.stdout) as OutputEnvelope<{ version: string }>;
     expect(validate("output-envelope", envelope).ok).toBe(true);
     expect(envelope.data?.version).toMatch(/^\d+\.\d+\.\d+/);
+  });
+
+  it("fails an unimplemented operation with a valid NOT_IMPLEMENTED envelope on stderr and exit code 1", () => {
+    const result = runCli(["--json", "sessions", "open"]);
+    expect(result.status).toBe(1);
+    expect(result.stdout).toBe("");
+    const envelope = JSON.parse(result.stderr) as ErrorEnvelope;
+    expect(validate("error-envelope", envelope).ok).toBe(true);
+    expect(envelope.error.code).toBe("NOT_IMPLEMENTED");
   });
 
   it("exits 2 on an unknown command", () => {
@@ -55,5 +57,22 @@ describe("roledock CLI subprocess smoke", () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("error: NOT_IMPLEMENTED");
     expect(() => JSON.parse(result.stderr)).toThrow();
+  });
+
+  it("creates a fresh workspace on demand and reports zero roles via admin policy", () => {
+    const workspaceRoot = mkdtempSync(join(tmpdir(), "roledock-spawn-"));
+    try {
+      const result = spawnSync(process.execPath, [CLI_PATH, "--json", "--root", workspaceRoot, "admin", "policy"], {
+        encoding: "utf8",
+        timeout: 15000,
+      });
+      if (result.error !== undefined) throw result.error;
+      expect(result.status).toBe(0);
+      const envelope = JSON.parse(result.stdout) as OutputEnvelope<{ roles: unknown[] }>;
+      expect(validate("output-envelope", envelope).ok).toBe(true);
+      expect(envelope.data?.roles).toEqual([]);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   });
 });
