@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+coverage/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Environment / local state
+.env
+.env.*
+*.local
+.roledock/
+*.sqlite
+*.sqlite-*
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+
+# Agent workspace-local state
+.zcode/
