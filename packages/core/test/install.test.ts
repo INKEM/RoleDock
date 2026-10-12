@@ -69,9 +69,35 @@ describe("role pack installer", () => {
 
     const store = WorkspaceStore.open({ root });
     const first = installRolePack(store, { sourcePath: packDir });
+    expect(first.content_repaired).toBe(false);
     const second = installRolePack(store, { sourcePath: packDir });
     expect(second.reinstalled).toBe(true);
-    expect(second.pack.content_hash).toBe(first.pack.content_hash);
+    expect(second.content_repaired).toBe(false);
+    const count = store.prepare("SELECT count(*) AS n FROM roles").get() as { n: number };
+    expect(count.n).toBe(1);
+    store.close();
+  });
+
+  it("repairs lost pack content on identical reinstall (R-2 regression)", () => {
+    const root = makeRoot();
+    const packDir = join(root, "src-pack");
+    writePack({ dir: packDir, name: "acme-pack" });
+
+    const store = WorkspaceStore.open({ root });
+    installRolePack(store, { sourcePath: packDir });
+    const contentDir = join(store.packsDir, "acme-pack", "0.1.0");
+    // Simulate a crash between database commit and content promotion, or an
+    // external deletion: rows exist, content is gone.
+    rmSync(contentDir, { recursive: true, force: true });
+    expect(existsSync(join(contentDir, "rolepack.json"))).toBe(false);
+
+    const second = installRolePack(store, { sourcePath: packDir });
+    expect(second.reinstalled).toBe(true);
+    expect(second.content_repaired).toBe(true);
+    expect(existsSync(join(contentDir, "rolepack.json"))).toBe(true);
+    expect(readdirSync(contentDir).sort()).toEqual(["rolepack.json", "roles", "templates"]);
+
+    // Rows unchanged by the repair: still exactly one role.
     const count = store.prepare("SELECT count(*) AS n FROM roles").get() as { n: number };
     expect(count.n).toBe(1);
     store.close();

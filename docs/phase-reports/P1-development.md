@@ -12,9 +12,10 @@
 | --- | --- |
 | `098f346`…`2cad492` | P0 基线（5 个提交，已验收） |
 | `5df3075` | P1 实现：角色包加载、SQLite 状态层、单协调器锁、策略与管理入口、示例包、测试 |
-| （本报告所在提交） | 文档更新 + P1 开发报告 |
+| `01c33a7` | 文档更新 + P1 开发报告（首版） |
+| （返工提交，见 `P1-rework.md`） | R-1（vitest 超时与文件级串行配置）、R-2（同内容重装恢复丢失内容，`content_repaired` 标志 + 回归测试） |
 
-工作树在提交后干净；无用户未提交改动需要保留。
+首次提交版本的 P1 经独立验收为 REWORK（`P1-review.md`，R-1 测试在 CI 等价负载下超时偶发、R-2 同内容重装不恢复丢失内容）；两项已按 `docs/phase-reports/P1-rework.md` 修复并复验（连续 5 轮 `npm run check` 全绿，第 1 轮为 `npm ci` 后立即执行；168/168 测试通过，含 R-2 回归测试）。**以返工后的最新提交为验收基线。**
 
 ## 2. 任务完成度与验收条件对照
 
@@ -60,7 +61,7 @@ P1 验收条件逐项：
 | 命令 | 结果 |
 | --- | --- |
 | `npm run typecheck` | 通过（src+tests 全量） |
-| `npm test` / `npm run check` | **15 个测试文件、167 个测试全部通过，0 跳过**；连续 4 轮 check 全绿 |
+| `npm test` / `npm run check` | **15 个测试文件、167 个测试全部通过，0 跳过**（返工后为 168，见 `P1-rework.md`；返工后连续 5 轮 check 全绿，第 1 轮为 `npm ci` 后立即执行） |
 | 多进程锁（真实子进程） | `workspace-lock.process.test.ts` 通过：持锁期间跨进程探测 `WORKSPACE_LOCKED`、SIGKILL 后恢复 |
 | CLI 端到端手工验证 | `roles install examples/demo-team` → 信封 `{ok:true, data:{pack:{name:"demo-team",version:"0.1.0",content_hash:"4751a96…"}}}`；`roles list` / `admin grant builder documents.read` / `admin policy` 全部按预期 |
 

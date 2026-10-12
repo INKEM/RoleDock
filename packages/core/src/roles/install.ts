@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync, renameSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, renameSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { RoleDockError } from "@roledock/protocol";
 import type { RolePack } from "@roledock/protocol";
@@ -29,6 +29,12 @@ export interface InstallResult {
   roles: InstalledRole[];
   /** True when the pack was already installed with identical content. */
   reinstalled: boolean;
+  /**
+   * True on reinstalled results whose stored content directory was missing
+   * (crash between database commit and content promotion, or external
+   * deletion) and was restored from the verified source pack.
+   */
+  content_repaired: boolean;
 }
 
 export function checkWorkspaceId(store: WorkspaceStore, provided?: string): void {
@@ -54,6 +60,36 @@ function removeTree(dir: string): void {
     rmSync(dir, { recursive: true, force: true });
   } catch {
     // Best-effort cleanup of staging content; absence matters more than the error.
+  }
+}
+
+function contentMarkerPath(store: WorkspaceStore, name: string, version: string): string {
+  return join(store.packsDir, name, version, "rolepack.json");
+}
+
+/** Copy the loaded pack into a fresh staging directory; returns its path. */
+function copyToStaging(store: WorkspaceStore, loaded: LoadedRolePack): string {
+  const stagingDir = join(store.packsDir, store.newStagingDirName());
+  mkdirSync(stagingDir, { recursive: true });
+  try {
+    copyTree(loaded.packRoot, stagingDir, loaded.files);
+  } catch (error) {
+    removeTree(stagingDir);
+    throw error;
+  }
+  return stagingDir;
+}
+
+/** Atomically move a staging directory to packs/<name>/<version>. */
+function promoteStaging(store: WorkspaceStore, loaded: LoadedRolePack, stagingDir: string): void {
+  const finalDir = join(store.packsDir, loaded.manifest.name, loaded.manifest.version);
+  try {
+    mkdirSync(dirname(finalDir), { recursive: true });
+    rmSync(finalDir, { recursive: true, force: true });
+    renameSync(stagingDir, finalDir);
+  } catch (error) {
+    removeTree(stagingDir);
+    throw error;
   }
 }
 
@@ -116,6 +152,24 @@ export function installRolePack(store: WorkspaceStore, request: InstallRequest):
       const roles = listRoleRows(store)
         .filter((role) => role.pack_name === manifest.name && role.pack_version === manifest.version)
         .map((role) => ({ id: role.role_id, title: role.title, initialized: false as const }));
+
+      // Identical reinstall must leave rows and content consistent: a crash
+      // between the database commit and content promotion (or external
+      // deletion) can leave rows whose content directory is gone. Verify the
+      // stored content and restore it from the verified source when missing.
+      let contentRepaired = false;
+      if (!existsSync(contentMarkerPath(store, manifest.name, manifest.version))) {
+        try {
+          promoteStaging(store, loaded, copyToStaging(store, loaded));
+        } catch (error) {
+          throw new RoleDockError(
+            "INTERNAL",
+            `Failed to restore missing content for ${manifest.name}@${manifest.version}: ${(error as Error).message}`,
+          );
+        }
+        contentRepaired = true;
+      }
+
       return {
         pack: {
           name: existingPack.name,
@@ -124,6 +178,7 @@ export function installRolePack(store: WorkspaceStore, request: InstallRequest):
         },
         roles,
         reinstalled: true,
+        content_repaired: contentRepaired,
       };
     }
     throw new RoleDockError(
@@ -144,25 +199,17 @@ export function installRolePack(store: WorkspaceStore, request: InstallRequest):
     );
   }
 
-  const stagingDir = join(store.packsDir, store.newStagingDirName());
-  mkdirSync(stagingDir, { recursive: true });
+  const stagingDir = copyToStaging(store, loaded);
   try {
-    copyTree(loaded.packRoot, stagingDir, loaded.files);
     store.tx(() => insertPack(store, loaded, request.sourcePath, now));
   } catch (error) {
     removeTree(stagingDir);
     throw error;
   }
 
-  const finalDir = join(store.packsDir, manifest.name, manifest.version);
   try {
-    mkdirSync(dirname(finalDir), { recursive: true });
-    rmSync(finalDir, { recursive: true, force: true });
-    // A previous crash between commit and promote leaves content-less rows;
-    // the same-content reinstall path (idempotent) repairs it.
-    renameSync(stagingDir, finalDir);
+    promoteStaging(store, loaded, stagingDir);
   } catch (error) {
-    removeTree(stagingDir);
     throw new RoleDockError(
       "INTERNAL",
       `Failed to store installed pack content: ${(error as Error).message}`,
@@ -173,5 +220,6 @@ export function installRolePack(store: WorkspaceStore, request: InstallRequest):
     pack: { name: manifest.name, version: manifest.version, content_hash: loaded.contentHash },
     roles: manifest.roles.map((role) => ({ id: role.id, title: role.title, initialized: false })),
     reinstalled: false,
+    content_repaired: false,
   };
 }
