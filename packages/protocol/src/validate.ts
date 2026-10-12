@@ -11,6 +11,8 @@ export type SchemaName =
   | "checkpoint"
   | "bootstrap-bundle"
   | "collaboration-request"
+  | "candidate-update"
+  | "knowledge-export"
   | "output-envelope"
   | "error-envelope";
 
@@ -21,6 +23,8 @@ export const SCHEMA_NAMES: readonly SchemaName[] = [
   "checkpoint",
   "bootstrap-bundle",
   "collaboration-request",
+  "candidate-update",
+  "knowledge-export",
   "output-envelope",
   "error-envelope",
 ];

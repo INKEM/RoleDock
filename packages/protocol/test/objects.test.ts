@@ -81,7 +81,7 @@ describe("document-revision schema", () => {
   it("rejects visibility outside the enum", () => {
     expectIllegal(
       "document-revision",
-      documentRevision({ visibility: "public" as unknown as "project" }),
+      documentRevision({ visibility: "everyone" as unknown as "project" }),
       "enum",
     );
   });

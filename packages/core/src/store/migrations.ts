@@ -107,6 +107,70 @@ export const MIGRATIONS: readonly Migration[] = [
       )`,
     ],
   },
+  {
+    id: 2,
+    name: "documents-knowledge",
+    statements: [
+      // P2 widens the visibility ladder with "public"; SQLite cannot alter a
+      // CHECK constraint, so document_revisions is rebuilt and backfilled.
+      `CREATE TABLE document_revisions_new (
+        workspace_id TEXT NOT NULL,
+        role_id TEXT NOT NULL,
+        document_key TEXT NOT NULL,
+        revision INTEGER NOT NULL,
+        content_hash TEXT NOT NULL,
+        visibility TEXT NOT NULL CHECK (visibility IN ('private', 'role', 'project', 'public')),
+        created_by_instance_id TEXT,
+        created_at TEXT NOT NULL,
+        PRIMARY KEY (workspace_id, role_id, document_key, revision)
+      )`,
+      `INSERT INTO document_revisions_new SELECT * FROM document_revisions`,
+      `DROP TABLE document_revisions`,
+      `ALTER TABLE document_revisions_new RENAME TO document_revisions`,
+      `CREATE TABLE read_receipts (
+        receipt_id TEXT PRIMARY KEY,
+        workspace_id TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        instance_id TEXT,
+        reader_role_id TEXT NOT NULL,
+        owner_role_id TEXT NOT NULL,
+        document_key TEXT NOT NULL,
+        revision INTEGER NOT NULL,
+        content_hash TEXT NOT NULL,
+        read_at TEXT NOT NULL
+      )`,
+      `CREATE TABLE candidate_updates (
+        candidate_id TEXT PRIMARY KEY,
+        workspace_id TEXT NOT NULL,
+        target_role_id TEXT NOT NULL,
+        document_key TEXT NOT NULL,
+        baseline_revision INTEGER NOT NULL,
+        proposed_body_hash TEXT NOT NULL,
+        note TEXT,
+        proposed_by_session_id TEXT NOT NULL,
+        proposed_by_role_id TEXT NOT NULL,
+        source TEXT NOT NULL CHECK (source IN ('documents.propose', 'knowledge.import')),
+        state TEXT NOT NULL CHECK (state IN ('open', 'adopted', 'superseded', 'rejected')),
+        adopted_revision INTEGER,
+        created_at TEXT NOT NULL,
+        resolved_at TEXT
+      )`,
+      `CREATE TABLE checkpoints (
+        checkpoint_id TEXT PRIMARY KEY,
+        workspace_id TEXT NOT NULL,
+        role_id TEXT NOT NULL,
+        generation INTEGER NOT NULL,
+        knowledge_revision INTEGER NOT NULL,
+        document_snapshots_json TEXT NOT NULL,
+        handoff_summary_json TEXT NOT NULL,
+        user_decision_refs_json TEXT,
+        todos_json TEXT NOT NULL,
+        sources_json TEXT NOT NULL,
+        created_by_instance_id TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )`,
+    ],
+  },
 ];
 
 function migrationChecksum(migration: Migration): string {

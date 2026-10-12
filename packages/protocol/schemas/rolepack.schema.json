@@ -59,8 +59,8 @@
           "description": "Path to the document template file inside the pack."
         },
         "visibility": {
-          "enum": ["project", "role", "private"],
-          "description": "Requested default visibility: project (all roles), role (owning role only), private (owning instance only). Actual access is enforced by the workspace policy."
+          "enum": ["private", "role", "project", "public"],
+          "description": "Requested default visibility: private (owning instance), role (owning role primary sessions), project (all roles in the workspace), public (cleared for sharing outside the workspace). Actual access is enforced by the workspace policy."
         },
         "title": { "type": "string", "maxLength": 200 },
         "description": { "type": "string" }

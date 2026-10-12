@@ -21,7 +21,13 @@ export type Sha256 = string;
 /** ISO 8601 UTC timestamp, e.g. 2026-10-12T12:00:00Z. */
 export type Iso8601Timestamp = string;
 
-export type DocumentVisibility = "project" | "role" | "private";
+/**
+ * Visibility ladder for document revisions. private < role < project < public:
+ * public is additionally cleared for sharing outside the workspace (default
+ * export scope). Request-branch sessions read only explicitly shared levels
+ * (project/public); see docs/spec/objects-and-state-machines.md.
+ */
+export type DocumentVisibility = "private" | "role" | "project" | "public";
 
 // ---------------------------------------------------------------------------
 // Role pack
@@ -222,6 +228,82 @@ export interface CollaborationRequest {
   created_at: Iso8601Timestamp;
   updated_at: Iso8601Timestamp;
   terminal_at?: Iso8601Timestamp;
+}
+
+// ---------------------------------------------------------------------------
+// Read receipts and candidate updates (P2)
+// ---------------------------------------------------------------------------
+
+/** Recorded by documents.read under the calling session's true binding. */
+export interface DocumentReadReceipt {
+  receipt_id: Id;
+  workspace_id: Id;
+  session_id: Id;
+  instance_id?: Id;
+  reader_role_id: Id;
+  owner_role_id: Id;
+  document_key: Id;
+  revision: number;
+  content_hash: Sha256;
+  read_at: Iso8601Timestamp;
+}
+
+export type CandidateUpdateSource = "documents.propose" | "knowledge.import";
+
+export type CandidateUpdateState = "open" | "adopted" | "superseded" | "rejected";
+
+export interface CandidateUpdate {
+  candidate_id: Id;
+  workspace_id: Id;
+  target_role_id: Id;
+  document_key: Id;
+  /** Document revision the proposal was made against; re-checked at adoption. */
+  baseline_revision: number;
+  proposed_body_hash: Sha256;
+  note?: string;
+  proposed_by_session_id: Id;
+  proposed_by_role_id: Id;
+  source: CandidateUpdateSource;
+  state: CandidateUpdateState;
+  adopted_revision?: number;
+  created_at: Iso8601Timestamp;
+  resolved_at?: Iso8601Timestamp;
+}
+
+// ---------------------------------------------------------------------------
+// Knowledge export manifest (P2)
+// ---------------------------------------------------------------------------
+
+export type KnowledgeExportScope = "share" | "workspace";
+
+export interface KnowledgeExportEntry {
+  owner_role_id: Id;
+  document_key: Id;
+  revision: number;
+  content_hash: Sha256;
+  visibility: DocumentVisibility;
+  created_by_instance_id: Id;
+  created_at: Iso8601Timestamp;
+  file: string;
+}
+
+export interface KnowledgeExportCheckpoint {
+  checkpoint_id: Id;
+  role_id: Id;
+  generation: number;
+  knowledge_revision: number;
+  content_hash: Sha256;
+  file: string;
+}
+
+export interface KnowledgeExportManifest {
+  manifest_version: "0.1";
+  source_workspace_id: Id;
+  scope: KnowledgeExportScope;
+  exported_at: Iso8601Timestamp;
+  content_hash_algorithm: "sha256";
+  entries: KnowledgeExportEntry[];
+  checkpoints?: KnowledgeExportCheckpoint[];
 }
 
 // ---------------------------------------------------------------------------

@@ -21,8 +21,8 @@
       "description": "SHA-256 of the revision body; bodies live in the content-addressed output area."
     },
     "visibility": {
-      "enum": ["project", "role", "private"],
-      "description": "project: readable by all roles in the workspace. role: readable within the owning role. private: readable by the owning instance only. Reads outside visibility are rejected."
+      "enum": ["private", "role", "project", "public"],
+      "description": "private: readable by the owning instance only. role: readable within the owning role (primary sessions; request branches read only explicitly shared levels). project: readable by all roles in the workspace. public: additionally cleared for sharing outside the workspace (default export scope). Reads outside visibility are rejected."
     },
     "created_by_instance_id": {
       "$ref": "#/$defs/id",

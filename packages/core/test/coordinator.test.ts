@@ -50,7 +50,17 @@ describe("coordinator operation surface", () => {
       "resolveRole",
       "resumeSession",
     ].sort());
-    expect(IMPLEMENTED_OPERATIONS).toEqual(["installRolePack", "listRoles", "resolveRole"]);
+    expect(IMPLEMENTED_OPERATIONS).toEqual([
+      "exportKnowledge",
+      "importKnowledge",
+      "installRolePack",
+      "listDocuments",
+      "listRoles",
+      "proposeDocumentUpdate",
+      "publishDocument",
+      "readDocument",
+      "resolveRole",
+    ]);
   });
 });
 
@@ -132,7 +142,7 @@ describe("P0 failure contract for the remaining operations", () => {
     const unimplemented = coordinatorOperations().filter(
       (operation) => !IMPLEMENTED_OPERATIONS.includes(operation),
     );
-    expect(unimplemented).toHaveLength(15);
+    expect(unimplemented).toHaveLength(coordinatorOperations().length - IMPLEMENTED_OPERATIONS.length);
     const methods = coordinator as unknown as Record<string, ((input: unknown) => Promise<unknown>) | undefined>;
     try {
       for (const operation of unimplemented) {

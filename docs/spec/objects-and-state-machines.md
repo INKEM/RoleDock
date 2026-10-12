@@ -71,13 +71,26 @@ accepted → queued → running → awaiting_input ─┐
 
 ## 5. 可见性
 
+P2 起为四级阶梯（private < role < project < public）：
+
 | 级别 | 读取范围 |
 | --- | --- |
-| `project` | 工作空间内所有角色可读 |
-| `role` | 仅所有者角色（含其请求分支会话）可读 |
-| `private` | 仅所有者实例可读 |
+| `private` | 仅创建该修订的实例（owning instance）可读 |
+| `role` | 所有者角色的**主会话**可读 |
+| `project` | 工作空间内任意活动会话可读 |
+| `public` | 同 project，且为默认分享导出的范围（可跨工作空间消费） |
 
-可见性在读取入口统一强制：跨角色冒饮读取、越界可见性读取返回 `PERMISSION_DENIED`。角色包中的 `visibility` 是声明的默认级别，工作空间策略可以收紧，不能放松后不记录。
+**咨询分支限制**：`kind='request'` 的会话（P4 请求分支）只读 project/public——同角色咨询分支不能凭相同 role_id 读取 role/private 材料。角色包中的 `visibility` 是声明的默认级别；越界读取返回 `PERMISSION_DENIED`。
+
+## 5a. 读取回执与候选更新（P2）
+
+- **读取回执**：`documents.read` 成功后由核心记录，绑定真实调用会话、实例、读者角色、确切修订与内容哈希及时间；回执只由读取路径产生，没有可指定任意会话的公开写入面；伪造（未知会话或绑定不符）失败。P4 请求前置验证消费回执。
+- **候选更新**：提案与导入进入独立候选区（open 状态），携带 baseline_revision 与来源（`documents.propose` / `knowledge.import`）。采纳由所有者发布时进行并**再次校验 baseline 仍等于当前修订**，过期采纳返回 `REVISION_CONFLICT` 且候选内容保留；候选永不自动合并咨询分支历史。状态机：open → adopted / superseded / rejected（终态）。
+
+## 5b. 知识导出与导入（P2）
+
+- **导出**：`scope:"share"`（默认）只含 public/project 文档，不含 checkpoints、凭据、私人聊天与角色私有材料；`scope:"workspace"` 为所有者本地全量导出（含 checkpoints）。bundle 目录含 manifest.json（经 `knowledge-export` Schema 校验）+ 正文 markdown + 校验点 JSON；写出时重算内容哈希。
+- **导入**：先全量重算每个文件的 SHA-256 与 manifest 比对，被篡改的 bundle 拒绝且数据库零改动；**导入一律落为候选更新**（baseline = 导出修订），不直接改写数据库（ADR-0004）；private/role 条目即使出现在手改包中也跳过并报告；目标工作空间未安装角色或未声明文档键的条目跳过并报告。
 
 ## 6. 幂等规则总表
 

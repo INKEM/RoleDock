@@ -1,5 +1,6 @@
+import { readFileSync } from "node:fs";
 import { Coordinator, WorkspaceAdmin } from "@roledock/core";
-import { toErrorEnvelope } from "@roledock/protocol";
+import { RoleDockError, toErrorEnvelope } from "@roledock/protocol";
 import type { Envelope } from "@roledock/protocol";
 
 export const VERSION = "0.1.0-alpha.0";
@@ -24,21 +25,31 @@ Usage:
 Workspace selection: --root <dir> sets the workspace root (default: current
 directory). State lives under <root>/.roledock/.
 
-Available operations (P1, backed by the local workspace):
-  roles install <pack-dir>       install a local role pack
-  roles list                     list installed roles and capability state
-  roles resolve <role-id>        show one role (uninitialized roles are explicit)
-  admin policy                   owner view: requested vs granted capabilities
-  admin grant <role> <cap>       owner entry: grant a capability to a role
-  admin revoke <role> <cap>      owner entry: revoke a capability
+Available operations (P1/P2, backed by the local workspace):
+  roles install <pack-dir>               install a local role pack
+  roles list                             list installed roles and capability state
+  roles resolve <role-id>                show one role (uninitialized roles are explicit)
+  admin policy                           owner view: requested vs granted capabilities
+  admin grant <role> <cap>               owner entry: grant a capability to a role
+  admin revoke <role> <cap>              owner entry: revoke a capability
+  documents list [role]                  documents visible to the calling session
+  documents read <role> <key> [rev]      read a document revision (records a receipt)
+  documents propose <role> <key> <file>  propose a candidate update from a file
+  documents publish <key> <file> <rev> <gen> [candidate-id]
+                                         publish as the session's role (CAS checks)
+  knowledge export [share|workspace] [role]
+                                         export a knowledge bundle (owner-level)
+  knowledge import <bundle-dir>          import a bundle as candidate updates
+
+Session identity: documents.* operations require a trusted session — pass
+--session <id>. Sessions are created through the RoleDock SDK session flow
+(production surface lands in P3); the CLI does not mint sessions itself.
 
 Specified but not implemented in this build (they fail with NOT_IMPLEMENTED):
   sessions open | resume
-  documents list | read | propose | publish
   handoffs prepare | activate
   requests create | get | reply | cancel
   artifacts read
-  knowledge export | import
 
 Output is human-readable by default; pass --json for machine-readable
 envelopes ({ok:true,...} or {ok:false,error:{code,...}}).
@@ -49,6 +60,7 @@ interface ParsedArgs {
   help: boolean;
   version: boolean;
   root?: string;
+  session?: string;
   positional: string[];
 }
 
@@ -76,6 +88,13 @@ function parseArgs(argv: readonly string[]): ParsedArgs | undefined {
         i++;
         break;
       }
+      case "--session": {
+        const value = argv[i + 1];
+        if (value === undefined) return undefined;
+        parsed.session = value;
+        i++;
+        break;
+      }
       default:
         if (arg.startsWith("--")) return undefined;
         parsed.positional.push(arg);
@@ -100,8 +119,24 @@ function emit(io: CliIo, json: boolean, envelope: Envelope, stderr: boolean): vo
 interface CommandSpec {
   /** Argument names consumed from positional args after group+operation. */
   readonly args?: readonly string[];
-  /** Maps parsed positional args to the operation input object. */
-  readonly buildInput: (positional: readonly string[]) => Record<string, unknown>;
+  /**
+   * Maps parsed positional args to the operation input object. Session-bound
+   * commands receive the --session value (or throw) via the context.
+   */
+  readonly buildInput: (
+    positional: readonly string[],
+    context: { session?: string },
+  ) => Record<string, unknown>;
+}
+
+function requireSession(context: { session?: string }): string {
+  if (context.session === undefined) {
+    throw new RoleDockError(
+      "VALIDATION_FAILED",
+      "documents.* operations require a trusted session: pass --session <id>.",
+    );
+  }
+  return context.session;
 }
 
 /** "group operation" -> SDK/admin operation spec. */
@@ -112,13 +147,78 @@ const COMMANDS: ReadonlyMap<string, CommandSpec> = new Map([
   ["admin policy", { buildInput: () => ({}) }],
   ["admin grant", { args: ["role_id", "capability"], buildInput: namedArgs(["role_id", "capability"]) }],
   ["admin revoke", { args: ["role_id", "capability"], buildInput: namedArgs(["role_id", "capability"]) }],
-  // Specified operations without a P1 implementation: input is not consumed.
+  ["documents list", { buildInput: (p: readonly string[], ctx: { session?: string }) => (p.length > 0 ? { session_id: requireSession(ctx), role_id: p[0] } : { session_id: requireSession(ctx) }) }],
+  [
+    "documents read",
+    {
+      buildInput: (p: readonly string[], ctx: { session?: string }) => {
+        const input: Record<string, unknown> = {
+          session_id: requireSession(ctx),
+          target_role_id: requirePositional(p, 0, "target role id"),
+          document_key: requirePositional(p, 1, "document key"),
+        };
+        const revision = p[2];
+        if (revision !== undefined) {
+          const parsedRevision = Number.parseInt(revision, 10);
+          if (Number.isNaN(parsedRevision)) {
+            throw new RoleDockError("VALIDATION_FAILED", `Revision must be an integer, got "${revision}".`);
+          }
+          input.revision = parsedRevision;
+        }
+        return input;
+      },
+    },
+  ],
+  [
+    "documents propose",
+    {
+      buildInput: (p: readonly string[], ctx: { session?: string }) => ({
+        session_id: requireSession(ctx),
+        target_role_id: requirePositional(p, 0, "target role id"),
+        document_key: requirePositional(p, 1, "document key"),
+        body: readBodyFile(requirePositional(p, 2, "body file")),
+      }),
+    },
+  ],
+  [
+    "documents publish",
+    {
+      buildInput: (p: readonly string[], ctx: { session?: string }) => {
+        const input: Record<string, unknown> = {
+          session_id: requireSession(ctx),
+          document_key: requirePositional(p, 0, "document key"),
+          body: readBodyFile(requirePositional(p, 1, "body file")),
+          expected_revision: parseInteger(requirePositional(p, 2, "expected revision")),
+          expected_generation: parseInteger(requirePositional(p, 3, "expected generation")),
+        };
+        const candidateId = p[4];
+        if (candidateId !== undefined) input.candidate_id = candidateId;
+        return input;
+      },
+    },
+  ],
+  [
+    "knowledge export",
+    {
+      buildInput: (p: readonly string[]) => {
+        const input: Record<string, unknown> = {};
+        const scope = p[0];
+        if (scope !== undefined) {
+          if (scope !== "share" && scope !== "workspace") {
+            throw new RoleDockError("VALIDATION_FAILED", 'Scope must be "share" or "workspace".');
+          }
+          input.scope = scope;
+        }
+        const role = p[1];
+        if (role !== undefined) input.role_id = role;
+        return input;
+      },
+    },
+  ],
+  ["knowledge import", { buildInput: (p: readonly string[]) => ({ bundle_dir: requirePositional(p, 0, "bundle directory") }) }],
+  // Specified operations without an implementation yet: input is not consumed.
   ["sessions open", { buildInput: () => ({}) }],
   ["sessions resume", { buildInput: () => ({}) }],
-  ["documents list", { buildInput: () => ({}) }],
-  ["documents read", { buildInput: () => ({}) }],
-  ["documents propose", { buildInput: () => ({}) }],
-  ["documents publish", { buildInput: () => ({}) }],
   ["handoffs prepare", { buildInput: () => ({}) }],
   ["handoffs activate", { buildInput: () => ({}) }],
   ["requests create", { buildInput: () => ({}) }],
@@ -126,9 +226,31 @@ const COMMANDS: ReadonlyMap<string, CommandSpec> = new Map([
   ["requests reply", { buildInput: () => ({}) }],
   ["requests cancel", { buildInput: () => ({}) }],
   ["artifacts read", { buildInput: () => ({}) }],
-  ["knowledge export", { buildInput: () => ({}) }],
-  ["knowledge import", { buildInput: () => ({}) }],
 ]);
+
+function requirePositional(args: readonly string[], index: number, what: string): string {
+  const value = args[index];
+  if (value === undefined) {
+    throw new RoleDockError("VALIDATION_FAILED", `Missing required argument: ${what}.`);
+  }
+  return value;
+}
+
+function parseInteger(value: string): number {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed)) {
+    throw new RoleDockError("VALIDATION_FAILED", `Expected an integer, got "${value}".`);
+  }
+  return parsed;
+}
+
+function readBodyFile(path: string): string {
+  try {
+    return readFileSync(path, "utf8");
+  } catch (error) {
+    throw new RoleDockError("VALIDATION_FAILED", `Cannot read body file "${path}": ${(error as Error).message}`);
+  }
+}
 
 function namedArgs(names: readonly string[]) {
   return (positional: readonly string[]): Record<string, unknown> => {
@@ -218,7 +340,13 @@ export async function runCli(argv: readonly string[], io: CliIo): Promise<CliRes
     return { exitCode: 2 };
   }
 
-  const input = spec.buildInput(args.positional.slice(2));
+  let input: Record<string, unknown>;
+  try {
+    input = spec.buildInput(args.positional.slice(2), { session: args.session });
+  } catch (error) {
+    emit(io, args.json, toErrorEnvelope(error), true);
+    return { exitCode: 1 };
+  }
   const root = args.root ?? ".";
 
   try {

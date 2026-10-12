@@ -1,14 +1,42 @@
 import { RoleDockError } from "@roledock/protocol";
-import { installRolePack } from "./roles/install.js";
+import type {
+  KnowledgeExportScope,
+} from "@roledock/protocol";
+import { installRolePack, checkWorkspaceId } from "./roles/install.js";
 import type { InstallRequest, InstallResult } from "./roles/install.js";
 import { resolveRoleRecord, summarizeRoles } from "./roles/summary.js";
 import type { RoleResolution, RoleSummary } from "./roles/summary.js";
+import {
+  listCandidates,
+  listDocuments,
+  proposeDocumentUpdate,
+  publishDocument,
+  readDocument,
+} from "./documents/service.js";
+import type {
+  CandidateProposalResult,
+  DocumentListEntry,
+  DocumentPublishResult,
+  DocumentReadResult,
+} from "./documents/service.js";
+import { exportKnowledge, importKnowledge } from "./knowledge/transfer.js";
+import type { ExportResult, ImportResult } from "./knowledge/transfer.js";
 import { WorkspaceStore } from "./store/workspace.js";
 import type { HandleOptions } from "./options.js";
+import { registerCoordinatorStore } from "./internal-store.js";
 import { asRecord, optionalString, requiredString } from "./parse.js";
-import { checkWorkspaceId } from "./roles/install.js";
 
 const SPEC = "docs/spec/sdk-operations.md";
+
+function requireInteger(record: Record<string, unknown>, key: string): number {
+  const value = record[key];
+  if (typeof value !== "number" || !Number.isInteger(value)) {
+    throw new RoleDockError("VALIDATION_FAILED", `Input field "${key}" must be an integer.`, {
+      details: { field: key },
+    });
+  }
+  return value;
+}
 
 function notImplemented(operation: string): RoleDockError {
   return new RoleDockError(
@@ -25,10 +53,13 @@ function notImplemented(operation: string): RoleDockError {
  * workspace and takes the single-writer lock; a second coordinator on the
  * same workspace fails with WORKSPACE_LOCKED. Close with close().
  *
- * Implemented operations (P1): roles.install/list/resolve — plus the
- * owner-side WorkspaceAdmin entry for capability policy. Every other
- * operation rejects with NOT_IMPLEMENTED until its delivery phase; none of
- * them may fake success. Operation contracts: docs/spec/sdk-operations.md.
+ * Implemented operations: roles.install/list/resolve (P1),
+ * documents.list/read/propose/publish and knowledge.export/import (P2) —
+ * plus the owner-side WorkspaceAdmin entry for capability policy. Session
+ * identity for P2 operations comes from session bindings created through the
+ * test-only @roledock/core/testing entry; sessions.open lands in P3. Every
+ * other operation rejects with NOT_IMPLEMENTED until its delivery phase;
+ * none of them may fake success. Contracts: docs/spec/sdk-operations.md.
  */
 export class Coordinator {
   static open(options: HandleOptions): Coordinator {
@@ -39,7 +70,9 @@ export class Coordinator {
       store.close();
       throw error;
     }
-    return new Coordinator(store);
+    const coordinator = new Coordinator(store);
+    registerCoordinatorStore(coordinator, store);
+    return coordinator;
   }
 
   private constructor(private readonly store: WorkspaceStore) {}
@@ -88,18 +121,81 @@ export class Coordinator {
     throw notImplemented("sessions.resume");
   }
 
-  // -- documents -------------------------------------------------------------
-  async listDocuments(_input: unknown): Promise<never> {
-    throw notImplemented("documents.list");
+  // -- documents (implemented in P2) ------------------------------------------
+  async listDocuments(input: unknown): Promise<{ documents: DocumentListEntry[] }> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const listInput: { session_id: string; role_id?: string } = {
+      session_id: requiredString(record, "session_id"),
+    };
+    const roleId = optionalString(record, "role_id");
+    if (roleId !== undefined) listInput.role_id = roleId;
+    return listDocuments(this.store, listInput);
   }
-  async readDocument(_input: unknown): Promise<never> {
-    throw notImplemented("documents.read");
+
+  async readDocument(input: unknown): Promise<DocumentReadResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const readInput: {
+      session_id: string;
+      document_key: string;
+      target_role_id?: string;
+      revision?: number;
+    } = {
+      session_id: requiredString(record, "session_id"),
+      document_key: requiredString(record, "document_key"),
+    };
+    const targetRole = optionalString(record, "target_role_id");
+    if (targetRole !== undefined) readInput.target_role_id = targetRole;
+    if (record.revision !== undefined) {
+      if (typeof record.revision !== "number" || !Number.isInteger(record.revision)) {
+        throw new RoleDockError("VALIDATION_FAILED", 'Input field "revision" must be an integer.');
+      }
+      readInput.revision = record.revision;
+    }
+    return readDocument(this.store, readInput);
   }
-  async proposeDocumentUpdate(_input: unknown): Promise<never> {
-    throw notImplemented("documents.propose");
+
+  async proposeDocumentUpdate(input: unknown): Promise<CandidateProposalResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const proposeInput: {
+      session_id: string;
+      target_role_id: string;
+      document_key: string;
+      body: string;
+      note?: string;
+    } = {
+      session_id: requiredString(record, "session_id"),
+      target_role_id: requiredString(record, "target_role_id"),
+      document_key: requiredString(record, "document_key"),
+      body: requiredString(record, "body"),
+    };
+    const note = optionalString(record, "note");
+    if (note !== undefined) proposeInput.note = note;
+    return proposeDocumentUpdate(this.store, proposeInput);
   }
-  async publishDocument(_input: unknown): Promise<never> {
-    throw notImplemented("documents.publish");
+
+  async publishDocument(input: unknown): Promise<DocumentPublishResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const publishInput: {
+      session_id: string;
+      document_key: string;
+      body: string;
+      expected_revision: number;
+      expected_generation: number;
+      candidate_id?: string;
+    } = {
+      session_id: requiredString(record, "session_id"),
+      document_key: requiredString(record, "document_key"),
+      body: requiredString(record, "body"),
+      expected_revision: requireInteger(record, "expected_revision"),
+      expected_generation: requireInteger(record, "expected_generation"),
+    };
+    const candidateId = optionalString(record, "candidate_id");
+    if (candidateId !== undefined) publishInput.candidate_id = candidateId;
+    return publishDocument(this.store, publishInput);
   }
 
   // -- handoffs --------------------------------------------------------------
@@ -129,12 +225,27 @@ export class Coordinator {
     throw notImplemented("artifacts.read");
   }
 
-  // -- knowledge ---------------------------------------------------------------
-  async exportKnowledge(_input: unknown): Promise<never> {
-    throw notImplemented("knowledge.export");
+  // -- knowledge (implemented in P2, owner-level) ------------------------------
+  async exportKnowledge(input: unknown): Promise<ExportResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const exportInput: { scope?: KnowledgeExportScope; role_id?: string } = {};
+    const scope = optionalString(record, "scope");
+    if (scope !== undefined) {
+      if (scope !== "share" && scope !== "workspace") {
+        throw new RoleDockError("VALIDATION_FAILED", 'Input field "scope" must be "share" or "workspace".');
+      }
+      exportInput.scope = scope;
+    }
+    const roleId = optionalString(record, "role_id");
+    if (roleId !== undefined) exportInput.role_id = roleId;
+    return exportKnowledge(this.store, exportInput);
   }
-  async importKnowledge(_input: unknown): Promise<never> {
-    throw notImplemented("knowledge.import");
+
+  async importKnowledge(input: unknown): Promise<ImportResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    return importKnowledge(this.store, { bundle_dir: requiredString(record, "bundle_dir") });
   }
 }
 
@@ -153,8 +264,25 @@ export function coordinatorOperations(): string[] {
     .sort();
 }
 
-/** Operations implemented as of P1; everything else rejects with NOT_IMPLEMENTED. */
+/**
+ * Operations implemented so far; everything else rejects with
+ * NOT_IMPLEMENTED. The testing entry (P2) is deliberately absent: it is not
+ * part of the SDK operation surface.
+ */
 export const IMPLEMENTED_OPERATIONS: readonly string[] = [
+  "installRolePack",
+  "listRoles",
+  "resolveRole",
+  "listDocuments",
+  "readDocument",
+  "proposeDocumentUpdate",
+  "publishDocument",
+  "exportKnowledge",
+  "importKnowledge",
+].sort();
+
+/** P1 additions, kept for tests that split delivery phases. */
+export const P1_IMPLEMENTED_OPERATIONS: readonly string[] = [
   "installRolePack",
   "listRoles",
   "resolveRole",

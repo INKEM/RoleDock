@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:knowledge-export",
+  "title": "Knowledge export manifest",
+  "description": "Manifest of a RoleDock knowledge export bundle. Body files carry the document revision's content hash; import recomputes every hash and rejects tampered bundles without touching the database. Imported entries become candidate updates, never direct publishes.",
+  "type": "object",
+  "properties": {
+    "manifest_version": {
+      "const": "0.1",
+      "description": "Export bundle format version."
+    },
+    "source_workspace_id": { "$ref": "#/$defs/id" },
+    "scope": {
+      "enum": ["share", "workspace"],
+      "description": "share: explicitly shared documents only (public and project visibility; no checkpoints). workspace: owner-local full export including checkpoints."
+    },
+    "exported_at": { "$ref": "#/$defs/timestamp" },
+    "content_hash_algorithm": {
+      "const": "sha256"
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/exportEntry" }
+    },
+    "checkpoints": {
+      "type": "array",
+      "description": "Present in workspace scope only; share exports never carry checkpoints.",
+      "items": { "$ref": "#/$defs/exportCheckpoint" }
+    }
+  },
+  "required": [
+    "manifest_version",
+    "source_workspace_id",
+    "scope",
+    "exported_at",
+    "content_hash_algorithm",
+    "entries"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "exportEntry": {
+      "type": "object",
+      "properties": {
+        "owner_role_id": { "$ref": "#/$defs/id" },
+        "document_key": { "$ref": "#/$defs/id" },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Exported revision; the import records it as the candidate's baseline."
+        },
+        "content_hash": { "$ref": "#/$defs/sha256" },
+        "visibility": {
+          "enum": ["private", "role", "project", "public"],
+          "description": "Import never adopts private or role entries; they are skipped and reported."
+        },
+        "created_by_instance_id": { "$ref": "#/$defs/id" },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "file": {
+          "type": "string",
+          "description": "Bundle-relative markdown path of the revision body."
+        }
+      },
+      "required": [
+        "owner_role_id",
+        "document_key",
+        "revision",
+        "content_hash",
+        "visibility",
+        "created_by_instance_id",
+        "created_at",
+        "file"
+      ],
+      "additionalProperties": false
+    },
+    "exportCheckpoint": {
+      "type": "object",
+      "properties": {
+        "checkpoint_id": { "$ref": "#/$defs/id" },
+        "role_id": { "$ref": "#/$defs/id" },
+        "generation": { "type": "integer", "minimum": 1 },
+        "knowledge_revision": { "type": "integer", "minimum": 0 },
+        "content_hash": {
+          "$ref": "#/$defs/sha256",
+          "description": "SHA-256 of the checkpoint JSON file in the bundle."
+        },
+        "file": { "type": "string" }
+      },
+      "required": ["checkpoint_id", "role_id", "generation", "knowledge_revision", "content_hash", "file"],
+      "additionalProperties": false
+    }
+  }
+}

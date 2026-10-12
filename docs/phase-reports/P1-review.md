@@ -1,12 +1,14 @@
 # P1 独立验收报告：自定义角色与持久状态
 
 - 阶段：P1（角色与存储）
-- 日期：2026-10-12
+- 日期：2026-10-12（首验）；2026-10-13（返工复验，结论更新为 PASS，见 §7）
 - 验收 Agent：ZCode（GLM，独立验收）
 - 验收依据：`prompts/REVIEW.md`、`prompts/01-roles-and-store.md`、`prompts/COMMON.md`、`docs/DEVELOPMENT_PLAN.md`、`AGENTS.md`、`docs/phase-reports/P0-review.md`
-- 被验收报告：`docs/phase-reports/P1-development.md`
+- 被验收报告：`docs/phase-reports/P1-development.md`、`docs/phase-reports/P1-rework.md`
 
-## 结论：**REWORK**
+## 结论（复验后）：**PASS**
+
+首验结论为 REWORK（R-1、R-2 两项）。返工提交 `b4ceeae` 已按修复要求完成两项修复，复验（§7）全部通过；§3 的五项验收条件核验与 §5 的问题清单保留作首验记录，其通过结论在基线不变时沿用。
 
 P1 的五项验收条件在行为层面全部有真实、可复现的证据支持；单协调器约束具备真实多进程验证，事务与错误语义实现正确。但验收发现两个可实现修复的问题：**(R-1)** 测试套件在本仓库 CI 的实际执行序列（`npm ci` → `npm run check`）下存在已复现的超时偶发，质量门禁不可靠；**(R-2)** 安装器幂等重装路径不恢复丢失的包内容，代码内注释对此做了与行为不符的声明。两处修复后复验即可通过，无需重做任何行为实现。
 
@@ -97,6 +99,39 @@ P1 的五项验收条件在行为层面全部有真实、可复现的证据支�
 
 ## 6. 下一步
 
-1. 开发 Agent 按 R-1、R-2 返工（预计改动集中在 `vitest.config.ts` 与 `roles/install.ts` + 各一个回归测试），更新 P1 开发报告后重新提交验收。
-2. 复验范围仅限 R-1、R-2 及其回归影响，本报告其余通过结论在基线不变时沿用。
+1. ~~开发 Agent 按 R-1、R-2 返工~~（已完成，见 §7）。
+2. ~~复验范围仅限 R-1、R-2 及其回归影响~~（已执行）。
 3. R-1、R-2 均关闭后，P1 即满足进入 P2 的条件；本验收流程不授予代码合并或远程发布权限。
+
+## 7. 返工复验（2026-10-13）
+
+复验基线：`b4ceeae`（fix(p1): rework R-1 and R-2 from acceptance review），工作树干净。变更范围核对（`git diff 01c33a7..b4ceeae --stat`）：仅 `vitest.config.ts`、`packages/core/src/roles/install.ts`、`packages/core/test/install.test.ts` 与文档（开发报告更新、返工报告、本报告入库），无其他行为改动——与返工范围限定一致。入库的本报告首验文本与验收 Agent 原稿一致（结论 REWORK 未被改动）。
+
+### R-1 复验：通过
+
+- 修复内容核对：`testTimeout: 30000`、`hookTimeout: 30000`、`fileParallelism: false`（`vitest.config.ts`），未删除断言、未缩短验证，符合修复要求。
+- 验收方独立执行复验序列：
+
+| 轮次 | 条件 | 结果 |
+| --- | --- | --- |
+| 1 | `npm ci` → 立即 `npm run check`（CI 等价序列） | **168/168 全绿** |
+| 2–5 | 连续 `npm run check` | **168/168 全绿 ×4** |
+
+满足"连续 ≥5 轮全绿且第 1 轮在 `npm ci` 后立即执行"的复验要求（首验时同一序列在第 1 轮即失败 6 项）。真实 CI 运行记录仍缺（无远程仓库，O-2 延续），不阻塞本阶段。
+
+### R-2 复验：通过
+
+- 修复内容核对：同哈希早退路径以 `rolepack.json` 为标记校验内容存在性，缺失时经 `copyToStaging`/`promoteStaging`（复用主路径原子提升逻辑，失败各自清理 staging）从已验证源包恢复，返回 `content_repaired: true`；不实注释已删除，替换为准确描述。
+- 回归测试核对：新增"repairs lost pack content on identical reinstall (R-2 regression)"用例，断言恢复后文件树完整（`rolepack.json`/`roles`/`templates`）且角色行数不变；既有幂等测试补充 `content_repaired: false` 断言（含正常安装路径）。
+- 验收方独立复跑"内容丢失重装"实验（走 `packages/core/dist` 构建产物，非测试代码）：
+
+| 实验 | 结果 |
+| --- | --- |
+| 正常安装 | `reinstalled:false`，`content_repaired:false` |
+| 删除内容目录后同内容重装 | `reinstalled:true`，`content_repaired:true`，**内容恢复：true**（首验为 false） |
+| 内容完好时重装 | `reinstalled:true`，`content_repaired:false`（无误修复） |
+| 修复后 staging 残留检查 | 无 `.staging-*` 残留 |
+
+### 复验结论
+
+R-1、R-2 均已关闭，复验通过。**P1 验收最终结论：PASS**，满足进入 P2 的条件。两项非阻塞观察项（O-1 扫描名单范围、O-2 远程 CI 与托管位置）延续，不阻塞后续阶段；O-2 仍待用户决策。本验收流程不授予代码合并或远程发布权限。
