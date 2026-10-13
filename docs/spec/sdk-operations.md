@@ -105,45 +105,46 @@
 - 错误：`GENERATION_CONFLICT`、`REVISION_CONFLICT`、`INVALID_STATE_TRANSITION`、`NOT_FOUND`、`ADAPTER_CAPABILITY_MISSING`
 - 原子性：A（指针切换 + 旧实例 superseded）；宿主创建为 O
 
-## 5. requests
+## 5. requests（P4 交付）
 
 ### requests.create
-- 输入：目标角色 ID、请求内容、幂等键、预算、读取记录或例外理由
-- 输出：CollaborationRequest（含接收事务内固定的 binding）
-- 身份：发起会话绑定
-- 前置：目标角色有主实例；读取记录或例外理由齐备；不嵌套自动请求
+- 输入：目标角色 ID、问题正文、幂等键、预算（max_turns/max_output_bytes/deadline）、读取例外理由（可省）
+- 输出：CollaborationRequest（接收事务内固定的 binding：实例/代次/知识修订/可分享快照/契约版本）
+- 身份：发起主会话绑定；consultation 分支发起 → `PERMISSION_DENIED`（原型拒绝嵌套）
+- 前置：目标已安装且有主实例（否则 `ROLE_UNINITIALIZED`）；会话真实回执或例外理由齐备；deadline 在未来
 - 错误：`ROLE_UNINITIALIZED`、`VALIDATION_FAILED`、`IDEMPOTENCY_CONFLICT`、`PERMISSION_DENIED`
 - 幂等：同键同内容 → 原请求；异内容 → 冲突
-- 原子性：A（接收与绑定）+ O（执行分支创建）
+- 原子性：A（接收与绑定 + outbox 待执行事件）+ O（consultation 分支创建，创建键对账）
 
 ### requests.get
-- 输入：请求 ID（+ 幂等键查询）
-- 输出：请求当前状态机快照
-- 身份：发起方或目标角色可见
+- 输入：请求 ID
+- 输出：请求当前状态机快照（含预算与结果引用）
+- 身份：仅发起方或目标角色主实例；跨身份 `PERMISSION_DENIED`
+- 惰性到期：deadline 已过 → 转 expired
 - 错误：`NOT_FOUND`、`PERMISSION_DENIED`
-- 原子性：只读；用于 execution_uncertain 对账
+- 原子性：只读
 
 ### requests.reply
-- 输入：请求 ID + 回复正文（awaiting_input 时由发起方补输入）
-- 输出：更新后的请求
-- 身份：发起会话绑定
-- 错误：`INVALID_STATE_TRANSITION`（非 awaiting_input）、`NOT_FOUND`
-- 原子性：A
+- 输入：请求 ID + 回复正文
+- 输出：更新后的请求（回 queued 并重执行一轮预算内轮次）
+- 身份：仅发起者；跨身份 `PERMISSION_DENIED`
+- 错误：`INVALID_STATE_TRANSITION`（非 awaiting_input）、`NOT_FOUND`、`PERMISSION_DENIED`
+- 原子性：A + O
 
 ### requests.cancel
 - 输入：请求 ID
 - 输出：终态请求记录
-- 身份：发起会话绑定
-- 前置：状态可取消
-- 错误：`REQUEST_NOT_TERMINABLE`、`NOT_FOUND`
-- 原子性：A；对运行中请求的取消为 O（适配器协商）
+- 身份：仅发起者
+- 语义：accepted/queued/awaiting_input 直接取消；running 需适配器 `cancel` 能力（协商）；已终态 → `REQUEST_NOT_TERMINABLE`
+- 错误：`REQUEST_NOT_TERMINABLE`、`NOT_FOUND`、`PERMISSION_DENIED`
+- 原子性：A；运行中协商为 O
 
-## 6. artifacts
+## 6. artifacts（P4 交付）
 
 ### artifacts.read
-- 输入：ArtifactRef（请求结果或候选归并产物）
-- 输出：产物内容与元数据
-- 身份：目标角色可见范围内
+- 输入：artifact_id
+- 输出：产物内容（内容寻址读取，读取时哈希校验）与元数据
+- 身份：请求发起者或目标角色主实例；跨身份 `PERMISSION_DENIED`
 - 错误：`NOT_FOUND`、`PERMISSION_DENIED`
 - 原子性：只读
 

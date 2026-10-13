@@ -17,6 +17,8 @@ export interface MockAdapterOptions {
   optional?: Partial<AdapterCapabilities["optional"]>;
   /** Isolation scopes; default all true (full access). */
   isolation?: Partial<AdapterCapabilities["isolation"]>;
+  /** getResult reports needs_input after the configured turn count. */
+  needsInputAfterTurns?: number;
   /** createSession fails hard before any host-side effect. */
   failCreate?: boolean;
   /**
@@ -153,10 +155,12 @@ export class MockHarnessAdapter implements HarnessAdapter {
     if (session === undefined || handle.adapter !== "mock") {
       throw new RoleDockError("NOT_FOUND", `Mock host session "${handle.host_session_id}" does not exist.`);
     }
+    const needsInputAt = this.options.needsInputAfterTurns ?? Number.POSITIVE_INFINITY;
     return {
       host_session_id: handle.host_session_id,
       state: session.closed ? "closed" : session.transcript.length > 0 ? "running" : "idle",
       turn_count: session.transcript.length,
+      ...(session.transcript.length === needsInputAt ? { needs_input: true } : {}),
     };
   }
 

@@ -66,6 +66,8 @@ export interface AdapterSessionResult {
   state: "running" | "idle" | "closed";
   /** Host-side transcript length, for unpolluted-history assertions in tests. */
   turn_count: number;
+  /** Host reports the branch needs initiator input (drives awaiting_input). */
+  needs_input?: boolean;
 }
 
 /** Scope requested of a native fork; full private history across roles is rejected. */

@@ -9,6 +9,7 @@ import {
   IMPLEMENTED_OPERATIONS,
   coordinatorOperations,
 } from "../src/index.js";
+import { MockHarnessAdapter } from "@roledock/adapter-mock";
 import { writePack } from "../../../tests/helpers/packs.js";
 
 const TEMP_ROOTS: string[] = [];
@@ -50,9 +51,13 @@ describe("coordinator operation surface", () => {
       "resolveRole",
       "resumeSession",
     ].sort());
+    expect(coordinatorOperations()).toHaveLength(18);
     expect(IMPLEMENTED_OPERATIONS).toEqual([
       "activateHandoff",
+      "cancelRequest",
+      "createRequest",
       "exportKnowledge",
+      "getRequest",
       "importKnowledge",
       "installRolePack",
       "listDocuments",
@@ -61,7 +66,9 @@ describe("coordinator operation surface", () => {
       "prepareHandoff",
       "proposeDocumentUpdate",
       "publishDocument",
+      "readArtifact",
       "readDocument",
+      "replyToRequest",
       "resolveRole",
       "resumeSession",
     ]);
@@ -137,41 +144,26 @@ describe("single-coordinator constraint", () => {
   });
 });
 
-describe("P0 failure contract for the remaining operations", () => {
+describe("complete operation surface (P4)", () => {
   const coordinatorRoot = () => makeRootWithPack();
 
-  it("rejects every unimplemented operation with NOT_IMPLEMENTED instead of faking success", async () => {
+  it("implements every specified operation — none report NOT_IMPLEMENTED", async () => {
     const { root } = coordinatorRoot();
-    const coordinator = Coordinator.open({ root });
-    const unimplemented = coordinatorOperations().filter(
-      (operation) => !IMPLEMENTED_OPERATIONS.includes(operation),
-    );
-    expect(unimplemented).toHaveLength(coordinatorOperations().length - IMPLEMENTED_OPERATIONS.length);
+    const coordinator = Coordinator.open({ root, adapter: new MockHarnessAdapter() });
+    expect(IMPLEMENTED_OPERATIONS).toHaveLength(coordinatorOperations().length);
     const methods = coordinator as unknown as Record<string, ((input: unknown) => Promise<unknown>) | undefined>;
     try {
-      for (const operation of unimplemented) {
+      for (const operation of coordinatorOperations()) {
         const method = methods[operation];
         if (typeof method !== "function") throw new Error(`missing operation: ${operation}`);
-        await expect(method.call(coordinator, {})).rejects.toSatisfy((error: unknown) => {
-          return isRoleDockError(error) && error.code === "NOT_IMPLEMENTED";
-        });
+        try {
+          await method.call(coordinator, {});
+        } catch (error) {
+          // Validations may reject empty input; faking success or reporting
+          // NOT_IMPLEMENTED would both be failures.
+          expect(isRoleDockError(error) && error.code === "NOT_IMPLEMENTED", `${operation} reported NOT_IMPLEMENTED`).toBe(false);
+        }
       }
-    } finally {
-      coordinator.close();
-    }
-  });
-
-  it("keeps the spec pointer in NOT_IMPLEMENTED details", async () => {
-    const { root } = coordinatorRoot();
-    const coordinator = Coordinator.open({ root });
-    try {
-      await expect(coordinator.createRequest({})).rejects.toSatisfy((error: unknown) => {
-        return (
-          isRoleDockError(error) &&
-          error.details !== undefined &&
-          (error.details as { spec?: string }).spec === "docs/spec/sdk-operations.md"
-        );
-      });
     } finally {
       coordinator.close();
     }
@@ -179,10 +171,10 @@ describe("P0 failure contract for the remaining operations", () => {
 
   it("uses only registered error codes across the surface", async () => {
     const { root } = coordinatorRoot();
-    const coordinator = Coordinator.open({ root });
+    const coordinator = Coordinator.open({ root, adapter: new MockHarnessAdapter() });
     const codes: ErrorCode[] = [];
+    const methods = coordinator as unknown as Record<string, ((input: unknown) => Promise<unknown>) | undefined>;
     try {
-      const methods = coordinator as unknown as Record<string, ((input: unknown) => Promise<unknown>) | undefined>;
       for (const operation of coordinatorOperations()) {
         const method = methods[operation];
         if (typeof method !== "function") throw new Error(`missing operation: ${operation}`);
@@ -196,8 +188,7 @@ describe("P0 failure contract for the remaining operations", () => {
       coordinator.close();
     }
     const registered: readonly string[] = Object.keys(ERROR_CODES);
-    const notImplemented = codes.filter((code) => code === "NOT_IMPLEMENTED");
-    expect(notImplemented).toHaveLength(coordinatorOperations().length - IMPLEMENTED_OPERATIONS.length);
     for (const code of codes) expect(registered).toContain(code);
+    expect(codes.length).toBeGreaterThan(0);
   });
 });

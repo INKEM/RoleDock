@@ -277,6 +277,7 @@ export function publishDocument(
     expected_revision: number;
     expected_generation: number;
     candidate_id?: string;
+    adopt_artifact_id?: string;
   },
 ): DocumentPublishResult {
   const identity = requireRoleIdentity(resolveSessionIdentity(store, input.session_id));
@@ -347,6 +348,108 @@ export function publishDocument(
 
     let body = input.body;
     let candidateId: string | undefined;
+    if (input.candidate_id !== undefined && input.adopt_artifact_id !== undefined) {
+      throw new RoleDockError(
+        "VALIDATION_FAILED",
+        "Pass either candidate_id or adopt_artifact_id, not both.",
+      );
+    }
+    if (input.adopt_artifact_id !== undefined) {
+      // Adopting a request result: the owner turns an inbox artifact into a
+      // candidate bound to the request source, then the standard CAS path
+      // applies. Pure database work — no host turns are ever started.
+      const artifact = store
+        .prepare("SELECT * FROM request_artifacts WHERE artifact_id = ?")
+        .get(input.adopt_artifact_id) as
+        | { artifact_id: string; request_id: string; producing_role_id: string; content_hash: string }
+        | undefined;
+      if (artifact === undefined) {
+        throw new RoleDockError("NOT_FOUND", `Artifact "${input.adopt_artifact_id}" does not exist.`, {
+          details: { artifact_id: input.adopt_artifact_id },
+        });
+      }
+      const request = store
+        .prepare("SELECT target_role_id, state, binding_generation, binding_contract_version FROM requests WHERE request_id = ?")
+        .get(artifact.request_id) as
+        | {
+            target_role_id: string;
+            state: string;
+            binding_generation: number;
+            binding_contract_version: string;
+          }
+        | undefined;
+      if (request === undefined) {
+        throw new RoleDockError("INTERNAL", "Artifact references a missing request.");
+      }
+      if (request.target_role_id !== ownerRoleId) {
+        throw new RoleDockError(
+          "PERMISSION_DENIED",
+          "Only the role that received the consultation result can adopt it.",
+          { details: { artifact_id: input.adopt_artifact_id, target_role_id: request.target_role_id } },
+        );
+      }
+      if (request.state !== "completed") {
+        throw new RoleDockError(
+          "INVALID_STATE_TRANSITION",
+          `Request is ${request.state}; late or non-completed results cannot trigger a publish.`,
+          { details: { request_id: artifact.request_id, state: request.state } },
+        );
+      }
+      // Stale-branch guard: a result produced against a superseded binding
+      // (older generation or a different frozen contract) has no formal
+      // write permission — the owner can read it, adoption fails.
+      const adoptHead = getHead(store, ownerRoleId);
+      if (adoptHead === undefined || request.binding_generation !== adoptHead.generation) {
+        throw new RoleDockError(
+          "REVISION_CONFLICT",
+          `Result was produced against generation ${request.binding_generation}; the current generation is ${adoptHead?.generation ?? 0}. The old branch has no formal write permission.`,
+          {
+            details: {
+              request_id: artifact.request_id,
+              request_binding_generation: request.binding_generation,
+              current_generation: adoptHead?.generation ?? 0,
+            },
+          },
+        );
+      }
+      const roleRow = getRoleRow(store, ownerRoleId);
+      if (roleRow !== undefined && request.binding_contract_version !== roleRow.pack_version) {
+        throw new RoleDockError(
+          "REVISION_CONFLICT",
+          `Result was produced against role contract version ${request.binding_contract_version}; the role is registered on ${roleRow.pack_version}.`,
+          {
+            details: {
+              request_id: artifact.request_id,
+              binding_contract_version: request.binding_contract_version,
+              current_contract_version: roleRow.pack_version,
+            },
+          },
+        );
+      }
+      const candidateIdForArtifact = `cand-${randomBytes(5).toString("hex")}`;
+      store
+        .prepare(
+          `INSERT INTO candidate_updates (candidate_id, workspace_id, target_role_id, document_key, baseline_revision, proposed_body_hash, note, proposed_by_session_id, proposed_by_role_id, source, state, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'request.result', 'open', ?)`,
+        )
+        .run(
+          candidateIdForArtifact,
+          store.workspaceId,
+          ownerRoleId,
+          input.document_key,
+          latestRevision,
+          artifact.content_hash,
+          `adopted from request ${artifact.request_id}`,
+          identity.sessionId,
+          identity.roleId,
+          now,
+        );
+      store
+        .prepare("UPDATE request_inbox SET state = 'read', read_at = ? WHERE artifact_id = ?")
+        .run(now, artifact.artifact_id);
+      body = readObject(store, artifact.content_hash);
+      candidateId = candidateIdForArtifact;
+    }
     if (input.candidate_id !== undefined) {
       // Adoption re-validates the candidate against the current baseline.
       const candidate = store
@@ -528,7 +631,7 @@ export function proposeDocumentUpdate(
 
 export function listCandidates(
   store: WorkspaceStore,
-  filter: { target_role_id?: string; state?: CandidateUpdate["state"] } = {},
+  filter: { target_role_id?: string; state?: CandidateUpdate["state"]; source?: string } = {},
 ): CandidateUpdate[] {
   const rows = store
     .prepare("SELECT * FROM candidate_updates ORDER BY created_at")
@@ -536,6 +639,7 @@ export function listCandidates(
   return rows.filter(
     (candidate) =>
       (filter.target_role_id === undefined || candidate.target_role_id === filter.target_role_id) &&
-      (filter.state === undefined || candidate.state === filter.state),
+      (filter.state === undefined || candidate.state === filter.state) &&
+      (filter.source === undefined || candidate.source === filter.source),
   );
 }

@@ -27,6 +27,19 @@ import { registerCoordinatorStore } from "./internal-store.js";
 import { asRecord, optionalString, requiredString } from "./parse.js";
 import type { HarnessAdapter } from "./ports/adapter.js";
 import {
+  cancelRequest,
+  createRequest,
+  getRequest,
+  readArtifact,
+  replyToRequest,
+} from "./requests/service.js";
+import type {
+  ArtifactReadResult,
+  CreateRequestResult,
+  RequestBudget,
+} from "./requests/service.js";
+import { cancelRunningRequest, executeRequest } from "./requests/executor.js";
+import {
   activateHandoff,
   prepareHandoff,
   provisionHandoff,
@@ -280,6 +293,7 @@ export class Coordinator {
       expected_revision: number;
       expected_generation: number;
       candidate_id?: string;
+      adopt_artifact_id?: string;
     } = {
       session_id: requiredString(record, "session_id"),
       document_key: requiredString(record, "document_key"),
@@ -289,26 +303,104 @@ export class Coordinator {
     };
     const candidateId = optionalString(record, "candidate_id");
     if (candidateId !== undefined) publishInput.candidate_id = candidateId;
+    const adoptArtifactId = optionalString(record, "adopt_artifact_id");
+    if (adoptArtifactId !== undefined) publishInput.adopt_artifact_id = adoptArtifactId;
     return publishDocument(this.store, publishInput);
   }
 
-  // -- requests --------------------------------------------------------------
-  async createRequest(_input: unknown): Promise<never> {
-    throw notImplemented("requests.create");
-  }
-  async getRequest(_input: unknown): Promise<never> {
-    throw notImplemented("requests.get");
-  }
-  async replyToRequest(_input: unknown): Promise<never> {
-    throw notImplemented("requests.reply");
-  }
-  async cancelRequest(_input: unknown): Promise<never> {
-    throw notImplemented("requests.cancel");
+  // -- requests & artifacts (implemented in P4) ---------------------------------
+  async createRequest(input: unknown): Promise<CreateRequestResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const budgetRecord = record.budget;
+    let budget: RequestBudget | undefined;
+    if (budgetRecord !== undefined) {
+      const b = asRecord(budgetRecord);
+      budget = {};
+      if (b.max_turns !== undefined) {
+        if (typeof b.max_turns !== "number" || !Number.isInteger(b.max_turns)) {
+          throw new RoleDockError("VALIDATION_FAILED", 'Input field "budget.max_turns" must be an integer.');
+        }
+        budget.max_turns = b.max_turns;
+      }
+      if (b.max_output_bytes !== undefined) {
+        if (typeof b.max_output_bytes !== "number" || !Number.isInteger(b.max_output_bytes)) {
+          throw new RoleDockError("VALIDATION_FAILED", 'Input field "budget.max_output_bytes" must be an integer.');
+        }
+        budget.max_output_bytes = b.max_output_bytes;
+      }
+      if (b.deadline !== undefined) {
+        if (typeof b.deadline !== "string") {
+          throw new RoleDockError("VALIDATION_FAILED", 'Input field "budget.deadline" must be an ISO timestamp.');
+        }
+        budget.deadline = b.deadline;
+      }
+    }
+    const rationale = optionalString(record, "read_exception_rationale");
+    return createRequest(this.store, {
+      session_id: requiredString(record, "session_id"),
+      target_role_id: requiredString(record, "target_role_id"),
+      question: requiredString(record, "question"),
+      idempotency_key: requiredString(record, "idempotency_key"),
+      ...(budget !== undefined ? { budget } : {}),
+      ...(rationale !== undefined ? { read_exception_rationale: rationale } : {}),
+      workspace_id: optionalString(record, "workspace_id"),
+    });
   }
 
-  // -- artifacts ---------------------------------------------------------------
-  async readArtifact(_input: unknown): Promise<never> {
-    throw notImplemented("artifacts.read");
+  async getRequest(input: unknown): Promise<ReturnType<typeof getRequest>> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    return getRequest(this.store, {
+      session_id: requiredString(record, "session_id"),
+      request_id: requiredString(record, "request_id"),
+    });
+  }
+
+  async replyToRequest(input: unknown): Promise<ReturnType<typeof replyToRequest>> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const result = replyToRequest(this.store, {
+      session_id: requiredString(record, "session_id"),
+      request_id: requiredString(record, "request_id"),
+      body: requiredString(record, "body"),
+    });
+    // A reply re-queues the request; run the budgeted execution turn and
+    // reflect the recorded state through the initiator's own read path.
+    if (result.state === "queued") {
+      await executeRequest(this.store, this.requireAdapter(), result.request_id).catch(() => undefined);
+      return this.getRequest({
+        session_id: result.initiating.session_id,
+        request_id: result.request_id,
+      });
+    }
+    return result;
+  }
+
+  async cancelRequest(input: unknown): Promise<ReturnType<typeof cancelRequest>> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const result = cancelRequest(
+      this.store,
+      this.requireAdapter().getCapabilities().optional.cancel === true,
+      {
+        session_id: requiredString(record, "session_id"),
+        request_id: requiredString(record, "request_id"),
+      },
+    );
+    if (result.state === "cancelled") {
+      await cancelRunningRequest(this.store, this.requireAdapter(), result.request_id).catch(() => undefined);
+    }
+    return result;
+  }
+
+  async readArtifact(input: unknown): Promise<ArtifactReadResult> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    return readArtifact(this.store, {
+      session_id: requiredString(record, "session_id"),
+      artifact_id: requiredString(record, "artifact_id"),
+    });
   }
 
   // -- knowledge (implemented in P2, owner-level) ------------------------------
@@ -355,6 +447,7 @@ export function coordinatorOperations(): string[] {
  * NOT_IMPLEMENTED. The testing entry (P2) is deliberately absent: it is not
  * part of the SDK operation surface.
  */
+/** Every SDK operation specified by the protocol is implemented. */
 export const IMPLEMENTED_OPERATIONS: readonly string[] = [
   "installRolePack",
   "listRoles",
@@ -369,6 +462,11 @@ export const IMPLEMENTED_OPERATIONS: readonly string[] = [
   "resumeSession",
   "prepareHandoff",
   "activateHandoff",
+  "createRequest",
+  "getRequest",
+  "replyToRequest",
+  "cancelRequest",
+  "readArtifact",
 ].sort();
 
 /** P1 additions, kept for tests that split delivery phases. */

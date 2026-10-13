@@ -154,45 +154,29 @@ describe("cli implemented operations (P1)", () => {
 });
 
 describe("cli unimplemented operations fail honestly", () => {
-  it("exits 1 with a NOT_IMPLEMENTED envelope for requests create in json mode", async () => {
+  it("fails request creation without a session with a structured envelope", async () => {
     const root = makeRoot();
     const cap = capture();
-    const result = await runCli(["--json", "--root", root, "requests", "create"], cap.io);
+    const result = await runCli(["--json", "--root", root, "requests", "create", "owner", "-"], cap.io);
     expect(result.exitCode).toBe(1);
     expect(cap.out()).toBe("");
     const envelope = JSON.parse(cap.err()) as ErrorEnvelope;
     expect(validate("error-envelope", envelope).ok).toBe(true);
-    expect(envelope.error.code).toBe("NOT_IMPLEMENTED");
+    expect(envelope.error.code).toBe("VALIDATION_FAILED");
+    expect(envelope.error.message).toContain("--session");
   });
 
-  it("exits 1 with a human-readable error line by default", async () => {
+  it("fails request operations that lack a session with a human-readable line", async () => {
     const root = makeRoot();
     const cap = capture();
-    const result = await runCli(["requests", "create"], cap.io);
+    const result = await runCli(["requests", "get"], cap.io);
     expect(result.exitCode).toBe(1);
-    expect(cap.err()).toContain("error: NOT_IMPLEMENTED");
+    expect(cap.err()).toContain("error: VALIDATION_FAILED");
+    expect(cap.err()).toContain("--session");
     expect(cap.out()).toBe("");
   });
 
-  it("keeps all unimplemented commands wired to the SDK surface", async () => {
-    const root = makeRoot();
-    const commands: Array<[string, string]> = [
-      ["requests", "create"],
-      ["requests", "get"],
-      ["requests", "reply"],
-      ["requests", "cancel"],
-      ["artifacts", "read"],
-    ];
-    for (const [group, operation] of commands) {
-      const cap = capture();
-      const result = await runCli(["--json", "--root", root, group, operation], cap.io);
-      expect(result.exitCode).toBe(1);
-      const envelope = JSON.parse(cap.err()) as ErrorEnvelope;
-      expect(`${group} ${operation}: ${envelope.error.code}`).toBe(
-        `${group} ${operation}: NOT_IMPLEMENTED`,
-      );
-    }
-  });
+
 });
 
 describe("cli P2 operations", () => {

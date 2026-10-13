@@ -69,11 +69,16 @@ accepted → queued → running → awaiting_input ─┐
 - **接收时绑定**：在接收事务内固定目标代次与知识快照（写入 `binding`）。排队中与运行中的请求**不自动迁移**到新代次；代次切换后，新请求绑定新代次，旧请求保留旧快照。
 - **创建不确定**：provision 阶段宿主会话创建结果不明时（如协调器重启），请求标记 `execution_uncertain = true`，不直接重试有副作用的执行；恢复流程先按创建键查询宿主，确认后再继续或失败。
 - **幂等**：相同幂等键 + 相同内容 → 返回原请求；相同幂等键 + 不同内容 → `IDEMPOTENCY_CONFLICT`。
-- **取消**：仅 `accepted/queued/awaiting_input` 可取消；对 `running` 的取消是对适配器的协商请求（P5 起语义），宿主不支持时请求继续到终态；已终态请求返回 `REQUEST_NOT_TERMINABLE`。
-- **到期**：超过 `budget.deadline` 未完成的请求转 `expired`。
-- **嵌套**：原型禁止请求执行中再自动发起请求；未来若开放，必须共享总预算并做调用链检测。
+- **取消**：仅 `accepted/queued/awaiting_input` 可取消；`running` 的取消是对适配器的协商（适配器声明 `cancel` 能力时），宿主不支持时请求继续到终态；已终态请求返回 `REQUEST_NOT_TERMINABLE`。仅发起者可取消。
+- **到期**：超过 `budget.deadline` 未完成的请求在读路径与执行前**惰性转 `expired`**；终态后迟到结果一律 `INVALID_STATE_TRANSITION` 拒收，不能完成请求或触发发布。
+- **预算**：`max_turns`/`max_output_bytes`/`deadline` 是能力作用域的一部分——超限请求转 `failed`（错误码 `PERMISSION_DENIED`），不可绕过；模型 token 用量以宿主报告为准（Mock 不模拟）。
+- **输入等待**：宿主报告 `needs_input` 时进入 `awaiting_input`；仅发起者可 `requests.reply`，回复使请求回到 `queued` 重新排队。
+- **嵌套**：原型禁止请求执行中再自动发起请求——consultation 分支会话调用 `requests.create` 返回 `PERMISSION_DENIED`；未来若开放，必须共享总预算并做调用链检测。
+- **资源回收**：请求进入终态即清理其临时目录；正式结果（artifact）与收件箱条目保留供读取与采纳。
 
-请求前置材料：发起会话须提供真实文档读取记录（`read_receipts`）；未读文档或文档不可读时填写可验证的 `read_exception_rationale`。
+请求前置材料：发起会话须提供真实文档读取记录（核心从回执表取，输入不可伪造）；未读文档或文档不可读时填写可验证的 `read_exception_rationale`，两者皆无 → `VALIDATION_FAILED`。
+
+**结果采纳（P4）**：完成的结果注册为 artifact 并投递到目标角色收件箱；由**当前所有者主实例**经 `documents.publish` 的 `adopt_artifact_id` 显式采纳——采纳时核心内联创建 `source='request.result'` 的候选并走标准 baseline/CAS 校验，纯数据库操作，绝不启动用户主会话新轮次。**旧分支无正式写权限**：请求绑定的 generation 或契约版本与当前 head 不一致时，采纳返回 `REVISION_CONFLICT`（结果仍可被读取）。
 
 ## 4. 知识版本
 

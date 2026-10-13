@@ -52,9 +52,9 @@ Session identity: documents.* operations require a trusted session — pass
   handoffs prepare [--session id]        freeze a bootstrap bundle (primary session)
   handoffs activate <bundle-id>          provision + CAS-activate a prepared bundle
 
-Specified but not implemented in this build (they fail with NOT_IMPLEMENTED):
-  requests create | get | reply | cancel
-  artifacts read
+Every SDK operation specified by protocol 0.1 is wired. Requests carry
+budgets (max_turns / max_output_bytes / deadline) and are executed by the
+coordinator's adapter as isolated consultation branches.
 
 Output is human-readable by default; pass --json for machine-readable
 envelopes ({ok:true,...} or {ok:false,error:{code,...}}).
@@ -226,11 +226,35 @@ const COMMANDS: ReadonlyMap<string, CommandSpec> = new Map([
   ["sessions resume", { buildInput: (p: readonly string[]) => ({ session_id: requirePositional(p, 0, "session id") }) }],
   ["handoffs prepare", { buildInput: (p: readonly string[], ctx: { session?: string }) => ({ session_id: requireSession(ctx), ...(p[0] !== undefined ? { role_id: p[0] } : {}) }) }],
   ["handoffs activate", { buildInput: (p: readonly string[]) => ({ bundle_id: requirePositional(p, 0, "bundle id") }) }],
-  ["requests create", { buildInput: () => ({}) }],
-  ["requests get", { buildInput: () => ({}) }],
-  ["requests reply", { buildInput: () => ({}) }],
-  ["requests cancel", { buildInput: () => ({}) }],
-  ["artifacts read", { buildInput: () => ({}) }],
+  [
+    "requests create",
+    {
+      buildInput: (p: readonly string[], ctx: { session?: string }) => {
+        const input: Record<string, unknown> = {
+          session_id: requireSession(ctx),
+          target_role_id: requirePositional(p, 0, "target role id"),
+          question: readBodyFile(requirePositional(p, 1, "question file")),
+          idempotency_key: requirePositional(p, 2, "idempotency key"),
+        };
+        const deadline = p[3];
+        if (deadline !== undefined) input.budget = { deadline };
+        return input;
+      },
+    },
+  ],
+  ["requests get", { buildInput: (p: readonly string[], ctx: { session?: string }) => ({ session_id: requireSession(ctx), request_id: requirePositional(p, 0, "request id") }) }],
+  [
+    "requests reply",
+    {
+      buildInput: (p: readonly string[], ctx: { session?: string }) => ({
+        session_id: requireSession(ctx),
+        request_id: requirePositional(p, 0, "request id"),
+        body: readBodyFile(requirePositional(p, 1, "reply file")),
+      }),
+    },
+  ],
+  ["requests cancel", { buildInput: (p: readonly string[], ctx: { session?: string }) => ({ session_id: requireSession(ctx), request_id: requirePositional(p, 0, "request id") }) }],
+  ["artifacts read", { buildInput: (p: readonly string[], ctx: { session?: string }) => ({ session_id: requireSession(ctx), artifact_id: requirePositional(p, 0, "artifact id") }) }],
 ]);
 
 function requirePositional(args: readonly string[], index: number, what: string): string {

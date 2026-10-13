@@ -55,6 +55,25 @@ export {
   listReceiptsForSession,
 } from "./sessions/internal.js";
 export type { SessionRow, NewReadReceipt } from "./sessions/internal.js";
+export {
+  createRequest,
+  getRequest,
+  replyToRequest,
+  cancelRequest,
+  readArtifact,
+  listInboxEntries,
+  listRequests,
+  expireIfOverdue,
+} from "./requests/service.js";
+export type {
+  CreateRequestInput,
+  CreateRequestResult,
+  RequestBudget,
+  RequestRow,
+  ArtifactReadResult,
+} from "./requests/service.js";
+export { executeRequest, rejectLateCompletion } from "./requests/executor.js";
+export type { ExecutionResult } from "./requests/executor.js";
 export { prepareHandoff, provisionHandoff, activateHandoff } from "./sessions/handoff.js";
 export type { HandoffPreparation, BundleRow, ActivationResult } from "./sessions/handoff.js";
 export type { OpenSessionInput, OpenSessionResult, ResumeSessionResult } from "./sessions/open.js";

@@ -36,13 +36,22 @@ describe("roledock CLI subprocess smoke", () => {
     expect(envelope.data?.version).toMatch(/^\d+\.\d+\.\d+/);
   });
 
-  it("fails an unimplemented operation with a valid NOT_IMPLEMENTED envelope on stderr and exit code 1", () => {
-    const result = runCli(["--json", "requests", "get"]);
-    expect(result.status).toBe(1);
-    expect(result.stdout).toBe("");
-    const envelope = JSON.parse(result.stderr) as ErrorEnvelope;
-    expect(validate("error-envelope", envelope).ok).toBe(true);
-    expect(envelope.error.code).toBe("NOT_IMPLEMENTED");
+  it("reports no operation as NOT_IMPLEMENTED — every specified command is wired", () => {
+    for (const [group, operation] of [
+      ["sessions", "open"],
+      ["documents", "list"],
+      ["handoffs", "prepare"],
+      ["requests", "get"],
+      ["artifacts", "read"],
+    ] as Array<[string, string]>) {
+      const result = runCli(["--json", "--root", mkdtempSync(join(tmpdir(), "roledock-spawn-")), group, operation]);
+      if (result.status === 1) {
+        const envelope = JSON.parse(result.stderr) as ErrorEnvelope;
+        expect(`${group} ${operation}: ${envelope.error.code}`).not.toBe(
+          `${group} ${operation}: NOT_IMPLEMENTED`,
+        );
+      }
+    }
   });
 
   it("exits 2 on an unknown command", () => {
@@ -53,9 +62,9 @@ describe("roledock CLI subprocess smoke", () => {
   });
 
   it("keeps human mode non-JSON by default", () => {
-    const result = runCli(["requests", "create"]);
+    const result = runCli(["requests", "get"]);
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain("error: NOT_IMPLEMENTED");
+    expect(result.stderr).toContain("error: VALIDATION_FAILED");
     expect(() => JSON.parse(result.stderr)).toThrow();
   });
 
