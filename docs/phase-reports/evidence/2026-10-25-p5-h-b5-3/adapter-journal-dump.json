@@ -1,0 +1,41 @@
+{
+ "creations": [
+  {
+   "state": "closed",
+   "n": 10
+  }
+ ],
+ "request_scopes": [
+  {
+   "creation_key": "request-req-75a7cb81de",
+   "capability_scope_json": "[\"documents.read\",\"documents.propose\"]",
+   "temp_dir": "/tmp/b5-3-chain-ws/.roledock/requests/req-75a7cb81de/tmp"
+  },
+  {
+   "creation_key": "request-req-cbd25694bf",
+   "capability_scope_json": "[\"documents.read\",\"documents.propose\"]",
+   "temp_dir": "/tmp/b5-3-chain-ws/.roledock/requests/req-cbd25694bf/tmp"
+  },
+  {
+   "creation_key": "request-req-29a8be090a",
+   "capability_scope_json": "[\"documents.read\",\"documents.propose\"]",
+   "temp_dir": "/tmp/b5-3-chain-ws/.roledock/requests/req-29a8be090a/tmp"
+  }
+ ],
+ "request_scopes_count": {
+  "n": 10
+ },
+ "turns_by_state": [
+  {
+   "state": "completed",
+   "n": 10
+  }
+ ],
+ "material_loads": [
+  {
+   "state": "confirmed",
+   "n": 12
+  }
+ ]
+}
+(Use `node --trace-warnings ...` to show where the warning was created)

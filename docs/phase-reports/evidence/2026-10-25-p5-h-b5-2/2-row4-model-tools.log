@@ -1,0 +1,10 @@
+{"kind":"baseline","sandboxed_processes":0}
+(node:1671111) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"kind":"session-created","session_id":"sess_e8cae0ca-3e65-4a1b-b00d-015f13eb8641","mode":"yolo"}
+{"kind":"sandbox-processes-during","sandboxed_processes":2}
+{"kind":"turn-terminal","terminal":"turn.completed","tool_event_count":4,"tool_results_excerpt":"[{\"seq\":39,\"type\":\"tool.updated\",\"kind\":\"batch\"},{\"seq\":40,\"type\":\"tool.updated\",\"kind\":\"started\",\"toolName\":\"Bash\"},{\"seq\":41,\"type\":\"tool.updated\",\"kind\":\"result\"},{\"seq\":42,\"type\":\"tool.updated\",\"kind\":\"batch\"}]"}
+{"kind":"host-asserts","escape_file_absent":true,"sandboxed_processes_during_turn":2}
+{"kind":"sandbox-boundary-evidence","files":["env-keys.json","mounts.txt","supervisor.log"],"env_keys":["HOME","LANG","PATH","PWD","ROLEDOCK_EGRESS_SOCK","TMPDIR","XDG_CACHE_HOME","XDG_CONFIG_HOME","XDG_DATA_HOME","ZCODE_BUILTIN_PROVIDER_CONFIG_FILE","ZCODE_PERSONAL_PROVIDER_CONFIG_FILE"]}
+{"kind":"process-tree-reclaimed","sandboxed_processes_after":[],"reclaimed":true}
+{"kind":"b5-2-row4-result","ok":true,"note":"Tools ran inside the boundary; the /etc write, credential read and non-whitelisted connect all failed at the boundary."}

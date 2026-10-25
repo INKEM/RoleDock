@@ -1,0 +1,8 @@
+97490d0f06a7a225d54d47817acf4b4859cdb268b59f2490caaeda982bef063a  /opt/ZCode/resources/glm/zcode.cjs
+b0e8a6033b700e67d57993789749e1049e7c17bcfdd4f204c12bb5590a1aa2c2  docs/phase-reports/evidence/2026-10-24-p5-h-b3/credential-helper.mjs
+5b3974fb6dec4c4e6430766f4595dbe29550a4d2667564a672fe57bab4d7ea45  adapters/zcode/dist/reference-bin.js
+44d77d7ffb9eb32d26bc87e31104be39fa0deec76c93c12a3b822642be07b0e4  adapters/zcode/dist/reference-connector.js
+add914a3f279f736462cd329f60a2b416f1abd5df0b55b6f921792c79872a49c  adapters/zcode/dist/sandbox.js
+2ecf8da7786e592433421ac721b64e853c904de2e179066329af4374015afb12  adapters/zcode/dist/index.js
+8152a1414a954520c9a9b142f7c467d3a8f84f9ac138c83d9ad3f8d15d2a9fb9  docs/phase-reports/evidence/2026-10-25-p5-h-b5-3/b5-3-request-chain.mjs
+bubblewrap 0.6.1

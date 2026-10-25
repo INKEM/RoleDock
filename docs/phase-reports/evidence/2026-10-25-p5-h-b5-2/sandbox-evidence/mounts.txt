@@ -1,0 +1,20 @@
+6292 4637 0:101 / / ro,nosuid,nodev,relatime - tmpfs tmpfs rw,mode=755,uid=1000,gid=1000,inode64
+6293 6292 0:102 / /tmp rw,nosuid,nodev,relatime - tmpfs tmpfs rw,mode=755,uid=1000,gid=1000,inode64
+6294 6292 0:104 / /proc rw,nosuid,nodev,noexec,relatime - proc proc rw
+6295 6293 259:7 /tmp/roledock-sandbox-yg84Ag /tmp/roledock-sandbox-yg84Ag ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6296 6295 0:118 / /tmp/roledock-sandbox-yg84Ag/home rw,nosuid,nodev,relatime - tmpfs tmpfs rw,mode=755,uid=1000,gid=1000,inode64
+6297 6292 259:7 /usr /usr ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6298 6292 0:5 /null /dev/null rw,nosuid,relatime master:2 - devtmpfs udev rw,size=15904272k,nr_inodes=3976068,mode=755,inode64
+6299 6292 0:5 /zero /dev/zero rw,nosuid,relatime master:2 - devtmpfs udev rw,size=15904272k,nr_inodes=3976068,mode=755,inode64
+6300 6292 0:5 /random /dev/random rw,nosuid,relatime master:2 - devtmpfs udev rw,size=15904272k,nr_inodes=3976068,mode=755,inode64
+6301 6292 0:5 /urandom /dev/urandom rw,nosuid,relatime master:2 - devtmpfs udev rw,size=15904272k,nr_inodes=3976068,mode=755,inode64
+6302 6292 259:7 /etc/ssl /etc/ssl ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6303 6292 259:7 /tmp/roledock-sandbox-yg84Ag/hosts /etc/hosts ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6304 6292 259:7 /etc/ld.so.cache /etc/ld.so.cache ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6305 6292 259:7 /etc/nsswitch.conf /etc/nsswitch.conf ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6306 6292 259:7 /etc/passwd /etc/passwd ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6307 6292 259:7 /etc/group /etc/group ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6308 6292 259:7 /etc/machine-id /etc/machine-id ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6309 6292 259:7 /home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-25-p5-h-b5-2/escape-payload.cjs /home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-25-p5-h-b5-2/escape-payload.cjs ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6310 6292 259:7 /home/inkem/.nvm/versions/node/v22.23.2/bin /home/inkem/.nvm/versions/node/v22.23.2/bin ro,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro
+6311 6293 259:7 /tmp/b5-2-matrix-ws /tmp/b5-2-matrix-ws rw,nosuid,nodev,relatime master:1 - ext4 /dev/nvme1n1p2 rw,errors=remount-ro

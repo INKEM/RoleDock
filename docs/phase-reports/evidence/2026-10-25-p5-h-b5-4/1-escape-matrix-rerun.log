@@ -1,0 +1,46 @@
+{"kind":"baseline","sandboxed_processes":0,"host_lan_available":true}
+{"kind":"sandbox-launched","runtime_dir":"/tmp/roledock-sandbox-yg84Ag"}
+{"kind":"payload-exit","exit_code":0,"wall_ms":3095,"stderr_tail":""}
+{"kind":"matrix-verdict","row":"1","attempt":"write /etc/roledock-escape","intercepted":true,"detail":"failed errno=EROFS"}
+{"kind":"matrix-verdict","row":"1","attempt":"write /usr/roledock-escape","intercepted":true,"detail":"failed errno=EROFS"}
+{"kind":"matrix-verdict","row":"1","attempt":"write /opt/roledock-escape","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"1","attempt":"write /root/roledock-escape","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"1","attempt":"write /var/roledock-escape","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"1","attempt":"write /etc/ld.so.preload","intercepted":true,"detail":"failed errno=EROFS"}
+{"kind":"matrix-verdict","row":"1","attempt":"write (whitelisted) /tmp/whitelisted-writes","intercepted":true,"detail":"WRITTEN (whitelist area, by design) (positive control)"}
+{"kind":"matrix-verdict","row":"1","attempt":"write (whitelisted) /tmp/roledock-sandbox-yg84Ag/home/whitelisted-writes","intercepted":true,"detail":"WRITTEN (whitelist area, by design) (positive control)"}
+{"kind":"matrix-verdict","row":"1","attempt":"write (whitelisted) workspace-writes","intercepted":true,"detail":"WRITTEN (whitelist area, by design) (positive control)"}
+{"kind":"matrix-verdict","row":"2","attempt":"read /home/inkem/.zcode/v2/credentials.json","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"2","attempt":"read /etc/shadow","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"2","attempt":"read /root/.bashrc","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"2","attempt":"read /home/inkem/.bashrc","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"2","attempt":"read /home/inkem/.zcode/v2/credentials.json.enc","intercepted":true,"detail":"failed errno=ENOENT"}
+{"kind":"matrix-verdict","row":"2","attempt":"read /proc/1/environ","intercepted":true,"detail":"READABLE (19 bytes, first 40: \"PATH=/usr/bin:/bin\\u0000\") (pidns init = supervisor, allowlisted env)"}
+{"kind":"matrix-verdict","row":"2","attempt":"list /home/inkem/.zcode/v2 (bound provider-config path)","intercepted":true,"detail":"failed"}
+{"kind":"matrix-verdict","row":"2","attempt":"list $HOME (tmpfs home)","intercepted":true,"detail":"entries: whitelisted-writes"}
+{"kind":"matrix-verdict","row":"3","attempt":"connect host-side listener 127.0.0.1 (cross netns)","intercepted":true,"detail":"failed (ECONNREFUSED)"}
+{"kind":"matrix-verdict","row":"3","attempt":"connect host LAN IP (no route in netns)","intercepted":true,"detail":"failed (ENETUNREACH)"}
+{"kind":"matrix-verdict","row":"3","attempt":"resolve evil.test","intercepted":true,"detail":"failed (ECONNREFUSED)"}
+{"kind":"matrix-verdict","row":"3","attempt":"resolve api.z.ai (whitelisted, positive control)","intercepted":true,"detail":"resolved to \"127.0.0.2\" (hosts pin positive control)"}
+{"kind":"matrix-verdict","row":"3","attempt":"unix-socket protocol bypass (evil.test via egress.sock)","intercepted":true,"detail":"closed by forwarder (rejected)"}
+{"kind":"matrix-verdict","row":"3","attempt":"TLS to api.z.ai:443 (whitelisted positive control)","intercepted":true,"detail":"handshake OK, subject CN=\"*.z.ai\", authorized=true"}
+{"kind":"matrix-verdict","row":"5","attempt":"nested tree namespaces uniform (3 levels reported)","intercepted":true,"detail":"pid=pid:[4026533448],net=net:[4026533525],user=user:[4026533257] | pid=pid:[4026533448],net=net:[4026533525],user=user:[4026533257] | pid=pid:[4026533448],net=net:[4026533525],user=user:[4026533257]"}
+{"kind":"matrix-verdict","row":"5","attempt":"detached setsid child recorded inside boundary","intercepted":true,"detail":"row5-detached.json present, same pid/net/user identity"}
+{"kind":"matrix-verdict","row":"6","attempt":"global MCP/plugin config absent from tmpfs HOME","intercepted":true,"detail":"absent (ENOENT)"}
+{"kind":"matrix-verdict","row":"6","attempt":"bound provider-config dir contains no credentials","intercepted":true,"detail":"failed (ENOENT)"}
+{"kind":"matrix-verdict","row":"6","attempt":"fake MCP write outside","intercepted":true,"detail":"write=EROFS"}
+{"kind":"matrix-verdict","row":"6","attempt":"fake MCP read credentials","intercepted":true,"detail":"read=ENOENT"}
+{"kind":"matrix-verdict","row":"6","attempt":"fake MCP network to host listener","intercepted":true,"detail":"net=ECONNREFUSED"}
+{"kind":"matrix-verdict","row":"7","attempt":"mount -t tmpfs","intercepted":true,"detail":"exit=32 stderr=mount: /mnt: mount point does not exist."}
+{"kind":"matrix-verdict","row":"7","attempt":"unshare --mount","intercepted":true,"detail":"exit=1 stderr=unshare: unshare failed: Operation not permitted"}
+{"kind":"matrix-verdict","row":"7","attempt":"nsenter setns","intercepted":true,"detail":"exit=1 stderr=nsenter: reassociate to namespace 'ns/mnt' failed: Operation not permitted"}
+{"kind":"matrix-verdict","row":"7","attempt":"/proc/1 is sandbox pidns init (not host systemd)","intercepted":true,"detail":"/proc/1/comm = bwrap (host init would be systemd) (host init would be systemd)"}
+{"kind":"matrix-verdict","row":"7","attempt":"docker.sock absent","intercepted":true,"detail":"absent (ENOENT)"}
+{"kind":"matrix-verdict","row":"7","attempt":"/sys absent","intercepted":true,"detail":"absent (ENOENT)"}
+{"kind":"matrix-verdict","row":"7","attempt":"no host block devices in /dev","intercepted":true,"detail":"/dev entries: null,random,urandom,zero"}
+{"kind":"matrix-verdict","row":"7","attempt":"CapEff = NET_BIND_SERVICE only + NoNewPrivs","intercepted":true,"detail":"CapEff=0000000000000400 (0x400 = NET_BIND_SERVICE only), NoNewPrivs=1"}
+{"kind":"matrix-verdict","row":"1","attempt":"host-side: no forbidden file landed","intercepted":true,"detail":"all absent"}
+{"kind":"matrix-verdict","row":"2","attempt":"host-side: credentials.json untouched (size/mtime)","intercepted":true,"detail":"size=2138"}
+{"kind":"matrix-verdict","row":"5","attempt":"host-side: sandboxed process tree reclaimed (incl. detached child)","intercepted":true,"detail":"before=0 after=0"}
+{"kind":"launch-args-note","runtime_dir":"/tmp/roledock-sandbox-yg84Ag","args_count":120}
+{"kind":"b5-2-matrix-result","rows_checked":["1","2","3","5","6","7"],"total_verdicts":41,"failed":0,"ok":true}

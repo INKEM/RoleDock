@@ -1,0 +1,10 @@
+97490d0f06a7a225d54d47817acf4b4859cdb268b59f2490caaeda982bef063a  /opt/ZCode/resources/glm/zcode.cjs
+b0e8a6033b700e67d57993789749e1049e7c17bcfdd4f204c12bb5590a1aa2c2  docs/phase-reports/evidence/2026-10-24-p5-h-b3/credential-helper.mjs
+5b3974fb6dec4c4e6430766f4595dbe29550a4d2667564a672fe57bab4d7ea45  adapters/zcode/dist/reference-bin.js
+a68c0927e3d83d583225d9d7021998cb618fcd72ede135e3f921cce45b5d308a  adapters/zcode/dist/reference-connector.js
+86aab5d300aa58376c3f4ce73602b199139b78fb447e5312750522fcdb40e724  adapters/zcode/dist/sandbox.js
+ca60ea9fcd65d42ee862fffbaab16858e0814ffe23d1a8bc370c4de9a4dac3e5  docs/phase-reports/evidence/2026-10-25-p5-h-b5-2/escape-payload.cjs
+ba749adbbefd34524e8119f52b9c584b3946dcccd1315847a1469f265fe7454e  docs/phase-reports/evidence/2026-10-25-p5-h-b5-2/b5-2-escape-matrix.mjs
+6708052a8e10f5316db233f833f72487baa1f61190fdd0e7df011350e01bf13c  docs/phase-reports/evidence/2026-10-25-p5-h-b5-2/b5-2-row4-model-tools.mjs
+db44b15e95f53927868098de6808c50f4f8989d7387a5a5d76eade68092449be  docs/phase-reports/evidence/2026-10-25-p5-h-b5-2/b5-2-row8-lifecycle.mjs
+bubblewrap 0.6.1

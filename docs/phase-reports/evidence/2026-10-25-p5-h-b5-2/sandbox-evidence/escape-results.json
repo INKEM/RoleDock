@@ -1,0 +1,176 @@
+{
+  "row1_writes": [
+    {
+      "attempt": "write /etc/roledock-escape",
+      "observed": "failed",
+      "errno": "EROFS"
+    },
+    {
+      "attempt": "write /usr/roledock-escape",
+      "observed": "failed",
+      "errno": "EROFS"
+    },
+    {
+      "attempt": "write /opt/roledock-escape",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "write /root/roledock-escape",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "write /var/roledock-escape",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "write /etc/ld.so.preload",
+      "observed": "failed",
+      "errno": "EROFS"
+    },
+    {
+      "attempt": "write (whitelisted) /tmp/whitelisted-writes",
+      "observed": "WRITTEN (whitelist area, by design)"
+    },
+    {
+      "attempt": "write (whitelisted) /tmp/roledock-sandbox-yg84Ag/home/whitelisted-writes",
+      "observed": "WRITTEN (whitelist area, by design)"
+    },
+    {
+      "attempt": "write (whitelisted) workspace-writes",
+      "observed": "WRITTEN (whitelist area, by design)"
+    }
+  ],
+  "row2_reads": [
+    {
+      "attempt": "read /home/inkem/.zcode/v2/credentials.json",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "read /etc/shadow",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "read /root/.bashrc",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "read /home/inkem/.bashrc",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "read /home/inkem/.zcode/v2/credentials.json.enc",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "read /proc/1/environ",
+      "observed": "READABLE (19 bytes, first 40: \"PATH=/usr/bin:/bin\\u0000\")"
+    },
+    {
+      "attempt": "list /home/inkem/.zcode/v2 (bound provider-config path)",
+      "observed": "failed",
+      "errno": "ENOENT"
+    },
+    {
+      "attempt": "list $HOME (tmpfs home)",
+      "observed": "entries: whitelisted-writes"
+    }
+  ],
+  "row3_network": [
+    {
+      "attempt": "connect host-side listener 127.0.0.1 (cross netns)",
+      "expected": "connection refused/unreachable (non-whitelisted)",
+      "observed": "failed (ECONNREFUSED)"
+    },
+    {
+      "attempt": "connect host LAN IP (no route in netns)",
+      "expected": "connection refused/unreachable (non-whitelisted)",
+      "observed": "failed (ENETUNREACH)"
+    },
+    {
+      "attempt": "resolve evil.test",
+      "expected": "no resolution",
+      "observed": "failed (ECONNREFUSED)"
+    },
+    {
+      "attempt": "resolve api.z.ai (whitelisted, positive control)",
+      "expected": "hosts pin 127.0.0.2",
+      "observed": "resolved to \"127.0.0.2\""
+    },
+    {
+      "attempt": "unix-socket protocol bypass (evil.test via egress.sock)",
+      "expected": "forwarder rejects non-whitelisted target",
+      "observed": "closed by forwarder (rejected)"
+    },
+    {
+      "attempt": "TLS to api.z.ai:443 (whitelisted positive control)",
+      "expected": "handshake + name-validated certificate via relay",
+      "observed": "handshake OK, subject CN=\"*.z.ai\", authorized=true"
+    }
+  ],
+  "row5_nested_spawn": [
+    {
+      "attempt": "nested tree: payload → node → node → node (3 levels)",
+      "observed": "spawned (level files + namespace comparison done host-side after exit)"
+    },
+    {
+      "attempt": "detached setsid child (survival attempt)",
+      "observed": "spawned detached (host-side checks: same namespaces + no survivor after teardown)"
+    }
+  ],
+  "row6_plugins_mcp": [
+    {
+      "attempt": "global MCP/plugin config visibility ($HOME/.zcode)",
+      "observed": "absent (ENOENT)"
+    },
+    {
+      "attempt": "literal provider-config dir contents (ro-bound)",
+      "observed": "failed (ENOENT)"
+    },
+    {
+      "attempt": "plugin-equivalent child process (write/read/network probes)",
+      "observed": "spawned (results collected from row6-fake-mcp.json)"
+    }
+  ],
+  "row7_escape_paths": [
+    {
+      "attempt": "mount -t tmpfs /mnt",
+      "observed": "exit=32 stderr=mount: /mnt: mount point does not exist."
+    },
+    {
+      "attempt": "unshare --mount",
+      "observed": "exit=1 stderr=unshare: unshare failed: Operation not permitted"
+    },
+    {
+      "attempt": "nsenter -t 1 -m (setns toward init)",
+      "observed": "exit=1 stderr=nsenter: reassociate to namespace 'ns/mnt' failed: Operation not permitted"
+    },
+    {
+      "attempt": "/proc/1 identity (pidns init, not host init)",
+      "observed": "/proc/1/comm = bwrap (host init would be systemd)"
+    },
+    {
+      "attempt": "docker socket visibility",
+      "observed": "absent (ENOENT)"
+    },
+    {
+      "attempt": "/sys visibility",
+      "observed": "absent (ENOENT)"
+    },
+    {
+      "attempt": "host block devices",
+      "observed": "/dev entries: null,random,urandom,zero"
+    },
+    {
+      "attempt": "capability set + NoNewPrivs",
+      "observed": "CapEff=0000000000000400 (0x400 = NET_BIND_SERVICE only), NoNewPrivs=1"
+    }
+  ]
+}

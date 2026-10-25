@@ -1,0 +1,4 @@
+{"ok":false,"error":{"code":"NOT_IMPLEMENTED","message":"Managed sandbox execution is reserved (B5-0) and NOT_IMPLEMENTED until B5-1 delivers the sandbox runner; refusing to start without the sandbox boundary (fail-closed).","retryable":false}}
+(node:1595618) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+exit=1

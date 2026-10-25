@@ -1,0 +1,10 @@
+97490d0f06a7a225d54d47817acf4b4859cdb268b59f2490caaeda982bef063a  /opt/ZCode/resources/glm/zcode.cjs
+b0e8a6033b700e67d57993789749e1049e7c17bcfdd4f204c12bb5590a1aa2c2  docs/phase-reports/evidence/2026-10-24-p5-h-b3/credential-helper.mjs
+5b3974fb6dec4c4e6430766f4595dbe29550a4d2667564a672fe57bab4d7ea45  adapters/zcode/dist/reference-bin.js
+44d77d7ffb9eb32d26bc87e31104be39fa0deec76c93c12a3b822642be07b0e4  adapters/zcode/dist/reference-connector.js
+add914a3f279f736462cd329f60a2b416f1abd5df0b55b6f921792c79872a49c  adapters/zcode/dist/sandbox.js
+8ddd23b49c7193ff0bac2701a0ff2a55420920fdfe4d8819cd71f749e4586639  adapters/zcode/dist/index.js
+73dd8007387b6487715ed6ec595d72bbc842e680a8f2a47ba88e52330a2c5b2b  docs/phase-reports/evidence/2026-10-25-p5-h-b5-4/b5-4-full-chain.mjs
+82f6f93591fe7a19f931bf2feae94dd28f2ce9c013fa1085656203c5a567ff75  docs/phase-reports/evidence/2026-10-25-p5-h-b5-2/b5-2-escape-matrix.mjs
+2761e6027839fd710a2558b746044e6f90d2ce81f6eeca3e555043440d1f7f5d  adapters/zcode/test/contract.test.ts
+bubblewrap 0.6.1

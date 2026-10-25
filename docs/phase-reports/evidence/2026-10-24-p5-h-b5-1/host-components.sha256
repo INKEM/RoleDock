@@ -1,0 +1,8 @@
+97490d0f06a7a225d54d47817acf4b4859cdb268b59f2490caaeda982bef063a  /opt/ZCode/resources/glm/zcode.cjs
+b0e8a6033b700e67d57993789749e1049e7c17bcfdd4f204c12bb5590a1aa2c2  docs/phase-reports/evidence/2026-10-24-p5-h-b3/credential-helper.mjs
+5b3974fb6dec4c4e6430766f4595dbe29550a4d2667564a672fe57bab4d7ea45  adapters/zcode/dist/reference-bin.js
+a68c0927e3d83d583225d9d7021998cb618fcd72ede135e3f921cce45b5d308a  adapters/zcode/dist/reference-connector.js
+36ee52ea971ad8c909f3bf1fc800d0b2369946879596f003c275fb09511b3647  adapters/zcode/dist/sandbox.js
+b08c42967f8a7870078a91e05669a547fb25d216a151ee7fc6ee696fb9e48e4b  docs/phase-reports/evidence/2026-10-24-p5-h-b5-1/b5-1-sandbox-chain.mjs
+e96d6bff5bb73e86755ebc1b8ec5dc201602d40aa55ad674e79300fdb959e7fe  docs/phase-reports/evidence/2026-10-24-p5-h-b5-1/b5-1-concurrency.mjs
+bubblewrap 0.6.1

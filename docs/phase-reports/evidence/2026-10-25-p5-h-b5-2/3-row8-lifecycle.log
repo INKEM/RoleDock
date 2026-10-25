@@ -1,0 +1,7 @@
+{"kind":"row8-verdict","attempt":"(a) probe unavailable → NOT_IMPLEMENTED, refused to start","pass":true,"detail":"{\"code\":\"NOT_IMPLEMENTED\",\"message\":\"Managed sandbox execution is unavailable on this machine (ROLEDOCK_SANDBOX_PROBE=unavailable (diagnostic override)); refusing to start without the sandbox boundary (fail-closed).\",\"retryable\":false}"}
+(node:1671582) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"kind":"row8-verdict","attempt":"(b) broken CLI → honest uncertain failure, no session","pass":true,"detail":"{\"code\":\"INTERNAL\",\"uncertain\":true,\"message\":\"ZCode creation was not confirmed; local intent retained.\"}"}
+{"kind":"row8-verdict","attempt":"(c) runner killed mid-flight → uncertain, never unsandboxed","pass":true,"detail":"{\"code\":\"INTERNAL\",\"uncertain\":true,\"message\":\"ZCode creation was not confirmed; local intent retained.\"} unsandboxed_zcode_procs=0"}
+{"kind":"row8-verdict","attempt":"(d) teardown leaves no zcode app-server behind","pass":true,"detail":"leftover=0"}
+{"kind":"b5-2-row8-result","total":4,"failed":0,"ok":true}

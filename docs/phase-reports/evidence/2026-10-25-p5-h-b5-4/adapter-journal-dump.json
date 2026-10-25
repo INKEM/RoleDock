@@ -1,0 +1,27 @@
+{
+ "creations": [
+  {
+   "state": "closed",
+   "n": 10
+  }
+ ],
+ "turns_by_state": [
+  {
+   "state": "completed",
+   "n": 10
+  }
+ ],
+ "material_loads": [
+  {
+   "state": "confirmed",
+   "n": 13
+  }
+ ],
+ "request_scopes_count": {
+  "n": 10
+ },
+ "cancelled": {
+  "n": 0
+ }
+}
+(Use `node --trace-warnings ...` to show where the warning was created)

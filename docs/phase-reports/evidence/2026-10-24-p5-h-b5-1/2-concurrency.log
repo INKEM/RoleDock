@@ -1,0 +1,4 @@
+{"kind":"process-baseline","sandboxed_processes":0}
+{"kind":"concurrent-results","instances":[{"index":1,"session":"sess_b89439ea-d5cc-40a6-8ad0-7c5a68b67d98","completed":true,"answer_confirmed":true,"evidence_files":["env-keys.json","mounts.txt","supervisor.log"]},{"index":2,"session":"sess_aeec2727-9a3a-44a3-b7b8-7a086b88d28d","completed":true,"answer_confirmed":true,"evidence_files":["env-keys.json","mounts.txt","supervisor.log"]},{"index":3,"session":"sess_515e424a-937e-4264-8c9c-3608b6c9146e","completed":true,"answer_confirmed":true,"evidence_files":["env-keys.json","mounts.txt","supervisor.log"]}],"wall_ms":13953}
+{"kind":"process-tree-reclaimed","sandboxed_processes_after":[],"reclaimed":true,"baseline":0}
+{"kind":"b5-1-concurrency-result","ok":true,"instances":3,"env_key_count":10}

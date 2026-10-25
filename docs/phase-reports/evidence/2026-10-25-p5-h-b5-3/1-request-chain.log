@@ -1,0 +1,17 @@
+(node:1907544) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"kind":"sandbox-status","sandboxed":true,"runner":"bubblewrap","egress_entries":["api.z.ai:443","open.bigmodel.cn:443"],"workspace_root":"/tmp/b5-3-chain-ws"}
+{"kind":"capabilities","level":"full","isolation":{"context":true,"temp_writes":true,"results":true,"capability_scope":true},"external":{"current_session_identity":true,"human_authorization_events":true,"load_materials":true,"reconcile_load":true}}
+{"kind":"anchor-builder","attempt":1,"attempt_state":"active","generation":1,"load_version":1}
+{"kind":"anchor-reviewer","attempt":1,"attempt_state":"active","generation":1,"load_version":1}
+{"kind":"budget-pre-spend","state":"expired","request_sessions":0,"note":"Deadline lapsed before execution; the request failed before any host session was created."}
+{"kind":"cancel-queued","state":"cancelled","request_id":"req-f845b25b4c"}
+{"kind":"requests-created","count":10,"unique_ids":10}
+{"kind":"step7-execution","fulfilled":10,"rejected":0,"wall_ms":84204,"state_counts":{"completed":10},"rejected_reasons":[]}
+{"kind":"step7-asserts","request_session_count":10,"all_instance_id_null":true,"distinct_host_sessions":10,"artifact_count":10,"inbox_count":10,"primary_sessions":[{"state":"active","host_session_ref":"sess_168d8a0f-5cae-4c1d-ad2c-83673030c397"},{"state":"active","host_session_ref":"sess_ef6a6e5e-70d4-427a-8689-34f6222e1755"}]}
+{"kind":"step8-artifact-read","artifact_id":"art-de724693d9","body_matches_request":true,"body_preview":"REQUEST-OK-0"}
+{"kind":"step8-adopted","revision":1,"candidate_id":"cand-1da93f3ce7","candidate_source":"request.result","candidate_state":"adopted"}
+{"kind":"sandbox-boundary-evidence","files":["env-keys.json","mounts.txt","supervisor.log"],"env_keys":["HOME","LANG","PATH","PWD","ROLEDOCK_EGRESS_SOCK","TMPDIR","XDG_CACHE_HOME","XDG_CONFIG_HOME","XDG_DATA_HOME","ZCODE_BUILTIN_PROVIDER_CONFIG_FILE","ZCODE_PERSONAL_PROVIDER_CONFIG_FILE"]}
+{"kind":"sandboxed-processes-during","count":2}
+{"kind":"process-tree-reclaimed","sandboxed_processes_after":0,"reclaimed":true}
+{"kind":"b5-3-chain-result","ok":true,"note":"05H steps 7-8 executed for real on managed sandbox instances; declarations stay conditional on the managed variant until B5-4 closure."}

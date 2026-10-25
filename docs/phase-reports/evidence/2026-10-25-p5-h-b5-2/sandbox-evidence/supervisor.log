@@ -1,0 +1,4 @@
+loopback-present
+app-server-start pid=12
+relay-ready
+app-server-exit code=0 signal=null
