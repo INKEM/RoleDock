@@ -1,0 +1,3 @@
+{"label":"uncertain reconciliation loses adapter method this","err":{"name":"TypeError","message":"Cannot read properties of undefined (reading 'sessions')"},"db":{"state":"accepted","execution_uncertain":1,"result_artifact_id":null}}
+(node:286) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

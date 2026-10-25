@@ -1,0 +1,13 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:1712411) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1712667) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  3 passed (3)
+      Tests  8 passed (8)
+   Start at  00:48:41
+   Duration  37.79s (tests 99%, import 1%)
+

@@ -1,0 +1,23 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ × tests/integration/zcode-diagnostic-cleanup.process.test.ts > diagnostic constructor failure disconnects its owned connector process group without exposing stderr 15017ms
+   → ENOENT: no such file or directory, open '/tmp/rd-zcode-cleanup-54jzg5/pids.json.events'
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/zcode-diagnostic-cleanup.process.test.ts > diagnostic constructor failure disconnects its owned connector process group without exposing stderr
+Error: ENOENT: no such file or directory, open '/tmp/rd-zcode-cleanup-54jzg5/pids.json.events'
+ ❯ tests/integration/zcode-diagnostic-cleanup.process.test.ts:19:57
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { errno: -2, code: 'ENOENT', syscall: 'open', path: '/tmp/rd-zcode-cleanup-54jzg5/pids.json.events' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  21:40:52
+   Duration  15.15s (tests 100%)
+

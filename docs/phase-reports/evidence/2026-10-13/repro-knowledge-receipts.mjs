@@ -1,0 +1,11 @@
+import { readFileSync } from 'node:fs';
+import * as core from '../../../../packages/core/dist/index.js';
+const results=readFileSync('/tmp/roledock-audit-p0-p2/results.txt','utf8');
+const root=results.match(/root (\S+)/)[1];const store=core.WorkspaceStore.open({root});
+const session=store.prepare("SELECT id FROM sessions ORDER BY created_at DESC LIMIT 1").get();
+const before=store.prepare('SELECT knowledge_revision FROM role_heads WHERE role_id=?').get('keeper');
+const cp1=core.buildCheckpoint(store,{role_id:'keeper',summary_body:'summary A',todos:[{description:'decision A',done:false}]});
+const cp2=core.buildCheckpoint(store,{role_id:'keeper',summary_body:'summary B',todos:[{description:'decision B',done:false}]});
+const after=store.prepare('SELECT knowledge_revision FROM role_heads WHERE role_id=?').get('keeper');console.log('summary_publication_revision',JSON.stringify({before,after,cp1_revision:cp1.knowledge_revision,cp2_revision:cp2.knowledge_revision}));
+const receipt=core.recordReadReceipt(store,{session_id:session.id,owner_role_id:'ghost',document_key:'nonexistent',revision:999,content_hash:'0'.repeat(64)});console.log('fake_read_receipt',JSON.stringify(receipt));store.close();
+const c=core.Coordinator.open({root});const req=await c.createRequest({session_id:session.id,target_role_id:'keeper',question:'Ask without ever reading any document',idempotency_key:'fake-receipt'});console.log('request_after_fake_receipt',JSON.stringify(req));c.close();

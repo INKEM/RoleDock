@@ -1,0 +1,10 @@
+after-release [Object: null prototype] { state: 'failed' }
+final {"state":"active","binding":{"external_session_id":"ext-b11abdc6-cfa7-4901-af97-64ddbe391982","session_id":"sess-9683eb21-3fb3-4046-aeda-255581e54f4e","instance_id":"inst-207060bf-fc84-4665-a847-11b6ef2bb976","role_id":"builder","generation":2,"authorization_id":"auth-ae2a65ca-9c99-4bc3-b1ba-6fcda5d843aa","state":"active","created_at":"2026-10-13T16:50:38.699Z","source":{"kind":"owner-selection","event_ref":"successor","actor_id":"owner"},"capabilities":["documents.publish","documents.read"]},"loads":2,"head":{"generation":2,"current_instance_id":"inst-207060bf-fc84-4665-a847-11b6ef2bb976"}}
+file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-14-p5-a-independent/repro-release-knowledge.mjs:45
+  if (result.attempt.state !== 'failed' || result.binding !== null) throw new Error('Released anchor revived after knowledge drift');
+                                                                          ^
+
+Error: Released anchor revived after knowledge drift
+    at file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-14-p5-a-independent/repro-release-knowledge.mjs:45:75
+
+Node.js v22.23.2

@@ -1,0 +1,54 @@
+{
+  "kind": "actual-diagnostic-transcript-summary",
+  "session_id": "sess_82f33699-e70d-40f2-9d62-018b7d11f56e",
+  "user_prompts": 1,
+  "input": {
+    "message_id": "msg_mv85d9k2_44a70181-7b27-42ca-af7b-7a923b3c9828",
+    "client_id": "legacy-session-send",
+    "origin": "realUser",
+    "semantics_origin": "real_user",
+    "enabled_builtin_tools": [
+      "Agent",
+      "AskUserQuestion",
+      "Bash",
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "CronUpdate",
+      "Edit",
+      "EnterPlanMode",
+      "ExitPlanMode",
+      "Read",
+      "Skill",
+      "TaskOutput",
+      "TaskStop",
+      "TodoRead",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "Write",
+      "SendMessage",
+      "ReadSessionContext",
+      "ReplyToChannel"
+    ]
+  },
+  "answer": {
+    "message_id": "msg_mv85d9pm_a4832f2c-97d9-4a8f-830a-b28ea2df036e",
+    "model": "GLM-5.3",
+    "provider": "account:bigmodel-team-coding-plan",
+    "mode": "build",
+    "plan_enabled": true,
+    "tokens": {
+      "total": 17997,
+      "input": 17990,
+      "output": 7,
+      "reasoning": 0,
+      "cache": {
+        "read": 12544,
+        "write": 0
+      }
+    },
+    "body": "ZCode真实模型可达"
+  },
+  "note": "A programmatic connector send is recorded with realUser/real_user labels; those labels are not proof of a human authorization."
+}

@@ -1,0 +1,5 @@
+
+> roledock@0.1.0-alpha.0 typecheck
+> tsc -b --force && tsc -p tsconfig.check.json
+
+packages/core/test/rework.test.ts(94,25): error TS2307: Cannot find module '@roledock/core/dist/sessions/internal.js' or its corresponding type declarations.

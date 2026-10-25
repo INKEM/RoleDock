@@ -1,0 +1,46 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:2659391) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > loads fixed instructions into the original conversation before activation; replay and binding restore keep one generation 5473ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > rejects identity spoofing, unknown grants, privileged tools and cross-conversation grant consumption with zero head changes 9582ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > cannot derive authorization from model text 4410ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > cannot derive authorization from tool text 4582ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > cannot derive authorization from document text 4413ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > keeps source replay's original baseline, denies ceiling escalation and same anchor key with different authorization 5992ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > human-event idempotency ignores object key order while detecting an actual changed grant 5798ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > two overlapping successors have one CAS winner and a replay never overwrites it 8210ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > coalesces same-key overlap, detects different keys while loading, and does not activate a revoked grant 6988ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > re-prepares changed knowledge, including actual new body, without widening the authorization generation 8794ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > release plus knowledge drift cannot revive a failed anchor or reload a released successor 8815ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > restores uncertain material delivery after writer restart by querying the old key, without replaying the load 6600ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > does not blind-reload an unknown outcome and cannot activate a mismatched confirmation 11003ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > transient reconciliation errors preserve uncertainty and block a fresh key from replaying a material load 5386ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > enforces effective scopes and revocation on direct SDK operations as well as session tools 6003ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > release withdraws delegated task authority, retains snapshots, and new anchoring advances the released generation 9188ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > withdrawing a running task denies branch candidates even when host close fails 8615ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > expired grants cannot activate; expiry invalidates a live binding and prevents new requests to an unserved role 16588ms
+ ✓ packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > missing identity/load/reconcile capabilities are explicit and never produce an active binding 11099ms
+(node:2659772) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > owner/trusted/two Agent clients share one writer while each has a separate authority boundary 6998ms
+ ✓ packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > the service consumes outbox, commits the actual fixture answer and never injects it into the original conversations 8401ms
+ ✓ packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > a pending external load cannot become active after session release 5409ms
+ ✓ packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > expired target grants are withdrawn and cancelled while an external turn is still awaiting acknowledgment 13793ms
+ ✓ packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > restarting the service invalidates old connection tokens while persistent binding can be restored through newly authenticated enrollment 5813ms
+ ✓ tests/integration/anchor-recovery.process.test.ts > actual coordinator SIGKILL and persisted anchor intent recovery (fixture) > recovers before-load with exactly one confirmed material load and one generation 3101ms
+ ✓ tests/integration/anchor-recovery.process.test.ts > actual coordinator SIGKILL and persisted anchor intent recovery (fixture) > recovers after-load with exactly one confirmed material load and one generation 3974ms
+ ✓ tests/integration/anchor-recovery.process.test.ts > actual coordinator SIGKILL and persisted anchor intent recovery (fixture) > recovers after-activate with exactly one confirmed material load and one generation 2972ms
+(node:2659932) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/mcp/test/mcp.test.ts > official MCP SDK stdio and shared service > two real MCP subprocesses use their issued session identity, consume authorizations, and cannot sign grants or impersonate another chat 5505ms
+(node:2660021) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/service-restart.process.test.ts > shared service actual process restart > safely recovers its stale socket and refreshes owner credentials after SIGKILL 2388ms
+
+ Test Files  5 passed (5)
+      Tests  29 passed (29)
+   Start at  20:50:53
+   Duration  207.13s (tests 100%)
+

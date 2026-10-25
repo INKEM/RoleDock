@@ -1,0 +1,44 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects ftp://remote/a.json 7ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects //remote/a.json 2ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects file:///tmp/a.json 2ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects ../outside.json 2ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects %2e%2e/outside.json 2ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects /tmp/a.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects missing.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects remote next-level refs, directory templates and escaping schema symlinks; accepts recursive local files 5ms
+ ✓ packages/core/test/rework.test.ts > R02/R03 actual policy and production boundary > denies no-grant and revoked actions without revisions, candidates or receipts, including direct service 2202ms
+ ✓ packages/core/test/rework.test.ts > R02/R03 actual policy and production boundary > exposes no store, fixture appointment, receipt signer or low-level mutations in production 2391ms
+ ✓ packages/core/test/rework.test.ts > R02/R03 actual policy and production boundary > ignores forged, unrelated and nonexistent-version receipts; real target reads work 2816ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > preserves stale proposal baseline and content; adoption conflicts 2985ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects traversal import before database changes 2880ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects absolute import before database changes 2725ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects symlink import before database changes 2784ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects checkpoint import before database changes 2408ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > loads role material on first open, inherits committed summary and bodies, rejects stale summary bundle 5408ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > recovers persisted provisioning before/after external create (false) with immutable payload 3805ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > recovers persisted provisioning before/after external create (true) with immutable payload 3995ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > freezes request bodies on receipt and loads only shareable knowledge with a limited scope 4987ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing context isolation before host spending 2417ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing temp_writes isolation before host spending 3189ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing results isolation before host spending 2609ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing capability_scope isolation before host spending 2987ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > checks policy at creation, execution and post-await commit 7217ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > cancellation during needs_input response never revives terminal state 3990ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > cancellation during completed response never revives terminal state 3614ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > cancellation during budget response never revives terminal state 3582ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > deadline crossed during result retrieval prevents completion/needs_input (false) 5395ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > deadline crossed during result retrieval prevents completion/needs_input (true) 5407ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > reserves turns before spending and registers actual host answer hash 7799ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > leaves running host results pending and retries terminal cleanup without rerunning 3593ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > reconciles a lost turn ack across coordinator restart without replaying side effects 3598ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > uses bound lookup for uncertain creates and preserves explicit uncertainty without lookup 6800ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > proves ten overlapping independent requests and overlapping duplicate deliveries 23607ms
+
+ Test Files  1 passed (1)
+      Tests  35 passed (35)
+   Start at  16:37:29
+   Duration  125.69s (tests 100%)
+

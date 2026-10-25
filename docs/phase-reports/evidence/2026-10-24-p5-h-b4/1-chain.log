@@ -1,0 +1,10 @@
+{"kind":"capabilities","external":{"current_session_identity":true,"human_authorization_events":true,"load_materials":true,"reconcile_load":true}}
+{"kind":"step-1-3","authorization_id":"auth-65c105ea-c388-45aa-bc00-657c3d54b9b1","source":{"kind":"human-event","event_ref":"b4-chain-auth-1","actor_id":"owner"}}
+{"kind":"step-2-3-anchored","attempt_state":"active","generation":1,"load_version":1}
+{"kind":"budget-pre-spend","refused":true,"host_seq_unchanged":true,"seq_before":33,"seq_after":33}
+{"kind":"step-4-role-action","proposed_candidate":"cand-410f2e61e4","published_revision":1}
+{"kind":"step-5-succession","attempt_state":"active","generation":2,"load_version":1,"old_binding_view":"superseded"}
+{"kind":"step-6-revoked","revoked_at":"2026-10-24T03:47:03.241Z","old_binding_state":"revoked","successor_generation":2}
+{"kind":"reviewer-initialized","generation":1}
+{"kind":"step-7-8-isolated-requests","requested":10,"states":["failed"],"note":"Executor refuses on missing isolation declarations (G01-Z03 residual); zero host consultation turns spent."}
+{"kind":"b4-chain-complete","steps_real":[1,2,3,4,5,6],"steps_blocked":[7,8]}

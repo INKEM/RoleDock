@@ -1,0 +1,421 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > requires read receipts or an exception rationale 5650ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > returns ROLE_UNINITIALIZED when the target has no primary instance 4607ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > rejects nested auto-requests from consultation sessions 4791ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > is idempotent: same key same content returns the original; different content conflicts 2819ms
+ ✓ packages/core/test/requests.test.ts > isolated execution (10 concurrent requests) > executes ten queued requests without mixing messages, files, results or scopes 16186ms
+ ✓ packages/core/test/requests.test.ts > requests concurrent with handoff > queued requests keep their receive-time snapshot; new requests bind the new generation 5898ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > moves to awaiting_input on needs_input, resumes after the initiator's reply 5323ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > enforces the turn budget as a capability-scope boundary 502ms
+ × packages/core/test/requests.test.ts > state machine, budgets and late results > rejects late results after cancellation and duplicate completions 344ms
+   → expected false to be 'INVALID_STATE_TRANSITION' // Object.is equality
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > expires overdue requests lazily and reclaims their temp dirs 374ms
+ × packages/core/test/requests.test.ts > permission matrix over requests > rejects cross-identity read, reply, cancel and adopt 634ms
+   → expected 'ack:1' to contain 'consultation'
+ ✓ packages/core/test/requests.test.ts > permission matrix over requests > rejects adoption of cancelled or late results 313ms
+ ✓ packages/core/test/requests.test.ts > handoff interplay with candidates > gives stale-branch candidates no formal write permission after a handoff 709ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints the version in human mode 2ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints a machine envelope with --json --version 0ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints usage for --help and exits 0 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > rejects unknown commands with exit code 2 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > reports unknown commands as VALIDATION_FAILED envelopes in json mode 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > rejects a dangling --root value with exit code 2 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > prints usage when no command is given 0ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > installs a pack via roles install and lists it via roles list 190ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > installs the demo-team example via CLI and resolves a role 178ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > reports an unknown role as NOT_FOUND with exit code 1 154ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > admin grant/policy work through the owner entry 192ms
+ ✓ packages/cli/test/cli.test.ts > cli unimplemented operations fail honestly > fails request creation without a session with a structured envelope 0ms
+ ✓ packages/cli/test/cli.test.ts > cli unimplemented operations fail honestly > fails request operations that lack a session with a human-readable line 0ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > documents publish requires a session 238ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > publishes and reads through a session id end to end 463ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > exports and imports knowledge between two workspace roots 603ms
+ ✓ packages/cli/test/cli.test.ts > cli P3 session operations > opens a session through the full handoff via the CLI 586ms
+ ✓ packages/cli/test/cli.test.ts > cli P3 session operations > requires a handoff on an initialized role without inherit 206ms
+ ✓ packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > rejects an unknown --adapter value with exit code 2 0ms
+ × packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > drives a full handoff through the process bridge and reports diagnostics 455ms
+   → expected 1 to be +0 // Object.is equality
+ × packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > adopts a request result through --adopt-artifact and flips the inbox to read 928ms
+   → exit code 0
+ ✓ packages/core/test/documents.test.ts > documents.publish > publishes v1, bumps knowledge_revision, and keeps history immutable 361ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects a stale expected_revision with REVISION_CONFLICT; loser content survives as a candidate 325ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects wrong expected_generation with GENERATION_CONFLICT 282ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects an old-generation session with INVALID_STATE_TRANSITION 307ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects non-owner publishes and undeclared document keys 316ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > enforces the visibility matrix across roles and session kinds 505ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > records read receipts bound to the true calling session; forgery fails 398ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > filters documents.list by calling identity 372ms
+ ✓ packages/core/test/documents.test.ts > candidates > adopts a candidate after re-validating its baseline; stale adoption keeps the candidate 401ms
+ ✓ packages/core/test/documents.test.ts > candidates > proposing on an unpublished foreign document is denied 278ms
+ ✓ packages/core/test/documents.test.ts > testing fixture boundary > is not reachable from the SDK operation surface or the coordinator object 143ms
+ ✓ packages/core/test/handoff.test.ts > sessions.open — first and second creation > initializes generation 1 without a handoff, then inherits as generation 2 with correct references 402ms
+ ✓ packages/core/test/handoff.test.ts > sessions.open — first and second creation > requires inherit=latest on an initialized role and rejects consultation sessions as primary 254ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > re-prepares when knowledge changes during preparation 497ms
+ × packages/core/test/handoff.test.ts > handoff failure and recovery modes > keeps the old primary pointer when the adapter fails to create the host 251ms
+   → mock adapter: createSession configured to fail before any host-side effect
+ × packages/core/test/handoff.test.ts > handoff failure and recovery modes > does not blindly recreate sessions on uncertain creation; recovery honors capability 226ms
+   → mock adapter: host session created but the outcome could not be confirmed
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > is idempotent on the same creation key for the initialize path 242ms
+ ✓ packages/core/test/handoff.test.ts > concurrent activation and successor rights > lets exactly one activation win; the loser gets GENERATION_CONFLICT and cannot publish 447ms
+ ✓ packages/core/test/handoff.test.ts > concurrent activation and successor rights > keeps predecessor sessions and host transcripts unpolluted by the handoff 384ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > resumes natively without advancing the generation when the adapter declares it 234ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > points at semantic inheritance when the adapter lacks native resume 219ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > rejects unknown sessions 194ms
+ ✓ packages/core/test/handoff.test.ts > role contract freezing > freezes the role's registered pack contract into the bundle 385ms
+ ✓ packages/core/test/checkpoint.test.ts > CheckpointBuilder > snapshots exact published revisions and skips unpublished documents 290ms
+ ✓ packages/core/test/checkpoint.test.ts > CheckpointBuilder > captures the knowledge_revision at build time, not a stale view 311ms
+ ✓ packages/core/test/checkpoint.test.ts > CheckpointBuilder > rejects checkpoints for roles without a primary instance 269ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > loads a valid pack with a deterministic content hash 6ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack whose referenced template file is missing 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack missing the manifest 0ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects symlink escapes for referenced files 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects stray symlinks anywhere in the pack, even unreferenced ones 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects references that escape the pack root through a symlinked directory 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects remote $ref in output schemas 2ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a manifest with path traversal before touching the filesystem 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack requiring a different protocol version 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > reports loader failures as structured VALIDATION_FAILED errors 1ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > declares full capabilities by default 2ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > reports restricted level when an isolation scope is missing 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > creates sessions, records turns, reports results and closes 2ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > verifies the bootstrap bundle hash before confirming a load 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > supports the uncertain-create failure mode with creation-key recovery 1ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > supports a hard create failure with no host-side effect 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > rejects native forks that carry full private history across roles 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > records that the core never drove a native fork (invocation counter) 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] declares complete, well-formed capabilities 2ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] degrades to a restricted level when an isolation scope is missing 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] creates a session with a bootstrap and confirms it host-side 1ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] is idempotent on the same creation key 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] rejects a tampered bootstrap bundle host-side 1ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] accepts a session without a bootstrap (optional at the port) 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] runs turns and reports them via getResult 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] finds sessions by creation key and misses unknown keys 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] cancel prevents further spending and keyed turns do not replay 1ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] closes sessions: state flips and further turns are rejected 0ms
+ × adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > treats a hostile-looking creation key as opaque data (no shell interpolation) 42ms
+   → Host load for creation key "key;$(touch should-not-exist)" died after the registry write; outcome uncertain.
+ × adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > survives a lost turn ack: the crash is reported and persisted state is the truth 34ms
+   → Host load for creation key "disconnect-1" died after the registry write; outcome uncertain.
+ × adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > uncertain-create leaves a recoverable registry entry, not a duplicate 70ms
+   → exit code 0
+ × adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > crash-load is a hard failure with no host-side session left behind 65ms
+   → exit code 0
+ × adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > keeps concurrent sessions isolated: separate dirs, separate transcripts 35ms
+   → Host load for creation key "concurrent-a" died after the registry write; outcome uncertain.
+ × adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > closeSession reclaims host scratch space and marks the session closed 35ms
+   → Host load for creation key "reclaim-1" died after the registry write; outcome uncertain.
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] declares complete, well-formed capabilities 4ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] degrades to a restricted level when an isolation scope is missing 1ms
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] creates a session with a bootstrap and confirms it host-side 42ms
+   → Host load for creation key "contract-process-bridge-1" died after the registry write; outcome uncertain.
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] is idempotent on the same creation key 1ms
+   → Cannot read properties of undefined (reading 'creation_key')
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] rejects a tampered bootstrap bundle host-side 42ms
+   → expect(received).toSatisfy()
+
+Expected value to satisfy:
+[Function anonymous]
+
+Received:
+[RoleDockError: Host load for creation key "contract-process-bridge-tampered" failed: exit code 1]
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] accepts a session without a bootstrap (optional at the port) 36ms
+   → Host load for creation key "contract-process-bridge-bare" died after the registry write; outcome uncertain.
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] runs turns and reports them via getResult 1ms
+   → Cannot read properties of undefined (reading 'creation_key')
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] finds sessions by creation key and misses unknown keys 0ms
+   → Cannot read properties of undefined (reading 'creation_key')
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] cancel prevents further spending and keyed turns do not replay 32ms
+   → Host load for creation key "cancel-process-bridge" died after the registry write; outcome uncertain.
+ × adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] closes sessions: state flips and further turns are rejected 0ms
+   → Cannot read properties of undefined (reading 'creation_key')
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 20 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > drives a full handoff through the process bridge and reports diagnostics
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/cli/test/cli.test.ts:399:93
+    397|     await grantTestPolicy(root, ["keeper"]);
+    398|     const firstCap = capture();
+    399|     expect((await runCli([...bridge, "sessions", "open", "keeper"], fi…
+       |                                                                                             ^
+    400|     const first = JSON.parse(firstCap.out()) as OutputEnvelope<{ sessi…
+    401|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/20]⎯
+
+ FAIL  packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > adopts a request result through --adopt-artifact and flips the inbox to read
+ FAIL  adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > uncertain-create leaves a recoverable registry entry, not a duplicate
+ FAIL  adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > crash-load is a hard failure with no host-side session left behind
+Error: exit code 0
+ ❯ ChildProcess.<anonymous> adapters/process-bridge/src/index.ts:351:16
+    349|           return;
+    350|         }
+    351|         reject(new Error(detail));
+       |                ^
+    352|       });
+    353|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/20]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > handoff failure and recovery modes > keeps the old primary pointer when the adapter fails to create the host
+RoleDockError: mock adapter: createSession configured to fail before any host-side effect
+ ❯ MockHarnessAdapter.createSession adapters/mock/src/index.ts:112:13
+    110|     }
+    111|     if (this.options.failCreate === true) {
+    112|       throw new RoleDockError(
+       |             ^
+    113|         "INTERNAL",
+    114|         "mock adapter: createSession configured to fail before any hos…
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:98:43
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:179:12
+ ❯ packages/core/test/handoff.test.ts:191:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { adapter: 'mock', creation_key: 'open-f60e3c06b409a63d' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/20]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > handoff failure and recovery modes > does not blindly recreate sessions on uncertain creation; recovery honors capability
+RoleDockError: mock adapter: host session created but the outcome could not be confirmed
+ ❯ MockHarnessAdapter.createSession adapters/mock/src/index.ts:132:13
+    130|       // The host session exists but the caller learns only that the o…
+    131|       // is unknown — the creation-key lookup is the recovery path.
+    132|       throw new RoleDockError(
+       |             ^
+    133|         "INTERNAL",
+    134|         "mock adapter: host session created but the outcome could not …
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:98:43
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:179:12
+ ❯ packages/core/test/handoff.test.ts:227:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { adapter: 'mock', creation_key: 'open-153983d762e7c663', uncertain: true }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/20]⎯
+
+ FAIL  packages/core/test/requests.test.ts > state machine, budgets and late results > rejects late results after cancellation and duplicate completions
+AssertionError: expected false to be 'INVALID_STATE_TRANSITION' // Object.is equality
+
+- Expected:
+"INVALID_STATE_TRANSITION"
+
++ Received:
+false
+
+ ❯ packages/core/test/requests.test.ts:404:52
+    402|       expect.unreachable("expected INVALID_STATE_TRANSITION");
+    403|     } catch (error) {
+    404|       expect(isRoleDockError(error) && error.code).toBe("INVALID_STATE…
+       |                                                    ^
+    405|     }
+    406|     const stillCancelled = fixture.store
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/20]⎯
+
+ FAIL  packages/core/test/requests.test.ts > permission matrix over requests > rejects cross-identity read, reply, cancel and adopt
+AssertionError: expected 'ack:1' to contain 'consultation'
+
+Expected: "consultation"
+Received: "ack:1"
+
+ ❯ packages/core/test/requests.test.ts:486:23
+    484|       artifact_id: artifactId,
+    485|     });
+    486|     expect(read.body).toContain("consultation");
+       |                       ^
+    487|     // Cross-role adoption: asker cannot adopt owner's artifact (from …
+    488|     // current asker primary session — the fixture created one more wh…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/20]⎯
+
+ FAIL  adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > treats a hostile-looking creation key as opaque data (no shell interpolation)
+RoleDockError: Host load for creation key "key;$(touch should-not-exist)" died after the registry write; outcome uncertain.
+ ❯ ProcessBridgeAdapter.createSession adapters/process-bridge/src/index.ts:187:15
+    185|         // The registry exists but the host died before confirming: th…
+    186|         // session may exist and its outcome is unknown (uncertain cre…
+    187|         throw new RoleDockError(
+       |               ^
+    188|           "INTERNAL",
+    189|           `Host load for creation key "${input.creation_key}" died aft…
+ ❯ adapters/process-bridge/test/bridge.test.ts:63:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { creation_key: 'key;$(touch should-not-exist)', session_dir: '/tmp/roledock-pb-bridge-GnCRs8/sessions/key___touch_should-not-exist_-161f2cc7e81c', uncertain: true, cause: 'exit code 0' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/20]⎯
+
+ FAIL  adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > survives a lost turn ack: the crash is reported and persisted state is the truth
+RoleDockError: Host load for creation key "disconnect-1" died after the registry write; outcome uncertain.
+ ❯ ProcessBridgeAdapter.createSession adapters/process-bridge/src/index.ts:187:15
+    185|         // The registry exists but the host died before confirming: th…
+    186|         // session may exist and its outcome is unknown (uncertain cre…
+    187|         throw new RoleDockError(
+       |               ^
+    188|           "INTERNAL",
+    189|           `Host load for creation key "${input.creation_key}" died aft…
+ ❯ adapters/process-bridge/test/bridge.test.ts:73:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { creation_key: 'disconnect-1', session_dir: '/tmp/roledock-pb-bridge-8azpHS/sessions/disconnect-1-2e608cd4d7aa', uncertain: true, cause: 'exit code 0' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/20]⎯
+
+ FAIL  adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > keeps concurrent sessions isolated: separate dirs, separate transcripts
+RoleDockError: Host load for creation key "concurrent-a" died after the registry write; outcome uncertain.
+ ❯ ProcessBridgeAdapter.createSession adapters/process-bridge/src/index.ts:187:15
+    185|         // The registry exists but the host died before confirming: th…
+    186|         // session may exist and its outcome is unknown (uncertain cre…
+    187|         throw new RoleDockError(
+       |               ^
+    188|           "INTERNAL",
+    189|           `Host load for creation key "${input.creation_key}" died aft…
+ ❯ adapters/process-bridge/test/bridge.test.ts:129:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { creation_key: 'concurrent-a', session_dir: '/tmp/roledock-pb-bridge-4xLPRa/sessions/concurrent-a-74ac525f0d7c', uncertain: true, cause: 'exit code 0' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/20]⎯
+
+ FAIL  adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > closeSession reclaims host scratch space and marks the session closed
+RoleDockError: Host load for creation key "reclaim-1" died after the registry write; outcome uncertain.
+ ❯ ProcessBridgeAdapter.createSession adapters/process-bridge/src/index.ts:187:15
+    185|         // The registry exists but the host died before confirming: th…
+    186|         // session may exist and its outcome is unknown (uncertain cre…
+    187|         throw new RoleDockError(
+       |               ^
+    188|           "INTERNAL",
+    189|           `Host load for creation key "${input.creation_key}" died aft…
+ ❯ adapters/process-bridge/test/bridge.test.ts:154:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { creation_key: 'reclaim-1', session_dir: '/tmp/roledock-pb-bridge-07IbOr/sessions/reclaim-1-82df09b32b2e', uncertain: true, cause: 'exit code 0' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] creates a session with a bootstrap and confirms it host-side
+RoleDockError: Host load for creation key "contract-process-bridge-1" died after the registry write; outcome uncertain.
+ ❯ ProcessBridgeAdapter.createSession adapters/process-bridge/src/index.ts:187:15
+    185|         // The registry exists but the host died before confirming: th…
+    186|         // session may exist and its outcome is unknown (uncertain cre…
+    187|         throw new RoleDockError(
+       |               ^
+    188|           "INTERNAL",
+    189|           `Host load for creation key "${input.creation_key}" died aft…
+ ❯ tests/conformance/adapter-suite.ts:68:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { creation_key: 'contract-process-bridge-1', session_dir: '/tmp/roledock-pb-contract-c74wsr/sessions/contract-process-bridge-1-4dc225917ef5', uncertain: true, cause: 'exit code 0' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] is idempotent on the same creation key
+TypeError: Cannot read properties of undefined (reading 'creation_key')
+ ❯ tests/conformance/adapter-suite.ts:77:70
+     75|
+     76|   it(`[${name}] is idempotent on the same creation key`, async () => {
+     77|     const again = await adapter.createSession({ creation_key: handle.c…
+       |                                                                      ^
+     78|     expect(again.host_session_id).toBe(handle.host_session_id);
+     79|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] rejects a tampered bootstrap bundle host-side
+Error: expect(received).toSatisfy()
+
+Expected value to satisfy:
+[Function anonymous]
+
+Received:
+[RoleDockError: Host load for creation key "contract-process-bridge-tampered" failed: exit code 1]
+ ❯ tests/conformance/adapter-suite.ts:87:6
+     85|         bootstrap: { ...bootstrapPayload("original"), content_hash: "0…
+     86|       }),
+     87|     ).rejects.toSatisfy((error: unknown) => isRoleDockError(error) && …
+       |      ^
+     88|   });
+     89|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] accepts a session without a bootstrap (optional at the port)
+RoleDockError: Host load for creation key "contract-process-bridge-bare" died after the registry write; outcome uncertain.
+ ❯ ProcessBridgeAdapter.createSession adapters/process-bridge/src/index.ts:187:15
+    185|         // The registry exists but the host died before confirming: th…
+    186|         // session may exist and its outcome is unknown (uncertain cre…
+    187|         throw new RoleDockError(
+       |               ^
+    188|           "INTERNAL",
+    189|           `Host load for creation key "${input.creation_key}" died aft…
+ ❯ tests/conformance/adapter-suite.ts:91:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { creation_key: 'contract-process-bridge-bare', session_dir: '/tmp/roledock-pb-contract-c74wsr/sessions/contract-process-bridge-bare-8d3951fedfae', uncertain: true, cause: 'exit code 0' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] runs turns and reports them via getResult
+TypeError: Cannot read properties of undefined (reading 'creation_key')
+ ❯ ProcessBridgeAdapter.requireSessionDir adapters/process-bridge/src/index.ts:267:40
+    265|
+    266|   private requireSessionDir(handle: AdapterSessionHandle): string {
+    267|     const dirName = sanitizeKey(handle.creation_key);
+       |                                        ^
+    268|     const sessionDir = join(this.stateDir, "sessions", dirName);
+    269|     if (!existsSync(join(sessionDir, "session.json"))) {
+ ❯ ProcessBridgeAdapter.runTurn adapters/process-bridge/src/index.ts:220:44
+ ❯ tests/conformance/adapter-suite.ts:97:34
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] finds sessions by creation key and misses unknown keys
+TypeError: Cannot read properties of undefined (reading 'creation_key')
+ ❯ tests/conformance/adapter-suite.ts:110:68
+    108|
+    109|   it(`[${name}] finds sessions by creation key and misses unknown keys…
+    110|     const found = await adapter.lookupSessionByCreationKey!(handle.cre…
+       |                                                                    ^
+    111|     expect(found?.host_session_id).toBe(handle.host_session_id);
+    112|     expect(await adapter.lookupSessionByCreationKey!("no-such-key")).t…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] cancel prevents further spending and keyed turns do not replay
+RoleDockError: Host load for creation key "cancel-process-bridge" died after the registry write; outcome uncertain.
+ ❯ ProcessBridgeAdapter.createSession adapters/process-bridge/src/index.ts:187:15
+    185|         // The registry exists but the host died before confirming: th…
+    186|         // session may exist and its outcome is unknown (uncertain cre…
+    187|         throw new RoleDockError(
+       |               ^
+    188|           "INTERNAL",
+    189|           `Host load for creation key "${input.creation_key}" died aft…
+ ❯ tests/conformance/adapter-suite.ts:117:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'INTERNAL', details: { creation_key: 'cancel-process-bridge', session_dir: '/tmp/roledock-pb-contract-nQ7h15/sessions/cancel-process-bridge-314d1684632d', uncertain: true, cause: 'exit code 0' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/20]⎯
+
+ FAIL  adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] closes sessions: state flips and further turns are rejected
+TypeError: Cannot read properties of undefined (reading 'creation_key')
+ ❯ ProcessBridgeAdapter.requireSessionDir adapters/process-bridge/src/index.ts:267:40
+    265|
+    266|   private requireSessionDir(handle: AdapterSessionHandle): string {
+    267|     const dirName = sanitizeKey(handle.creation_key);
+       |                                        ^
+    268|     const sessionDir = join(this.stateDir, "sessions", dirName);
+    269|     if (!existsSync(join(sessionDir, "session.json"))) {
+ ❯ ProcessBridgeAdapter.closeSession adapters/process-bridge/src/index.ts:241:64
+ ❯ tests/conformance/adapter-suite.ts:128:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/20]⎯
+
+
+ Test Files  5 failed | 5 passed (10)
+      Tests  20 failed | 84 passed (104)
+   Start at  16:39:18
+   Duration  63.55s (tests 97%, import 2%, transform 1%)
+

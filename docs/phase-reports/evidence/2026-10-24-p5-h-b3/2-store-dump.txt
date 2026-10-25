@@ -1,0 +1,7 @@
+attempts: [{"attempt_id":"anchor-089be790-be83-4806-9bb8-2437a1871856","state":"active","load_key":"load-2f623719-b881-4e34-a8ea-0f8cc4989a6f"}]
+bindings: [{"external_session_id":"ext-c7e0cf57-e26b-42ba-8a3d-ce0180ac8685","session_id":"sess-aa8540dc-3eb5-4e04-8a61-6be34bea8d3a","role_id":"builder","generation":1,"state":"active"}]
+authorizations: [{"authorization_id":"auth-c97f184f-1b81-497c-a490-36d55e5b38c6","role_id":"builder","revoked_at":null,"source_key":"[\"ext-c7e0cf57-e26b-42ba-8a3d-ce0180ac8685\",\"human-event\",\"anchor-e2e-001\"]"}]
+events: [{"event_ref":"anchor-e2e-001","entry":"cli-console","role_id":"builder","recorded_at":"2026-10-23T22:15:10.531Z"}]
+connector-loads: [{"load_key":"load-2f623719-b881-4e34-a8ea-0f8cc4989a6f","session_id":"sess_da293c91-afd5-4586-9931-8d244feb1e8d","state":"confirmed","marker":0}]
+adapter-loads: [{"load_key":"load-2f623719-b881-4e34-a8ea-0f8cc4989a6f","host_id":"sess_da293c91-afd5-4586-9931-8d244feb1e8d","state":"confirmed","marker":0}]
+(Use `node --trace-warnings ...` to show where the warning was created)

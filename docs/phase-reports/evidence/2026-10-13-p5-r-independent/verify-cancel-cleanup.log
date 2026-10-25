@@ -1,0 +1,4 @@
+PASS cancel failure still closes host without a replayed turn
+PASS cancel failure persists close failure and retries after restart without a replayed turn
+(node:279) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

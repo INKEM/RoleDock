@@ -1,0 +1,7 @@
+
+> roledock@0.1.0-alpha.0 typecheck
+> tsc -b --force && tsc -p tsconfig.check.json
+
+packages/mcp/src/index.ts(10,62): error TS2322: Type 'Record<string, unknown>' is not assignable to type '{ [x: string]: object; }'.
+  'string' index signatures are incompatible.
+    Type 'unknown' is not assignable to type 'object'.

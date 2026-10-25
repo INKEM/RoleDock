@@ -1,0 +1,7 @@
+import {mkdtempSync,mkdirSync,writeFileSync} from 'node:fs';import {join} from 'node:path';import {loadRolePack} from '../../../../packages/core/dist/index.js';
+mkdirSync('/tmp/roledock-audit-p0-p2', { recursive: true });
+const dir=mkdtempSync('/tmp/roledock-audit-p0-p2/loader-');mkdirSync(join(dir,'roles'));mkdirSync(join(dir,'templates'));mkdirSync(join(dir,'schemas'));writeFileSync(join(dir,'roles/keeper.md'),'role');writeFileSync(join(dir,'templates/state.md'),'state');
+const manifest={schema_version:'0.1',name:'loader-audit',version:'0.1.0',requires_protocol:'0.1',roles:[{id:'keeper',title:'Keeper',instructions:'roles/keeper.md',documents:[{key:'state',template:'templates/state.md',visibility:'project'}],output_schemas:[{key:'out',schema:'schemas/out.json'}]}]};writeFileSync(join(dir,'rolepack.json'),JSON.stringify(manifest));
+for (const ref of ['ftp://example.org/schema.json','//example.org/schema.json','../outside.json','file:///tmp/outside-schema.json']) {writeFileSync(join(dir,'schemas/out.json'),JSON.stringify({$ref:ref}));console.log('accepted_schema_ref',JSON.stringify({ref,accepted:!!loadRolePack(dir)}));}
+writeFileSync(join(dir,'schemas/out.json'),JSON.stringify({$ref:'nested.json'}));writeFileSync(join(dir,'schemas/nested.json'),JSON.stringify({$ref:'https://example.org/schema.json'}));console.log('nested_https_accepted',!!loadRolePack(dir));
+manifest.roles[0].documents[0].template='templates';writeFileSync(join(dir,'rolepack.json'),JSON.stringify(manifest));console.log('template_directory_accepted',!!loadRolePack(dir));

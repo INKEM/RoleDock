@@ -1,0 +1,10 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ ✓ tests/integration/zcode-diagnostic-cleanup.process.test.ts > diagnostic constructor failure disconnects its owned connector process group without exposing stderr 226ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  21:41:52
+   Duration  314ms (tests 94%, import 3%, transform 2%, worker 1%)
+

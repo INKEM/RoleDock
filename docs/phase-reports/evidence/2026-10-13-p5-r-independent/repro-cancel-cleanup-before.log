@@ -1,0 +1,4 @@
+{"returned":"cancelled","row":{"state":"cancelled","cleanup_pending":0},"host_closed":false,"temp_exists":true}
+REPRO R12: adapter cancel failure skips cleanup and leaves no durable retry marker
+(node:279) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

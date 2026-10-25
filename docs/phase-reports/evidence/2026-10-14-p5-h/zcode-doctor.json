@@ -1,0 +1,20 @@
+{
+  "cli": {
+    "name": "zcode",
+    "processName": "zcode-cli",
+    "version": "0.16.9"
+  },
+  "runtime": {
+    "arch": "x64",
+    "cwd": "/home/inkem/Personal/RoleDock",
+    "execPath": "/home/inkem/.nvm/versions/node/v22.23.2/bin/node",
+    "node": "v22.23.2",
+    "platform": "linux",
+    "processTitle": "zcode-cli",
+    "sea": false
+  },
+  "packaging": {
+    "default": "node-bundle",
+    "sea": "optional"
+  }
+}

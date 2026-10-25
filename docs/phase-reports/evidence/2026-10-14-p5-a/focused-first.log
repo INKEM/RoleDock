@@ -1,0 +1,137 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ ❯ packages/service/test/service.test.ts (4 tests | 4 failed) 5057ms
+   ❯ shared writer and authenticated Unix socket connections (4)
+     × owner/trusted/two Agent clients share one writer while each has a separate authority boundary 1068ms
+     × the service consumes outbox, commits the actual fixture answer and never injects it into the original conversations 1384ms
+     × a pending external load cannot become active after session release 1215ms
+     × restarting the service invalidates old connection tokens while persistent binding can be restored through newly authenticated enrollment 1389ms
+ ❯ packages/mcp/test/mcp.test.ts (1 test | 1 failed) 1165ms
+   ❯ official MCP SDK stdio and shared service (1)
+     × two real MCP subprocesses use their issued session identity, consume authorizations, and cannot sign grants or impersonate another chat 1164ms
+ ❯ tests/integration/anchor-recovery.process.test.ts (3 tests | 3 failed) 7155ms
+   ❯ actual coordinator SIGKILL and persisted anchor intent recovery (fixture) (3)
+     × recovers before-load with exactly one confirmed material load and one generation 2161ms
+     × recovers after-load with exactly one confirmed material load and one generation 2569ms
+     × recovers after-activate with exactly one confirmed material load and one generation 2424ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/anchor-recovery.process.test.ts > actual coordinator SIGKILL and persisted anchor intent recovery (fixture) > recovers before-load with exactly one confirmed material load and one generation
+ FAIL  tests/integration/anchor-recovery.process.test.ts > actual coordinator SIGKILL and persisted anchor intent recovery (fixture) > recovers after-load with exactly one confirmed material load and one generation
+Error: Unexpected fixture exit: Warning: Detected unsettled top-level await at file:///home/inkem/Personal/RoleDock/tests/integration/helpers/crash-anchor.mjs:36
+const result = await connection.call('sessions.anchor', { authorization_id: auth.authorization_id, idempotency_key: 'same-logical-anchor' });
+               ^
+
+
+
+
+ ❯ ChildProcess.<anonymous> tests/integration/anchor-recovery.process.test.ts:16:133
+     14|     child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toStr…
+     15|     child.on("error", reject);
+     16|     child.on("exit", (_code, signal) => { clearTimeout(timer); if (sig…
+       |                                                                                                                                     ^
+     17|   });
+     18| }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/integration/anchor-recovery.process.test.ts > actual coordinator SIGKILL and persisted anchor intent recovery (fixture) > recovers after-activate with exactly one confirmed material load and one generation
+Error: Unexpected fixture exit: Warning: Detected unsettled top-level await at file:///home/inkem/Personal/RoleDock/tests/integration/helpers/crash-anchor.mjs:37
+if (phase === 'after-activate') { console.log('CRASH-POINT'); await new Promise(() => {}); }
+                                                              ^
+
+
+
+
+ ❯ ChildProcess.<anonymous> tests/integration/anchor-recovery.process.test.ts:16:133
+     14|     child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toStr…
+     15|     child.on("error", reject);
+     16|     child.on("exit", (_code, signal) => { clearTimeout(timer); if (sig…
+       |                                                                                                                                     ^
+     17|   });
+     18| }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  packages/mcp/test/mcp.test.ts > official MCP SDK stdio and shared service > two real MCP subprocesses use their issued session identity, consume authorizations, and cannot sign grants or impersonate another chat
+Error: listen EPERM: operation not permitted /tmp/rd-mcp-8zdwLh/service.sock
+ ❯ packages/service/src/index.ts:73:109
+     71|     const service = new WorkspaceService(options.root, options.adapter…
+     72|     try {
+     73|       await new Promise<void>((resolve, reject) => { service.#server.o…
+       |                                                                                                             ^
+     74|       chmodSync(options.socketPath, 0o600);
+     75|       const pollMs = options.pollMs ?? 100;
+ ❯ Function.start packages/service/src/index.ts:73:13
+ ❯ packages/mcp/test/mcp.test.ts:15:44
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > owner/trusted/two Agent clients share one writer while each has a separate authority boundary
+Error: listen EPERM: operation not permitted /tmp/rd-svc-dQ7YwB/service.sock
+ ❯ packages/service/src/index.ts:73:109
+     71|     const service = new WorkspaceService(options.root, options.adapter…
+     72|     try {
+     73|       await new Promise<void>((resolve, reject) => { service.#server.o…
+       |                                                                                                             ^
+     74|       chmodSync(options.socketPath, 0o600);
+     75|       const pollMs = options.pollMs ?? 100;
+ ❯ Function.start packages/service/src/index.ts:73:13
+ ❯ setup packages/service/test/service.test.ts:17:42
+ ❯ packages/service/test/service.test.ts:41:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > the service consumes outbox, commits the actual fixture answer and never injects it into the original conversations
+Error: listen EPERM: operation not permitted /tmp/rd-svc-O4eEnx/service.sock
+ ❯ packages/service/src/index.ts:73:109
+     71|     const service = new WorkspaceService(options.root, options.adapter…
+     72|     try {
+     73|       await new Promise<void>((resolve, reject) => { service.#server.o…
+       |                                                                                                             ^
+     74|       chmodSync(options.socketPath, 0o600);
+     75|       const pollMs = options.pollMs ?? 100;
+ ❯ Function.start packages/service/src/index.ts:73:13
+ ❯ setup packages/service/test/service.test.ts:17:42
+ ❯ packages/service/test/service.test.ts:63:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > a pending external load cannot become active after session release
+Error: listen EPERM: operation not permitted /tmp/rd-svc-C05Co2/service.sock
+ ❯ packages/service/src/index.ts:73:109
+     71|     const service = new WorkspaceService(options.root, options.adapter…
+     72|     try {
+     73|       await new Promise<void>((resolve, reject) => { service.#server.o…
+       |                                                                                                             ^
+     74|       chmodSync(options.socketPath, 0o600);
+     75|       const pollMs = options.pollMs ?? 100;
+ ❯ Function.start packages/service/src/index.ts:73:13
+ ❯ setup packages/service/test/service.test.ts:17:42
+ ❯ packages/service/test/service.test.ts:76:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  packages/service/test/service.test.ts > shared writer and authenticated Unix socket connections > restarting the service invalidates old connection tokens while persistent binding can be restored through newly authenticated enrollment
+Error: listen EPERM: operation not permitted /tmp/rd-svc-ur70wt/service.sock
+ ❯ packages/service/src/index.ts:73:109
+     71|     const service = new WorkspaceService(options.root, options.adapter…
+     72|     try {
+     73|       await new Promise<void>((resolve, reject) => { service.#server.o…
+       |                                                                                                             ^
+     74|       chmodSync(options.socketPath, 0o600);
+     75|       const pollMs = options.pollMs ?? 100;
+ ❯ Function.start packages/service/src/index.ts:73:13
+ ❯ setup packages/service/test/service.test.ts:17:42
+ ❯ packages/service/test/service.test.ts:82:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+
+ Test Files  3 failed | 1 passed (4)
+      Tests  8 failed | 15 passed (23)
+   Start at  00:45:50
+   Duration  114.42s (tests 99%)
+

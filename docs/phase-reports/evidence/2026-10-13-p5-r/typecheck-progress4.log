@@ -1,0 +1,11 @@
+
+> roledock@0.1.0-alpha.0 typecheck
+> tsc -b --force && tsc -p tsconfig.check.json
+
+packages/core/src/documents/service.ts(621,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+packages/core/src/sessions/material.ts(34,3): error TS2322: Type '{ owner_role_id: string; body: string; visibility: "private" | "role" | "project" | "public"; content_hash: string; created_by_instance_id: string | null; created_at: string; document_key: string; revision: number; }[]' is not assignable to type 'DocumentMaterials[]'.
+  Type '{ owner_role_id: string; body: string; visibility: "private" | "role" | "project" | "public"; content_hash: string; created_by_instance_id: string | null; created_at: string; document_key: string; revision: number; }' is not assignable to type 'DocumentMaterials'.
+    Types of property 'visibility' are incompatible.
+      Type '"private" | "role" | "project" | "public"' is not assignable to type '"role" | "project" | "public"'.
+        Type '"private"' is not assignable to type '"role" | "project" | "public"'.

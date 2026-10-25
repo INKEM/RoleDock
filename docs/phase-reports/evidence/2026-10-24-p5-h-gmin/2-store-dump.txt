@@ -1,0 +1,6 @@
+attempts: [{"attempt_id":"anchor-97637e30-c9b1-404e-9199-25e05ca104c7","state":"active","load_key":"load-78aa9126-370a-4312-b481-6fdf339ed706"}]
+bindings: [{"external_session_id":"ext-ba8ecc69-7650-4566-8b34-acd78fe8d4b3","role_id":"builder","generation":1,"state":"active"}]
+authorizations: [{"authorization_id":"auth-12cccec0-436d-441b-bb59-c5f517da6efc","role_id":"builder","source_key":"[\"ext-ba8ecc69-7650-4566-8b34-acd78fe8d4b3\",\"human-event\",\"gui-1792795205684-9a1630\"]"}]
+events: [{"event_ref":"gui-1792795205684-9a1630","entry":"gui-confirm","actor_id":"owner","recorded_at":"2026-10-23T22:40:05.684Z"}]
+connector-loads: [{"load_key":"load-78aa9126-370a-4312-b481-6fdf339ed706","session_id":"sess_7106c2f9-f01d-4f8a-873f-cfb63c5ff348","state":"confirmed"}]
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-14",
+  "node": "22.23.2",
+  "focused": {
+    "command": "node node_modules/vitest/vitest.mjs run adapters/zcode/test/zcode-adapter.test.ts tests/integration/zcode-diagnostic-cleanup.process.test.ts --reporter=verbose",
+    "exit_code": 0,
+    "files_passed": 2,
+    "tests_passed": 14,
+    "skipped": 0,
+    "duration_seconds": 24.57,
+    "actual_model_calls": 0
+  },
+  "implementation_manifest_check": { "files": 89, "exit_code": 0 },
+  "tests_manifest_check": { "files": 55, "exit_code": 0 },
+  "host_components_manifest_check": { "files": 2, "exit_code": 0 },
+  "full_gate": { "execution": "developer", "independently_read_log": true, "recorded_exit_code": 0, "files_passed": 36, "tests_passed": 386, "duration_seconds": 360.03 },
+  "stage_conclusion": "BLOCKED"
+}

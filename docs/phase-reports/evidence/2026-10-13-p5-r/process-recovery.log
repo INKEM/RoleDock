@@ -1,0 +1,54 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:1080939) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/integration/runtime-recovery.process.test.ts (4 tests | 4 failed) 6384ms
+   ❯ durable runtime recovery after real coordinator process exits (4)
+     × restores immutable handoff payload before-create without another host or generation 1780ms
+     × restores immutable handoff payload after-create without another host or generation 1599ms
+     × reconciles reserved request before-turn without replaying a side-effecting turn 1596ms
+     × reconciles reserved request after-turn without replaying a side-effecting turn 1408ms
+(node:1081945) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1081952) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/runtime-recovery.process.test.ts > durable runtime recovery after real coordinator process exits > restores immutable handoff payload before-create without another host or generation
+ FAIL  tests/integration/runtime-recovery.process.test.ts > durable runtime recovery after real coordinator process exits > restores immutable handoff payload after-create without another host or generation
+Error: Coordinator store is not registered; use Coordinator.open().
+ ❯ coordinatorStore packages/core/src/internal-store.ts:21:11
+     19|   const store = coordinatorStores.get(coordinator);
+     20|   if (store === undefined) {
+     21|     throw new Error("Coordinator store is not registered; use Coordina…
+       |           ^
+     22|   }
+     23|   return store;
+ ❯ setup tests/integration/runtime-recovery.process.test.ts:23:28
+ ❯ tests/integration/runtime-recovery.process.test.ts:40:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/integration/runtime-recovery.process.test.ts > durable runtime recovery after real coordinator process exits > reconciles reserved request before-turn without replaying a side-effecting turn
+ FAIL  tests/integration/runtime-recovery.process.test.ts > durable runtime recovery after real coordinator process exits > reconciles reserved request after-turn without replaying a side-effecting turn
+Error: Coordinator store is not registered; use Coordinator.open().
+ ❯ coordinatorStore packages/core/src/internal-store.ts:21:11
+     19|   const store = coordinatorStores.get(coordinator);
+     20|   if (store === undefined) {
+     21|     throw new Error("Coordinator store is not registered; use Coordina…
+       |           ^
+     22|   }
+     23|   return store;
+ ❯ setup tests/integration/runtime-recovery.process.test.ts:23:28
+ ❯ tests/integration/runtime-recovery.process.test.ts:59:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  4 failed | 9 passed (13)
+   Start at  17:00:54
+   Duration  42.03s (tests 99%, import 1%)
+

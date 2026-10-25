@@ -1,0 +1,195 @@
+
+> roledock@0.1.0-alpha.0 check
+> npm run typecheck && npm run test
+
+
+> roledock@0.1.0-alpha.0 typecheck
+> tsc -b --force && tsc -p tsconfig.check.json
+
+
+> roledock@0.1.0-alpha.0 test
+> npm run build && vitest run
+
+
+> roledock@0.1.0-alpha.0 build
+> tsc -b
+
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:1076990) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1077069) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1077093) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ adapters/process-bridge/test/bridge.test.ts (6 tests | 1 failed) 620ms
+   ❯ process bridge — real process mechanics (6)
+     × survives a lost turn ack: the crash is reported and persisted state is the truth 159ms
+(node:1077521) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/integration/demo.test.ts (2 tests | 2 failed) 15394ms
+   ❯ re-runnable end-to-end demo (process bridge) (2)
+     × passes run 1/2 through all seven steps 7558ms
+     × passes run 2/2 through all seven steps 7835ms
+(node:1078301) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1078369) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079380) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079451) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079508) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079539) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079664) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079832) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079840) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/integration/workspace-lock.process.test.ts (1 test | 1 failed) 1081ms
+   ❯ single-coordinator lock across real processes (1)
+     × blocks a second coordinator while a child process holds the workspace, and recovers when it dies 1080ms
+(node:1079871) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1079937) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/demo.test.ts > re-runnable end-to-end demo (process bridge) > passes run 1/2 through all seven steps
+AssertionError: RoleDock demo — adapter: bridge v0.1.0-alpha.0, host: 0.1.0-fixture
+Workspace A: /tmp/roledock-demo-test-hYUQ9p/ws-a
+Workspace B: /tmp/roledock-demo-test-hYUQ9p/ws-b
+
+== 1. builder opens its first primary session (generation 1)
+   builder session sess-05e72322 @ generation 1
+
+== 2. builder publishes versioned state and decisions
+   state r1, knowledge_revision 1
+
+== 3. explainer reads, then files two isolated consultation requests
+   req-f18964bfc1 + req-db04860dbe accepted at generation 1
+   both completed: artifacts art-65d7983781, art-a3c091cf56; builder inbox has 2 unread entries
+
+== 4. builder opens a new primary session — full handoff to generation 2
+   successor sess-bd7f3d7e @ generation 2, predecessor inst-7df18b18
+
+== 5. old request keeps its snapshot; new request binds generation 2; old session cannot publish
+(node:1077559) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+file:///home/inkem/Personal/RoleDock/examples/demo.mjs:178
+  throw new Error(`duplicate completion should be rejected with INVALID_STATE_TRANSITION, got ${duplicateCode}`);
+        ^
+
+Error: duplicate completion should be rejected with INVALID_STATE_TRANSITION, got null
+    at file:///home/inkem/Personal/RoleDock/examples/demo.mjs:178:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+Node.js v22.23.2
+: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ examples/demo.mjs:178:9
+ ❯ tests/integration/demo.test.ts:38:60
+     36|         timeout: 110_000,
+     37|       });
+     38|       expect(result.status, result.stdout + result.stderr).toBe(0);
+       |                                                            ^
+     39|       expect(result.stdout).toContain("DEMO PASSED — 7/7 steps on the …
+     40|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/integration/demo.test.ts > re-runnable end-to-end demo (process bridge) > passes run 2/2 through all seven steps
+AssertionError: RoleDock demo — adapter: bridge v0.1.0-alpha.0, host: 0.1.0-fixture
+Workspace A: /tmp/roledock-demo-test-I00Ja0/ws-a
+Workspace B: /tmp/roledock-demo-test-I00Ja0/ws-b
+
+== 1. builder opens its first primary session (generation 1)
+   builder session sess-e314a8d3 @ generation 1
+
+== 2. builder publishes versioned state and decisions
+   state r1, knowledge_revision 1
+
+== 3. explainer reads, then files two isolated consultation requests
+   req-deb47bfe49 + req-f519160d74 accepted at generation 1
+   both completed: artifacts art-38bd525ffc, art-5d29bd508a; builder inbox has 2 unread entries
+
+== 4. builder opens a new primary session — full handoff to generation 2
+   successor sess-bc584ca8 @ generation 2, predecessor inst-4164878f
+
+== 5. old request keeps its snapshot; new request binds generation 2; old session cannot publish
+(node:1077928) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+file:///home/inkem/Personal/RoleDock/examples/demo.mjs:178
+  throw new Error(`duplicate completion should be rejected with INVALID_STATE_TRANSITION, got ${duplicateCode}`);
+        ^
+
+Error: duplicate completion should be rejected with INVALID_STATE_TRANSITION, got null
+    at file:///home/inkem/Personal/RoleDock/examples/demo.mjs:178:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+Node.js v22.23.2
+: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ examples/demo.mjs:178:9
+ ❯ tests/integration/demo.test.ts:38:60
+     36|         timeout: 110_000,
+     37|       });
+     38|       expect(result.status, result.stdout + result.stderr).toBe(0);
+       |                                                            ^
+     39|       expect(result.stdout).toContain("DEMO PASSED — 7/7 steps on the …
+     40|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/integration/workspace-lock.process.test.ts > single-coordinator lock across real processes > blocks a second coordinator while a child process holds the workspace, and recovers when it dies
+SyntaxError: Unexpected end of JSON input
+ ❯ tests/integration/workspace-lock.process.test.ts:69:27
+     67|     );
+     68|     expect(probe.stdout).not.toContain("UNEXPECTED-OPEN");
+     69|     const reported = JSON.parse(probe.stdout.trim().split("\n").pop() …
+       |                           ^
+     70|       code: string | null;
+     71|     };
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > survives a lost turn ack: the crash is reported and persisted state is the truth
+AssertionError: expected 'fixture answer #2 for "a turn whose a…' to contain 'fixture answer #1'
+
+Expected: "fixture answer #1"
+Received: "fixture answer #2 for "a turn whose ack will be lost" (role keeper)"
+
+ ❯ adapters/process-bridge/test/bridge.test.ts:91:25
+     89|     expect(result.state).toBe("idle");
+     90|     expect(result.completed).toBe(true);
+     91|     expect(result.body).toContain("fixture answer #2");
+       |                         ^
+     92|   }, 20000);
+     93|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  3 failed | 24 passed (27)
+      Tests  4 failed | 321 passed (325)
+   Start at  16:54:53
+   Duration  270.71s (tests 99%, import 1%)
+
+[vitest-pool]: Timeout terminating forks worker for test files /home/inkem/Personal/RoleDock/tests/integration/workspace-lock.process.test.ts.

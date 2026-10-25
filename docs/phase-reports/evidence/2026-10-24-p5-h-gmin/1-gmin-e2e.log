@@ -1,0 +1,9 @@
+{"kind":"registered","host_session_id":"sess_7106c2f9-f01d-4f8a-873f-cfb63c5ff348","external_session_id":"ext-ba8ecc69-7650-4566-8b34-acd78fe8d4b3"}
+{"kind":"gui","url":"http://127.0.0.1:34263/"}
+{"kind":"gui-page","serves_confirmation_page":true,"bytes":4010}
+{"kind":"gui-view","sessions":1,"active_authorization":null}
+{"kind":"gui-confirmed","ok":true,"event_ref":"gui-1792795205684-9a1630","entry":"gui-confirm","note":"Confirmation stored. The conversation's trusted channel completes recordHuman; the Agent anchors explicitly."}
+{"kind":"recorded","authorization_id":"auth-12cccec0-436d-441b-bb59-c5f517da6efc","source":{"kind":"human-event","event_ref":"gui-1792795205684-9a1630","actor_id":"owner"},"role_id":"builder"}
+{"kind":"anchored","attempt_state":"active","confirmation":{"host_session_id":"sess_7106c2f9-f01d-4f8a-873f-cfb63c5ff348","load_key":"load-78aa9126-370a-4312-b481-6fdf339ed706","content_hash":"1d2b6a80cb5248daf5ad3439a4c854eff061bcaa232124c3dd006e0c338af29f","load_version":1},"binding":{"state":"active","generation":1,"role_id":"builder"},"load_declarations":"fixture-flipped (production flip lands with B4 acceptance)"}
+{"kind":"gui-view-after","active_authorization":{"authorization_id":"auth-12cccec0-436d-441b-bb59-c5f517da6efc","role_id":"builder","expires_at":"2026-10-23T23:40:05.684Z","source":{"kind":"human-event","event_ref":"gui-1792795205684-9a1630","actor_id":"owner"}}}
+{"kind":"gmin-e2e-complete"}

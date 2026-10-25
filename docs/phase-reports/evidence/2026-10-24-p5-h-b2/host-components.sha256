@@ -1,0 +1,7 @@
+a055234a6ca3da0172616d3987cf3c617b6a26deb1332d69035300c2a0ae0de1  /opt/ZCode/resources/glm/zcode.cjs
+f767366c6e8a73b8bc4baa2f80910a80ac6248fc6756c30018612567a934c76a  adapters/zcode/dist/reference-bin.js
+0ec6550ae714a453d15e82d951807bd22224fbd0ac19e464df41331a31e19e38  adapters/zcode/dist/bin.js
+20a02f6c4172261341f3994d1f3bbbe713648564e426849dd8070c91d54e57f4  adapters/zcode/dist/index.js
+50eb938a0d97611ba71e6dfda404cabd866d50f4843dbd02f30d0bcf7351809d  packages/cli/dist/index.js
+1eb84c4a6c26f2dc2295c69b6ca4737b91ec8778d417f41f816b6d38f84d6ff7  packages/core/dist/index.js
+58fd8794d217230d88838de40f26b85743d4a338910ef821ff396ad28e541e11  packages/service/dist/index.js

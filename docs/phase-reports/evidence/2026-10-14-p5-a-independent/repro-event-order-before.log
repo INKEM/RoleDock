@@ -1,0 +1,17 @@
+file:///home/inkem/Personal/RoleDock/packages/core/dist/sessions/anchor.js:112
+                    throw new RoleDockError("IDEMPOTENCY_CONFLICT", "Authorization event reference has changed content.");
+                          ^
+
+RoleDockError: Authorization event reference has changed content.
+    at file:///home/inkem/Personal/RoleDock/packages/core/dist/sessions/anchor.js:112:27
+    at WorkspaceStore.tx (file:///home/inkem/Personal/RoleDock/packages/core/dist/store/workspace.js:75:28)
+    at ExternalSessionAuthority.record (file:///home/inkem/Personal/RoleDock/packages/core/dist/sessions/anchor.js:108:28)
+    at ExternalSessionAuthority.recordHumanAuthorization (file:///home/inkem/Personal/RoleDock/packages/core/dist/sessions/anchor.js:93:21)
+    at async file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-14-p5-a-independent/repro-event-order.mjs:18:18 {
+  code: 'IDEMPOTENCY_CONFLICT',
+  details: undefined,
+  retryable: false,
+  requestId: undefined
+}
+
+Node.js v22.23.2

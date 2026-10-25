@@ -1,0 +1,71 @@
+# Step 2: owner installs the demo role pack (CLI direct, standalone writer)
+{
+  "ok": true,
+  "data": {
+    "pack": {
+      "name": "demo-team",
+      "version": "0.1.0",
+      "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+    },
+    "roles": [
+      {
+        "id": "builder",
+        "title": "Builder",
+        "initialized": false
+      },
+      {
+        "id": "reviewer",
+        "title": "Reviewer",
+        "initialized": false
+      },
+      {
+        "id": "explainer",
+        "title": "Explainer",
+        "initialized": false
+      }
+    ],
+    "reinstalled": false,
+    "content_repaired": false
+  }
+}
+exit=0
+# Step 3: owner trusted-entry write via CLI (entry=cli-console, real workspace store)
+{
+  "ok": true,
+  "data": {
+    "workspace_id": "ws-f33a9803",
+    "host_session_id": "sess_e1072ab3-b513-4ee3-8228-39dec2d75ede",
+    "connection_subject": "roledock-zcode-probe",
+    "event_ref": "human-confirm-b2-001",
+    "actor_id": "human-user",
+    "role_id": "builder",
+    "capabilities": [
+      "documents.read"
+    ],
+    "inherit": "initialize",
+    "expires_at": "2099-01-01T00:00:00Z",
+    "entry": "cli-console",
+    "recorded_at": "2026-10-23T21:09:37.486Z"
+  }
+}
+exit=0
+# Step 3b: idempotent replay of the same command
+{
+  "ok": true,
+  "data": {
+    "workspace_id": "ws-f33a9803",
+    "host_session_id": "sess_e1072ab3-b513-4ee3-8228-39dec2d75ede",
+    "connection_subject": "roledock-zcode-probe",
+    "event_ref": "human-confirm-b2-001",
+    "actor_id": "human-user",
+    "role_id": "builder",
+    "capabilities": [
+      "documents.read"
+    ],
+    "inherit": "initialize",
+    "expires_at": "2099-01-01T00:00:00Z",
+    "entry": "cli-console",
+    "recorded_at": "2026-10-23T21:09:37.486Z"
+  }
+}
+exit=0

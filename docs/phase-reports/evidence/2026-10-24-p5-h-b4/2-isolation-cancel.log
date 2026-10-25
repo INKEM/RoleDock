@@ -1,0 +1,7 @@
+{"kind":"write-attempt-sent","accepted":true}
+{"kind":"host-state","status":"running","pending_permission_requests":[]}
+{"kind":"turn-events","recent":[{"seq":1,"type":"session.titleUpdated","toolName":null,"response":null},{"seq":2,"type":"session.updated","toolName":null,"response":null},{"seq":3,"type":"turn.started","toolName":null,"response":null},{"seq":4,"type":"session.updated","toolName":null,"response":null},{"seq":5,"type":"session.updated","toolName":null,"response":null},{"seq":6,"type":"session.updated","toolName":null,"response":null}]}
+{"kind":"connector-posture","auto_answered":false,"note":"The reference connector parks interaction requests and never answers them; a human operator would decide."}
+{"kind":"cancelled","via":"official session/stop"}
+{"kind":"after-cancel","status":"idle","file_exists":false}
+{"kind":"isolation-experiment-complete","verdict":"plan-mode writes are permission-gated and the connector never grants them autonomously; tool-scope and nested-agent enforcement remain unproven (G01-Z03 residual)"}

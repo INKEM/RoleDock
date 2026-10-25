@@ -1,0 +1,44 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:1082792) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/integration/runtime-recovery.process.test.ts (4 tests | 3 failed) 14170ms
+   ❯ durable runtime recovery after real coordinator process exits (4)
+     × restores immutable handoff payload before-create without another host or generation 3779ms
+     × restores immutable handoff payload after-create without another host or generation 3592ms
+     × reconciles reserved request before-turn without replaying a side-effecting turn 3237ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/runtime-recovery.process.test.ts > durable runtime recovery after real coordinator process exits > restores immutable handoff payload before-create without another host or generation
+ FAIL  tests/integration/runtime-recovery.process.test.ts > durable runtime recovery after real coordinator process exits > restores immutable handoff payload after-create without another host or generation
+TypeError: Provided value cannot be bound to SQLite parameter 1.
+ ❯ tests/integration/runtime-recovery.process.test.ts:50:102
+     48|       const store = coordinatorStore(c);
+     49|       const row = store.prepare("SELECT host_session_ref FROM sessions…
+     50|       const bundle = store.prepare("SELECT payload_hash FROM bootstrap…
+       |                                                                                                      ^
+     51|       expect(readObject(store, bundle.payload_hash)).toContain("CRASH-…
+     52|       const hosts = registries(f.root);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/integration/runtime-recovery.process.test.ts > durable runtime recovery after real coordinator process exits > reconciles reserved request before-turn without replaying a side-effecting turn
+Error: ENOENT: no such file or directory, open '/tmp/rd-crash-runtime-5Wysps/.roledock/crash-host/sessions/request-req-b92af24c5c-ece21f875066/transcript.jsonl'
+ ❯ tests/integration/runtime-recovery.process.test.ts:72:26
+     70|       const receiver = registries(f.root).filter((entry) => entry.regi…
+     71|       expect(receiver).toHaveLength(1);
+     72|       const transcript = readFileSync(join(receiver[0]!.dir, "transcri…
+       |                          ^
+     73|       expect(transcript).toHaveLength(boundary === "after-turn" ? 1 : …
+     74|       if (boundary === "after-turn") {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  17:02:18
+   Duration  14.48s (tests 98%, import 1%, transform 1%)
+

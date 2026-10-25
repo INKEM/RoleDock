@@ -1,0 +1,10 @@
+PASS fixed request read/list/proposal baseline and stale adoption
+PASS logical open key cannot alias request host or inject into primary
+PASS refusal remains a known failure with closed host and no artifact
+PASS missing-body remains a known failure with closed host and no artifact
+(node:280) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS getRequest commits expiry and reclaims waiting host
+PASS replyToRequest commits expiry and reclaims waiting host
+PASS cancelRequest commits expiry and reclaims waiting host
+PASS 7 independent boundary scenarios; mock-only, no real Harness claim

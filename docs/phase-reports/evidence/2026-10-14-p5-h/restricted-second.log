@@ -1,0 +1,47 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > declares restricted capabilities and refuses role material/scope before any host action 347ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > cannot register external identity or initialize a role through the core SDK 2398ms
+ × adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > ten overlapping RoleDock jobs are refused without spending a host turn or creating artifacts 7020ms
+   → Independent requests require all four isolation scopes.
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > coalesces creation overlap and restores the original confirmed mapping after restart 600ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > unknown accepted creation survives restart and cannot be blindly retried or returned absent 586ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > stores a complete matching answer, replay spends no turn, and changed input conflicts 1387ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > lost send confirmation preserves intent across restart even if a later answer exists 813ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > gap trace cannot masquerade as completed 1188ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > old trace cannot masquerade as completed 818ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > multiple trace cannot masquerade as completed 1782ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > truncated trace cannot masquerade as completed 1597ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > wrong-host trace cannot masquerade as completed 1201ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > budget limits prevent new sends; actual oversize output and host close are never fake successes 2818ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > ten overlapping RoleDock jobs are refused without spending a host turn or creating artifacts
+RoleDockError: Independent requests require all four isolation scopes.
+ ❯ authorization packages/core/src/requests/executor.ts:33:55
+     31|   const initiator = store.prepare("SELECT state FROM sessions WHERE id…
+     32|   if (initiator?.state !== "active") throw new RoleDockError("PERMISSI…
+     33|   if (!isFullAccess(adapter.getCapabilities())) throw new RoleDockErro…
+       |                                                       ^
+     34|   const scope = JSON.parse(row.capability_scope_json) as string[];
+     35|   for (const capability of scope) requireCapability(store, row.target_…
+ ❯ current packages/core/src/requests/executor.ts:40:33
+ ❯ packages/core/src/requests/executor.ts:129:23
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ execute packages/core/src/requests/executor.ts:128:17
+ ❯ executeRequest packages/core/src/requests/executor.ts:213:19
+ ❯ adapters/zcode/test/zcode-adapter.test.ts:76:89
+ ❯ adapters/zcode/test/zcode-adapter.test.ts:76:82
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ADAPTER_CAPABILITY_MISSING', details: undefined, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  21:30:25
+   Duration  22.90s (tests 99%, import 1%, transform 1%)
+

@@ -1,0 +1,12 @@
+(node:1713545) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"target_authorizations":{"authorizations":[]},"state":"failed","cancellations":0,"execution_uncertain":true}
+file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-14-p5-a-independent/repro-service-expiry.mjs:37
+  if (result.state !== 'failed' || cancellations < 1) throw new Error('Hanging execution blocked service expiry withdrawal');
+                                                            ^
+
+Error: Hanging execution blocked service expiry withdrawal
+    at file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-14-p5-a-independent/repro-service-expiry.mjs:37:61
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+
+Node.js v22.23.2

@@ -1,0 +1,5 @@
+summary_publication_revision {"before":{"knowledge_revision":2},"after":{"knowledge_revision":2},"cp1_revision":2,"cp2_revision":2}
+fake_read_receipt {"receipt_id":"rcpt-a65670d28d","session_id":"sess-cae3613d","instance_id":"inst-09c0dd8a","reader_role_id":"keeper","owner_role_id":"ghost","document_key":"nonexistent","revision":999,"content_hash":"0000000000000000000000000000000000000000000000000000000000000000","read_at":"2026-10-13T07:00:21.699Z"}
+request_after_fake_receipt {"request_id":"req-03c62c432f","state":"accepted","binding":{"target_generation":2,"knowledge_revision":2,"target_instance_id":"inst-09c0dd8a","contract_version":"0.1.0","snapshot_entries":1},"created":true}
+(node:4) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

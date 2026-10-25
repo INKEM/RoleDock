@@ -1,0 +1,4 @@
+after-release [Object: null prototype] { state: 'failed' }
+final {"state":"failed","binding":null,"loads":1,"head":{"generation":1,"current_instance_id":"inst-81a6059e-f176-49fc-b0bc-1fb41464d16d"}}
+(node:3) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

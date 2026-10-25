@@ -1,0 +1,12 @@
+nonlocal_schema_ref_accepted true
+ungranted_publish {"owner_role_id":"keeper","document_key":"state","revision":1,"content_hash":"3bfc269594ef649228e9a74bab00f042efc91d5acc6fbee31a382e80d42388fe","visibility":"project","knowledge_revision":1}
+grants_after_publish [{"role_id":"keeper","title":"Keeper","requested":["documents.publish"],"granted":[]}]
+revoked_publish {"owner_role_id":"keeper","document_key":"state","revision":2,"content_hash":"fb04dcb6970e4c3d1873de51fd5a50d7bb46b3383113602665c350ec40b5f990","visibility":"project","knowledge_revision":2}
+stale_proposal_rebased {"candidate_id":"cand-0327ed7c0a","target_role_id":"keeper","document_key":"state","baseline_revision":2,"proposed_body_hash":"d5bd7913fc31832b004df21f46974d89b554a0f327cd9a37058177f03c41492a","source":"documents.propose","state":"open","created_at":"2026-10-13T08:18:44.020Z"}
+traversal_import {"source_workspace_id":"ws-source","created_candidates":[{"candidate_id":"cand-599f020f82","target_role_id":"keeper","document_key":"state","baseline_revision":2}],"skipped":[]}
+symlink_import {"source_workspace_id":"ws-source","created_candidates":[{"candidate_id":"cand-d7137167a9","target_role_id":"keeper","document_key":"state","baseline_revision":2}],"skipped":[]}
+fixture_public_export function
+fixture_direct_generation_bump {"session_id":"sess-b8f1010d","instance_id":"inst-c4a6652a","role_id":"keeper","generation":2}
+root /tmp/roledock-audit-p0-p2/ws-6YXhSF
+(node:305) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

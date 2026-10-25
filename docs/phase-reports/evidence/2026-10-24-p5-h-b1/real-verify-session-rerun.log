@@ -1,0 +1,5 @@
+# Run 2: SAME journal, new connector+app-server processes. The zero-turn session created in run 1
+# did not survive its app-server child; official resume returns 'Session not found' -> honest verified:false.
+{"kind":"diagnostic-only","connector_sha256":"f767366c6e8a73b8bc4baa2f80910a80ac6248fc6756c30018612567a934c76a","connector":{"name":"roledock-zcode-reference","version":"0.2.0"},"connector_tools":["zcode_create_session","zcode_send","zcode_status","zcode_verify_session"],"capabilities":{"adapter":"zcode","level":"restricted","isolation":{"context":false,"temp_writes":false,"results":false,"capability_scope":false},"optional":{"cancel":false,"lookup_session_by_creation_key":true,"native_resume":false,"native_fork":false},"external":{"current_session_identity":false,"human_authorization_events":false,"load_materials":false,"reconcile_load":false}}}
+{"kind":"identity-verified","host_session_id":"sess_02b11c72-7acf-46fc-a07d-0de413a614ef","subject":"roledock-zcode-probe","verified":false,"absent_session_exists":false,"subject_conflict_confirmed_false":false,"note":"external.current_session_identity stays false until independent acceptance flips it."}
+exit=0

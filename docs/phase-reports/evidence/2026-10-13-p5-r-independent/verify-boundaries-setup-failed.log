@@ -1,0 +1,26 @@
+PASS fixed request read/list/proposal baseline and stale adoption
+PASS logical open key cannot alias request host or inject into primary
+PASS refusal remains a known failure with closed host and no artifact
+PASS missing-body remains a known failure with closed host and no artifact
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'expired'
+- 'awaiting_input'
+
+    at file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-13-p5-r-independent/verify-boundaries.mjs:56:98
+    at async fixture (file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-13-p5-r-independent/verify-boundaries.mjs:23:3)
+    at async file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-13-p5-r-independent/verify-boundaries.mjs:55:2 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'expired',
+  expected: 'awaiting_input',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.2

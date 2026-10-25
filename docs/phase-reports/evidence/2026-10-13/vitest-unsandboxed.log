@@ -1,0 +1,316 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:1055031) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1055038) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/workspace-lock.process.test.ts > single-coordinator lock across real processes > blocks a second coordinator while a child process holds the workspace, and recovers when it dies 916ms
+(node:1055053) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints the version in human mode 1ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints a machine envelope with --json --version 0ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints usage for --help and exits 0 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > rejects unknown commands with exit code 2 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > reports unknown commands as VALIDATION_FAILED envelopes in json mode 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > rejects a dangling --root value with exit code 2 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > prints usage when no command is given 0ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > installs a pack via roles install and lists it via roles list 926ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > installs the demo-team example via CLI and resolves a role 1397ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > reports an unknown role as NOT_FOUND with exit code 1 987ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > admin grant/policy work through the owner entry 1211ms
+ ✓ packages/cli/test/cli.test.ts > cli unimplemented operations fail honestly > fails request creation without a session with a structured envelope 0ms
+ ✓ packages/cli/test/cli.test.ts > cli unimplemented operations fail honestly > fails request operations that lack a session with a human-readable line 0ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > documents publish requires a session 1185ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > publishes and reads through a session id end to end 1602ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > exports and imports knowledge between two workspace roots 2613ms
+ ✓ packages/cli/test/cli.test.ts > cli P3 session operations > opens a session through the full handoff via the CLI 2386ms
+ ✓ packages/cli/test/cli.test.ts > cli P3 session operations > requires a handoff on an initialized role without inherit 1212ms
+ ✓ packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > rejects an unknown --adapter value with exit code 2 0ms
+ ✓ packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > drives a full handoff through the process bridge and reports diagnostics 2200ms
+ ✓ packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > adopts a request result through --adopt-artifact and flips the inbox to read 2613ms
+ ✓ tests/integration/cli.spawn.test.ts > roledock CLI subprocess smoke > reports its version and exits 0 103ms
+ ✓ tests/integration/cli.spawn.test.ts > roledock CLI subprocess smoke > returns a version envelope in json mode 102ms
+ ✓ tests/integration/cli.spawn.test.ts > roledock CLI subprocess smoke > reports no operation as NOT_IMPLEMENTED — every specified command is wired 490ms
+ ✓ tests/integration/cli.spawn.test.ts > roledock CLI subprocess smoke > exits 2 on an unknown command 98ms
+ ✓ tests/integration/cli.spawn.test.ts > roledock CLI subprocess smoke > keeps human mode non-JSON by default 103ms
+ ✓ tests/integration/cli.spawn.test.ts > roledock CLI subprocess smoke > creates a fresh workspace on demand and reports zero roles via admin policy 764ms
+ ✓ tests/integration/demo.test.ts > re-runnable end-to-end demo (process bridge) > passes run 1/2 through all seven steps 7785ms
+ ✓ tests/integration/demo.test.ts > re-runnable end-to-end demo (process bridge) > passes run 2/2 through all seven steps 7486ms
+ ✓ adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > treats a hostile-looking creation key as opaque data (no shell interpolation) 64ms
+ ✓ adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > survives a lost turn ack: the crash is reported and persisted state is the truth 138ms
+ ✓ adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > uncertain-create leaves a recoverable registry entry, not a duplicate 56ms
+ ✓ adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > crash-load is a hard failure with no host-side session left behind 58ms
+ ✓ adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > keeps concurrent sessions isolated: separate dirs, separate transcripts 151ms
+ ✓ adapters/process-bridge/test/bridge.test.ts > process bridge — real process mechanics > closeSession reclaims host scratch space and marks the session closed 92ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] declares complete, well-formed capabilities 2ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] degrades to a restricted level when an isolation scope is missing 0ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] creates a session with a bootstrap and confirms it host-side 32ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] is idempotent on the same creation key 0ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] rejects a tampered bootstrap bundle host-side 29ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] accepts a session without a bootstrap (optional at the port) 57ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] runs turns and reports them via getResult 86ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] finds sessions by creation key and misses unknown keys 60ms
+ ✓ adapters/process-bridge/test/contract.test.ts > adapter contract: process bridge (real subprocesses) > [process-bridge] closes sessions: state flips and further turns are rejected 93ms
+(node:1055897) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > requires read receipts or an exception rationale 2202ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > returns ROLE_UNINITIALIZED when the target has no primary instance 1616ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > rejects nested auto-requests from consultation sessions 1795ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > is idempotent: same key same content returns the original; different content conflicts 1990ms
+ ✓ packages/core/test/requests.test.ts > isolated execution (10 concurrent requests) > executes ten queued requests without mixing messages, files, results or scopes 10008ms
+ ✓ packages/core/test/requests.test.ts > requests concurrent with handoff > queued requests keep their receive-time snapshot; new requests bind the new generation 4202ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > moves to awaiting_input on needs_input, resumes after the initiator's reply 4594ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > enforces the turn budget as a capability-scope boundary 2791ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > rejects late results after cancellation and duplicate completions 2006ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > expires overdue requests lazily and reclaims their temp dirs 2409ms
+ ✓ packages/core/test/requests.test.ts > permission matrix over requests > rejects cross-identity read, reply, cancel and adopt 3399ms
+ ✓ packages/core/test/requests.test.ts > permission matrix over requests > rejects adoption of cancelled or late results 1994ms
+ ✓ packages/core/test/requests.test.ts > handoff interplay with candidates > gives stale-branch candidates no formal write permission after a handoff 4000ms
+(node:1055959) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/handoff.test.ts > sessions.open — first and second creation > initializes generation 1 without a handoff, then inherits as generation 2 with correct references 2037ms
+ ✓ packages/core/test/handoff.test.ts > sessions.open — first and second creation > requires inherit=latest on an initialized role and rejects consultation sessions as primary 1397ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > re-prepares when knowledge changes during preparation 2801ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > keeps the old primary pointer when the adapter fails to create the host 1817ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > does not blindly recreate sessions on uncertain creation; recovery honors capability 4583ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > is idempotent on the same creation key for the initialize path 1604ms
+ ✓ packages/core/test/handoff.test.ts > concurrent activation and successor rights > lets exactly one activation win; the loser gets GENERATION_CONFLICT and cannot publish 3187ms
+ ✓ packages/core/test/handoff.test.ts > concurrent activation and successor rights > keeps predecessor sessions and host transcripts unpolluted by the handoff 2400ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > resumes natively without advancing the generation when the adapter declares it 1217ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > points at semantic inheritance when the adapter lacks native resume 1209ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > rejects unknown sessions 1177ms
+ ✓ packages/core/test/handoff.test.ts > role contract freezing > freezes the role's registered pack contract into the bundle 2202ms
+(node:1056051) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/documents.test.ts > documents.publish > publishes v1, bumps knowledge_revision, and keeps history immutable 2027ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects a stale expected_revision with REVISION_CONFLICT; loser content survives as a candidate 1813ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects wrong expected_generation with GENERATION_CONFLICT 1788ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects an old-generation session with INVALID_STATE_TRANSITION 1809ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects non-owner publishes and undeclared document keys 1590ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > enforces the visibility matrix across roles and session kinds 3402ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > records read receipts bound to the true calling session; forgery fails 2413ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > filters documents.list by calling identity 2391ms
+ ✓ packages/core/test/documents.test.ts > candidates > adopts a candidate after re-validating its baseline; stale adoption keeps the candidate 2600ms
+ ✓ packages/core/test/documents.test.ts > candidates > proposing on an unpublished foreign document is denied 1589ms
+ ✓ packages/core/test/documents.test.ts > testing fixture boundary > is not reachable from the SDK operation surface or the coordinator object 999ms
+(node:1056069) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.export > share scope carries only public and project documents, never checkpoints 1655ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.export > workspace scope includes everything plus checkpoints 1993ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.export > can filter a single role 1797ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > round-trips shared documents as candidates with verified hashes 3001ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > rejects tampered bundle files without touching the database 3189ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > skips private/role entries even in a hand-edited bundle, and unknown roles 3408ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > keeps a stale-baseline candidate but its adoption conflicts 4012ms
+(node:1056082) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/examples-install.test.ts > example role packs install end to end > installs both example packs and survives a restart 1229ms
+ ✓ tests/integration/examples-install.test.ts > example role packs install end to end > reinstalling identical example packs is idempotent 1192ms
+ ✓ tests/integration/examples-install.test.ts > example role packs install end to end > the owner can grant a requested capability through the admin entry 1400ms
+ ✓ tests/integration/examples-install.test.ts > example role packs install end to end > keeps workspaces isolated from each other 2004ms
+(node:1056091) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/checkpoint.test.ts > CheckpointBuilder > snapshots exact published revisions and skips unpublished documents 1808ms
+ ✓ packages/core/test/checkpoint.test.ts > CheckpointBuilder > captures the knowledge_revision at build time, not a stale view 1992ms
+ ✓ packages/core/test/checkpoint.test.ts > CheckpointBuilder > rejects checkpoints for roles without a primary instance 1598ms
+(node:1056103) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/install.test.ts > role pack installer > installs a pack, copies content into the workspace, and seeds uninitialized heads 1029ms
+ ✓ packages/core/test/install.test.ts > role pack installer > reinstalling identical content is idempotent 1404ms
+ ✓ packages/core/test/install.test.ts > role pack installer > repairs lost pack content on identical reinstall (R-2 regression) 1185ms
+ ✓ packages/core/test/install.test.ts > role pack installer > rejects the same name+version with different content as IDEMPOTENCY_CONFLICT 1007ms
+ ✓ packages/core/test/install.test.ts > role pack installer > rejects role id collisions across packs with ROLE_ALREADY_EXISTS 1393ms
+ ✓ packages/core/test/install.test.ts > role pack installer > leaves no half-installed pack when the transaction fails mid-install 1200ms
+ ✓ packages/core/test/install.test.ts > role pack installer > rejects a workspace id mismatch 988ms
+ ✓ packages/core/test/install.test.ts > role pack installer > registers roles from packs installed before a restart (persistence) 1215ms
+ ✓ packages/core/test/install.test.ts > role pack installer > writes no grants from requested capabilities 1194ms
+(node:1056112) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/coordinator.test.ts > coordinator operation surface > exposes exactly the operations specified in docs/spec/sdk-operations.md 2ms
+ ✓ packages/core/test/coordinator.test.ts > P1 implemented operations > installs, lists and resolves roles on a real workspace 1423ms
+ ✓ packages/core/test/coordinator.test.ts > P1 implemented operations > resolves an unknown role with NOT_FOUND 1191ms
+ ✓ packages/core/test/coordinator.test.ts > P1 implemented operations > validates operation input 1207ms
+ ✓ packages/core/test/coordinator.test.ts > single-coordinator constraint > fails a second open on the same workspace with WORKSPACE_LOCKED 1009ms
+ ✓ packages/core/test/coordinator.test.ts > complete operation surface (P4) > implements every specified operation — none report NOT_IMPLEMENTED 1003ms
+ ✓ packages/core/test/coordinator.test.ts > complete operation surface (P4) > uses only registered error codes across the surface 1001ms
+(node:1056154) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/store.test.ts > workspace store > opens a fresh workspace, migrates once, and keeps a stable workspace id 833ms
+ ✓ packages/core/test/store.test.ts > workspace store > persists state across close and reopen 1187ms
+ ✓ packages/core/test/store.test.ts > workspace store > rolls back a failed transaction without leaving rows 995ms
+ ✓ packages/core/test/store.test.ts > workspace store > rejects a tampered migration checksum on reopen 1020ms
+ ✓ packages/core/test/store.test.ts > workspace store > rejects state written by a newer build (unknown migration id) 1189ms
+ ✓ packages/core/test/store.test.ts > workspace store > fails a second in-process open with WORKSPACE_LOCKED and recovers after close 996ms
+(node:1056163) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/policy.test.ts > capability policy > keeps requested capabilities separate from grants after install 1215ms
+ ✓ packages/core/test/policy.test.ts > capability policy > denies a self-declared identity with no grant — declarations are not capabilities 1413ms
+ ✓ packages/core/test/policy.test.ts > capability policy > grants and revokes through the owner entry, and evaluate follows 1787ms
+ ✓ packages/core/test/policy.test.ts > capability policy > rejects revoking a capability that was never granted 1021ms
+ ✓ packages/core/test/policy.test.ts > capability policy > rejects grants for unknown roles and malformed capability names 1184ms
+(node:1056171) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/loader.test.ts > role pack loader > loads a valid pack with a deterministic content hash 4ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack whose referenced template file is missing 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack missing the manifest 0ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects symlink escapes for referenced files 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects stray symlinks anywhere in the pack, even unreferenced ones 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects references that escape the pack root through a symlinked directory 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects remote $ref in output schemas 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a manifest with path traversal before touching the filesystem 0ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack requiring a different protocol version 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > reports loader failures as structured VALIDATION_FAILED errors 1ms
+ ✓ packages/protocol/test/objects.test.ts > role-head schema > accepts a legal primary pointer 1ms
+ ✓ packages/protocol/test/objects.test.ts > role-head schema > rejects generation below 1 1ms
+ ✓ packages/protocol/test/objects.test.ts > role-head schema > rejects a negative knowledge_revision 0ms
+ ✓ packages/protocol/test/objects.test.ts > role-head schema > rejects a malformed content hash in the role contract 0ms
+ ✓ packages/protocol/test/objects.test.ts > role-head schema > rejects a missing current_instance_id 0ms
+ ✓ packages/protocol/test/objects.test.ts > role-head schema > rejects a non-integer generation 0ms
+ ✓ packages/protocol/test/objects.test.ts > document-revision schema > accepts a legal revision 0ms
+ ✓ packages/protocol/test/objects.test.ts > document-revision schema > rejects revision 0 0ms
+ ✓ packages/protocol/test/objects.test.ts > document-revision schema > rejects visibility outside the enum 0ms
+ ✓ packages/protocol/test/objects.test.ts > document-revision schema > rejects a non-hex content hash 0ms
+ ✓ packages/protocol/test/objects.test.ts > document-revision schema > rejects unknown properties 0ms
+ ✓ packages/protocol/test/objects.test.ts > checkpoint schema > accepts a legal checkpoint with todos and sources 1ms
+ ✓ packages/protocol/test/objects.test.ts > checkpoint schema > accepts optional user decision references 0ms
+ ✓ packages/protocol/test/objects.test.ts > checkpoint schema > rejects a handoff summary without a body 0ms
+ ✓ packages/protocol/test/objects.test.ts > checkpoint schema > rejects a todo missing the done flag 0ms
+ ✓ packages/protocol/test/objects.test.ts > checkpoint schema > rejects an unknown source kind 0ms
+ ✓ packages/protocol/test/objects.test.ts > checkpoint schema > rejects a snapshot without a content hash 0ms
+ ✓ packages/protocol/test/objects.test.ts > bootstrap-bundle schema > accepts a legal bundle 0ms
+ ✓ packages/protocol/test/objects.test.ts > bootstrap-bundle schema > accepts a bundle with a provisioned session id 0ms
+ ✓ packages/protocol/test/objects.test.ts > bootstrap-bundle schema > rejects a wrong protocol_version 0ms
+ ✓ packages/protocol/test/objects.test.ts > bootstrap-bundle schema > rejects source_generation 0 0ms
+ ✓ packages/protocol/test/objects.test.ts > bootstrap-bundle schema > rejects a checkpoint reference without a hash 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > accepts a fresh accepted request with read receipts 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > accepts a terminal completed request with result and terminal_at 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > accepts an execution-uncertain running request with a budget 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > rejects a state outside the enum 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > rejects an unknown error code 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > rejects a binding without target_generation 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > rejects an empty idempotency key 0ms
+ ✓ packages/protocol/test/objects.test.ts > collaboration-request schema > rejects unknown top-level properties 0ms
+ ✓ tests/conformance/rolepacks.test.ts > four distinct roles acceptance > validates as a legal role pack 3ms
+ ✓ tests/conformance/rolepacks.test.ts > four distinct roles acceptance > carries exactly four mutually distinct role identities 1ms
+ ✓ tests/conformance/rolepacks.test.ts > four distinct roles acceptance > covers every visibility level across the pack 0ms
+ ✓ tests/conformance/rolepacks.test.ts > four distinct roles acceptance > keeps capability requests as declarations without any grant semantics 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > has a non-empty invalid fixture set 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects absolute-path.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects bad-schema-version.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects bad-visibility.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects duplicate-role-ids.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects empty-roles.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects missing-roles.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects non-semver-version.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects path-traversal.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects unknown-property.json 0ms
+ ✓ tests/conformance/rolepacks.test.ts > illegal role pack fixtures are all rejected > rejects uppercase-id.json 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — legal inputs > accepts a minimal single-role pack 2ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — legal inputs > accepts a pack using documents, output schemas and capability requests 1ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — legal inputs > accepts four mutually distinct roles with arbitrary ids 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects missing required top-level fields 1ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects an unsupported schema_version 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects a mismatched requires_protocol 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects a non-semver version 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects an empty roles array 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects an uppercase role id 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects unknown top-level properties 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects document visibility outside the enum 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects path traversal in package paths 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects absolute package paths 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects a backslash path 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects a dot-leading relative path 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack schema — illegal inputs > rejects a capability request without a namespace 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack semantic rules beyond JSON Schema > rejects duplicate role ids 1ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack semantic rules beyond JSON Schema > rejects duplicate document keys within a role 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack semantic rules beyond JSON Schema > rejects duplicate output schema keys within a role 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack semantic rules beyond JSON Schema > rejects duplicate capability requests within a role 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack semantic rules beyond JSON Schema > still accepts distinct document keys across different roles 0ms
+ ✓ packages/protocol/test/rolepack.test.ts > rolepack type mapping > validates a value typed as RolePack without casts 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] declares complete, well-formed capabilities 2ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] degrades to a restricted level when an isolation scope is missing 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] creates a session with a bootstrap and confirms it host-side 1ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] is idempotent on the same creation key 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] rejects a tampered bootstrap bundle host-side 1ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] accepts a session without a bootstrap (optional at the port) 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] runs turns and reports them via getResult 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] finds sessions by creation key and misses unknown keys 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] closes sessions: state flips and further turns are rejected 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > declares full capabilities by default 2ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > reports restricted level when an isolation scope is missing 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > creates sessions, records turns, reports results and closes 1ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > verifies the bootstrap bundle hash before confirming a load 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > supports the uncertain-create failure mode with creation-key recovery 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > supports a hard create failure with no host-side effect 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > rejects native forks that carry full private history across roles 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > records that the core never drove a native fork (invocation counter) 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > candidate-update schema > accepts a legal candidate 2ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > candidate-update schema > accepts an adopted candidate with resolution fields 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > candidate-update schema > rejects an unknown source 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > candidate-update schema > rejects an unknown state 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > candidate-update schema > rejects a non-hash body hash 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > candidate-update schema > rejects baseline_revision below zero 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > knowledge-export schema > accepts a legal share manifest 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > knowledge-export schema > accepts a workspace manifest with checkpoints 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > knowledge-export schema > rejects a wrong manifest version 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > knowledge-export schema > rejects an unknown scope 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > knowledge-export schema > rejects a wrong hash algorithm 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > knowledge-export schema > rejects entries with unknown properties 0ms
+ ✓ packages/protocol/test/p2-schemas.test.ts > visibility ladder (P2) > document-revision schema accepts all four levels 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > scans all package source files 1ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/protocol/src/error-codes.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/protocol/src/errors.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/protocol/src/index.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/protocol/src/types.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/protocol/src/validate.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/admin.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/coordinator.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/documents/checkpoint.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/documents/service.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/identity.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/index.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/internal-store.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/knowledge/transfer.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/options.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/parse.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/policy.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/ports/adapter.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/requests/executor.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/requests/service.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/roles/install.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/roles/loader.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/roles/summary.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/sessions/handoff.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/sessions/internal.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/sessions/open.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/store/migrations.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/store/objects.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/store/queries.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/store/workspace.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/core/src/testing.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/cli/src/bin.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/cli/src/cli.ts 0ms
+ ✓ tests/conformance/no-business-roles.test.ts > no business roles in core source > contains no business role names: packages/cli/src/index.ts 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > output envelope schema > accepts a minimal success envelope 1ms
+ ✓ packages/protocol/test/envelopes.test.ts > output envelope schema > accepts a success envelope with data and correlation id 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > output envelope schema > rejects ok: false in the success envelope 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > output envelope schema > rejects unknown properties 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > error envelope schema > accepts a legal error envelope 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > error envelope schema > accepts an envelope with details and request id 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > error envelope schema > rejects an error code outside the registry 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > error envelope schema > rejects an empty message 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > error code registry sync > ERROR_CODES matches the error-envelope enum exactly 1ms
+ ✓ packages/protocol/test/envelopes.test.ts > error code registry sync > ERROR_CODES matches the collaboration-request error enum exactly 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > RoleDockError envelope conversion > converts a RoleDockError losslessly 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > RoleDockError envelope conversion > wraps an unknown thrown value as INTERNAL 0ms
+ ✓ packages/protocol/test/envelopes.test.ts > RoleDockError envelope conversion > wraps non-Error thrown values as INTERNAL 0ms
+ ✓ tests/conformance/ci-workflow.test.ts > CI workflow > parses as valid YAML with a check job 1ms
+ ✓ tests/conformance/ci-workflow.test.ts > CI workflow > runs npm ci and the full check gate 1ms
+ ✓ tests/conformance/ci-workflow.test.ts > CI workflow > pins the Node version via .nvmrc 0ms
+
+ Test Files  26 passed (26)
+      Tests  279 passed (279)
+   Start at  15:16:21
+   Duration  192.76s (tests 99%, import 1%)
+

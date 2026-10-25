@@ -1,0 +1,6 @@
+(node:2668054) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"kind":"diagnostic-only","connector_sha256":"c736587ffe8f560aa8109e505e982628217bb95387dccf2c601a4a52ca89c002","connector":{"name":"zcode-delegation","version":"0.1.0"},"capabilities":{"adapter":"zcode","level":"restricted","isolation":{"context":false,"temp_writes":false,"results":false,"capability_scope":false},"optional":{"cancel":false,"lookup_session_by_creation_key":true,"native_resume":false,"native_fork":false},"external":{"current_session_identity":false,"human_authorization_events":false,"load_materials":false,"reconcile_load":false}}}
+{"kind":"session","handle":{"adapter":"zcode","host_session_id":"sess_82f33699-e70d-40f2-9d62-018b7d11f56e","creation_key":"diagnostic-connectivity"}}
+{"kind":"actual-model-answer","result":{"host_session_id":"sess_82f33699-e70d-40f2-9d62-018b7d11f56e","state":"idle","turn_count":1,"completed":true,"body":"ZCode真实模型可达","output_bytes":23,"execution_key":"diagnostic-answer"},"note":"Not a role anchor, isolated RoleDock request, human event, or host cleanup proof."}
+{"kind":"host-cleanup","state":"NOT_IMPLEMENTED","note":"Persisted diagnostic session remains; transport shutdown is separate."}

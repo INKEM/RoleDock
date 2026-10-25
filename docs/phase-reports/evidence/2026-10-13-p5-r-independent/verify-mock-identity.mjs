@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+import {join} from 'node:path';
+const {MockHarnessAdapter}=await import(pathToFileURL(join(process.cwd(),'adapters/mock/dist/index.js')).href);
+const oldAdapter=new MockHarnessAdapter();
+const old=await oldAdapter.createSession({creation_key:'old-primary'});
+const fresh=new MockHarnessAdapter();
+const current=await fresh.createSession({creation_key:'new-primary'});
+assert.equal(old.host_session_id,current.host_session_id);
+for(const action of [()=>fresh.nativeResume(old),()=>fresh.runTurn(old,{message:'forbidden stale history'}),()=>fresh.getResult(old),()=>fresh.cancel(old),()=>fresh.closeSession(old)])await assert.rejects(action(),{code:'NOT_FOUND'});
+assert.deepEqual(fresh.peek(current.host_session_id).transcript,[]);
+assert.equal(fresh.peek(current.host_session_id).closed,false);
+await fresh.runTurn(current,{message:'current host only'});
+assert.deepEqual(fresh.peek(current.host_session_id).transcript,['current host only']);
+console.log('PASS stale numeric Mock host ID cannot resume, run, read, cancel or close another creation key');

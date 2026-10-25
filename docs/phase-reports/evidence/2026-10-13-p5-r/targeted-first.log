@@ -1,0 +1,881 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ × packages/core/test/requests.test.ts > requests.create preconditions > requires read receipts or an exception rationale 2714ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > requests.create preconditions > returns ROLE_UNINITIALIZED when the target has no primary instance 2215ms
+   → expected 'PERMISSION_DENIED' to be 'ROLE_UNINITIALIZED' // Object.is equality
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > rejects nested auto-requests from consultation sessions 2968ms
+ × packages/core/test/requests.test.ts > requests.create preconditions > is idempotent: same key same content returns the original; different content conflicts 2016ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > isolated execution (10 concurrent requests) > executes ten queued requests without mixing messages, files, results or scopes 2786ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > requests concurrent with handoff > queued requests keep their receive-time snapshot; new requests bind the new generation 2609ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > state machine, budgets and late results > moves to awaiting_input on needs_input, resumes after the initiator's reply 3795ms
+   → Role pack source is not a directory: ni-pack/0.1.0
+ × packages/core/test/requests.test.ts > state machine, budgets and late results > enforces the turn budget as a capability-scope boundary 1419ms
+   → Role pack source is not a directory: bud-pack/0.1.0
+ × packages/core/test/requests.test.ts > state machine, budgets and late results > rejects late results after cancellation and duplicate completions 2383ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > state machine, budgets and late results > expires overdue requests lazily and reclaims their temp dirs 2013ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > permission matrix over requests > rejects cross-identity read, reply, cancel and adopt 2787ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > permission matrix over requests > rejects adoption of cancelled or late results 2017ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/requests.test.ts > handoff interplay with candidates > gives stale-branch candidates no formal write permission after a handoff 2791ms
+   → Role pack source is not a directory: owner-pack/0.1.0
+ × packages/core/test/handoff.test.ts > sessions.open — first and second creation > initializes generation 1 without a handoff, then inherits as generation 2 with correct references 1358ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > sessions.open — first and second creation > requires inherit=latest on an initialized role and rejects consultation sessions as primary 1404ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > handoff failure and recovery modes > re-prepares when knowledge changes during preparation 1790ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > handoff failure and recovery modes > keeps the old primary pointer when the adapter fails to create the host 1598ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > handoff failure and recovery modes > does not blindly recreate sessions on uncertain creation; recovery honors capability 1406ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > handoff failure and recovery modes > is idempotent on the same creation key for the initialize path 1793ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > concurrent activation and successor rights > lets exactly one activation win; the loser gets GENERATION_CONFLICT and cannot publish 1589ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > concurrent activation and successor rights > keeps predecessor sessions and host transcripts unpolluted by the handoff 1419ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > sessions.resume > resumes natively without advancing the generation when the adapter declares it 1781ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ × packages/core/test/handoff.test.ts > sessions.resume > points at semantic inheritance when the adapter lacks native resume 1416ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > rejects unknown sessions 1409ms
+ × packages/core/test/handoff.test.ts > role contract freezing > freezes the role's registered pack contract into the bundle 1395ms
+   → Role pack source is not a directory: handoff-pack/0.1.0
+ ✓ packages/core/test/documents.test.ts > documents.publish > publishes v1, bumps knowledge_revision, and keeps history immutable 2806ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects a stale expected_revision with REVISION_CONFLICT; loser content survives as a candidate 2588ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects wrong expected_generation with GENERATION_CONFLICT 2003ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects an old-generation session with INVALID_STATE_TRANSITION 2206ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects non-owner publishes and undeclared document keys 2380ms
+ × packages/core/test/documents.test.ts > documents.read and visibility > enforces the visibility matrix across roles and session kinds 3617ms
+   → Request scope denies documents.read.
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > records read receipts bound to the true calling session; forgery fails 2993ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > filters documents.list by calling identity 2995ms
+ ✓ packages/core/test/documents.test.ts > candidates > adopts a candidate after re-validating its baseline; stale adoption keeps the candidate 3009ms
+ ✓ packages/core/test/documents.test.ts > candidates > proposing on an unpublished foreign document is denied 2192ms
+ ✓ packages/core/test/documents.test.ts > testing fixture boundary > is not reachable from the SDK operation surface or the coordinator object 1008ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.export > share scope carries only public and project documents, never checkpoints 2221ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.export > workspace scope includes everything plus checkpoints 2404ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.export > can filter a single role 2206ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > round-trips shared documents as candidates with verified hashes 4213ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > rejects tampered bundle files without touching the database 4382ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > skips private/role entries even in a hand-edited bundle, and unknown roles 4615ms
+ ✓ packages/core/test/knowledge-transfer.test.ts > knowledge.import into another workspace (second adapter) > keeps a stale-baseline candidate but its adoption conflicts 5386ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints the version in human mode 1ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints a machine envelope with --json --version 0ms
+ ✓ packages/cli/test/cli.test.ts > cli version and help > prints usage for --help and exits 0 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > rejects unknown commands with exit code 2 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > reports unknown commands as VALIDATION_FAILED envelopes in json mode 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > rejects a dangling --root value with exit code 2 0ms
+ ✓ packages/cli/test/cli.test.ts > cli usage errors > prints usage when no command is given 0ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > installs a pack via roles install and lists it via roles list 1080ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > installs the demo-team example via CLI and resolves a role 1601ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > reports an unknown role as NOT_FOUND with exit code 1 1003ms
+ ✓ packages/cli/test/cli.test.ts > cli implemented operations (P1) > admin grant/policy work through the owner entry 1588ms
+ ✓ packages/cli/test/cli.test.ts > cli unimplemented operations fail honestly > fails request creation without a session with a structured envelope 0ms
+ ✓ packages/cli/test/cli.test.ts > cli unimplemented operations fail honestly > fails request operations that lack a session with a human-readable line 0ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > documents publish requires a session 1409ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > publishes and reads through a session id end to end 3600ms
+ ✓ packages/cli/test/cli.test.ts > cli P2 operations > exports and imports knowledge between two workspace roots 5413ms
+ × packages/cli/test/cli.test.ts > cli P3 session operations > opens a session through the full handoff via the CLI 3185ms
+   → expected 1 to be +0 // Object.is equality
+ ✓ packages/cli/test/cli.test.ts > cli P3 session operations > requires a handoff on an initialized role without inherit 1204ms
+ ✓ packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > rejects an unknown --adapter value with exit code 2 0ms
+ × packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > drives a full handoff through the process bridge and reports diagnostics 3002ms
+   → expected 1 to be +0 // Object.is equality
+ × packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > adopts a request result through --adopt-artifact and flips the inbox to read 4984ms
+   → Unexpected end of JSON input
+ ✓ packages/core/test/install.test.ts > role pack installer > installs a pack, copies content into the workspace, and seeds uninitialized heads 1055ms
+ ✓ packages/core/test/install.test.ts > role pack installer > reinstalling identical content is idempotent 1206ms
+ ✓ packages/core/test/install.test.ts > role pack installer > repairs lost pack content on identical reinstall (R-2 regression) 1669ms
+ ✓ packages/core/test/install.test.ts > role pack installer > rejects the same name+version with different content as IDEMPOTENCY_CONFLICT 1132ms
+ ✓ packages/core/test/install.test.ts > role pack installer > rejects role id collisions across packs with ROLE_ALREADY_EXISTS 1390ms
+ ✓ packages/core/test/install.test.ts > role pack installer > leaves no half-installed pack when the transaction fails mid-install 1207ms
+ ✓ packages/core/test/install.test.ts > role pack installer > rejects a workspace id mismatch 1207ms
+ ✓ packages/core/test/install.test.ts > role pack installer > registers roles from packs installed before a restart (persistence) 1373ms
+ ✓ packages/core/test/install.test.ts > role pack installer > writes no grants from requested capabilities 1027ms
+ ✓ packages/core/test/coordinator.test.ts > coordinator operation surface > exposes exactly the operations specified in docs/spec/sdk-operations.md 2ms
+ ✓ packages/core/test/coordinator.test.ts > P1 implemented operations > installs, lists and resolves roles on a real workspace 1187ms
+ ✓ packages/core/test/coordinator.test.ts > P1 implemented operations > resolves an unknown role with NOT_FOUND 1211ms
+ ✓ packages/core/test/coordinator.test.ts > P1 implemented operations > validates operation input 1189ms
+ ✓ packages/core/test/coordinator.test.ts > single-coordinator constraint > fails a second open on the same workspace with WORKSPACE_LOCKED 1199ms
+ ✓ packages/core/test/coordinator.test.ts > complete operation surface (P4) > implements every specified operation — none report NOT_IMPLEMENTED 1210ms
+ ✓ packages/core/test/coordinator.test.ts > complete operation surface (P4) > uses only registered error codes across the surface 1587ms
+ ✓ packages/core/test/policy.test.ts > capability policy > keeps requested capabilities separate from grants after install 1047ms
+ ✓ packages/core/test/policy.test.ts > capability policy > denies a self-declared identity with no grant — declarations are not capabilities 1382ms
+ ✓ packages/core/test/policy.test.ts > capability policy > grants and revokes through the owner entry, and evaluate follows 1816ms
+ ✓ packages/core/test/policy.test.ts > capability policy > rejects revoking a capability that was never granted 1398ms
+ ✓ packages/core/test/policy.test.ts > capability policy > rejects grants for unknown roles and malformed capability names 1204ms
+ × packages/core/test/store.test.ts > workspace store > opens a fresh workspace, migrates once, and keeps a stable workspace id 1016ms
+   → expected 5 to be 4 // Object.is equality
+ ✓ packages/core/test/store.test.ts > workspace store > persists state across close and reopen 1399ms
+ ✓ packages/core/test/store.test.ts > workspace store > rolls back a failed transaction without leaving rows 1388ms
+ ✓ packages/core/test/store.test.ts > workspace store > rejects a tampered migration checksum on reopen 1208ms
+ ✓ packages/core/test/store.test.ts > workspace store > rejects state written by a newer build (unknown migration id) 1389ms
+ ✓ packages/core/test/store.test.ts > workspace store > fails a second in-process open with WORKSPACE_LOCKED and recovers after close 1398ms
+ × packages/core/test/checkpoint.test.ts > CheckpointBuilder > snapshots exact published revisions and skips unpublished documents 1832ms
+   → expected { …(13) } to match object { role_id: 'writer', …(3) }
+(12 matching properties omitted from actual)
+ × packages/core/test/checkpoint.test.ts > CheckpointBuilder > captures the knowledge_revision at build time, not a stale view 1802ms
+   → expected 2 to be 1 // Object.is equality
+ ✓ packages/core/test/checkpoint.test.ts > CheckpointBuilder > rejects checkpoints for roles without a primary instance 2199ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > loads a valid pack with a deterministic content hash 5ms
+ × packages/core/test/loader.test.ts > role pack loader > rejects a pack whose referenced template file is missing 5ms
+   → expected '{"file":"templates/solo-notes.md"}' to contain 'missing file'
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack missing the manifest 0ms
+ × packages/core/test/loader.test.ts > role pack loader > rejects symlink escapes for referenced files 1ms
+   → expected '{"file":"templates/solo-notes.md"}' to contain 'path escape'
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects stray symlinks anywhere in the pack, even unreferenced ones 1ms
+ × packages/core/test/loader.test.ts > role pack loader > rejects references that escape the pack root through a symlinked directory 1ms
+   → expected '{"file":"templates/solo-notes.md"}' to contain 'path escape'
+ × packages/core/test/loader.test.ts > role pack loader > rejects remote $ref in output schemas 2ms
+   → expected '{"file":"schemas/report.json","refere…' to contain 'remote schema reference'
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a manifest with path traversal before touching the filesystem 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > rejects a pack requiring a different protocol version 1ms
+ ✓ packages/core/test/loader.test.ts > role pack loader > reports loader failures as structured VALIDATION_FAILED errors 1ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > declares full capabilities by default 2ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > reports restricted level when an isolation scope is missing 0ms
+ × adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > creates sessions, records turns, reports results and closes 6ms
+   → expected { host_session_id: 'mock-0001', …(6) } to match object { host_session_id: 'mock-0001', …(2) }
+(4 matching properties omitted from actual)
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > verifies the bootstrap bundle hash before confirming a load 1ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > supports the uncertain-create failure mode with creation-key recovery 1ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > supports a hard create failure with no host-side effect 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > rejects native forks that carry full private history across roles 0ms
+ ✓ adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > records that the core never drove a native fork (invocation counter) 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] declares complete, well-formed capabilities 2ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] degrades to a restricted level when an isolation scope is missing 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] creates a session with a bootstrap and confirms it host-side 1ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] is idempotent on the same creation key 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] rejects a tampered bootstrap bundle host-side 1ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] accepts a session without a bootstrap (optional at the port) 0ms
+ × adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] runs turns and reports them via getResult 5ms
+   → expected 'idle' to be 'running' // Object.is equality
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] finds sessions by creation key and misses unknown keys 0ms
+ ✓ adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] closes sessions: state flips and further turns are rejected 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 36 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  adapters/mock/test/contract.test.ts > adapter contract: in-memory mock > [mock] runs turns and reports them via getResult
+AssertionError: expected 'idle' to be 'running' // Object.is equality
+
+Expected: "running"
+Received: "idle"
+
+ ❯ tests/conformance/adapter-suite.ts:102:26
+    100|     const result = await adapter.getResult(handle);
+    101|     expect(result.host_session_id).toBe(handle.host_session_id);
+    102|     expect(result.state).toBe("running");
+       |                          ^
+    103|     expect(result.turn_count).toBe(2);
+    104|     expect(typeof result.output_bytes).toBe("number");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/36]⎯
+
+ FAIL  adapters/mock/test/mock-adapter.test.ts > MockHarnessAdapter > creates sessions, records turns, reports results and closes
+AssertionError: expected { host_session_id: 'mock-0001', …(6) } to match object { host_session_id: 'mock-0001', …(2) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "host_session_id": "mock-0001",
+-   "state": "running",
++   "state": "idle",
+    "turn_count": 1,
+  }
+
+ ❯ adapters/mock/test/mock-adapter.test.ts:44:20
+     42|     await adapter.runTurn(handle, { message: "hello" });
+     43|     const result = await adapter.getResult(handle);
+     44|     expect(result).toMatchObject({ host_session_id: handle.host_sessio…
+       |                    ^
+     45|     await adapter.closeSession(handle);
+     46|     expect((await adapter.getResult(handle)).state).toBe("closed");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/36]⎯
+
+ FAIL  packages/cli/test/cli.test.ts > cli P3 session operations > opens a session through the full handoff via the CLI
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/cli/test/cli.test.ts:310:28
+    308|     const firstCap = capture();
+    309|     const first = await runCli(["--json", "--root", root, "sessions", …
+    310|     expect(first.exitCode).toBe(0);
+       |                            ^
+    311|     const firstEnvelope = JSON.parse(firstCap.out()) as OutputEnvelope…
+    312|       session_id: string;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/36]⎯
+
+ FAIL  packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > drives a full handoff through the process bridge and reports diagnostics
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/cli/test/cli.test.ts:399:93
+    397|     await grantTestPolicy(root, ["keeper"]);
+    398|     const firstCap = capture();
+    399|     expect((await runCli([...bridge, "sessions", "open", "keeper"], fi…
+       |                                                                                             ^
+    400|     const first = JSON.parse(firstCap.out()) as OutputEnvelope<{ sessi…
+    401|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/36]⎯
+
+ FAIL  packages/cli/test/cli.test.ts > P5: adapter selection, adoption and owner diagnostics > adopts a request result through --adopt-artifact and flips the inbox to read
+SyntaxError: Unexpected end of JSON input
+ ❯ packages/cli/test/cli.test.ts:456:24
+    454|     const ownerCap = capture();
+    455|     await runCli([...base, "sessions", "open", "owner"], ownerCap.io);
+    456|     const owner = JSON.parse(ownerCap.out()) as OutputEnvelope<{ sessi…
+       |                        ^
+    457|     const askerCap = capture();
+    458|     await runCli([...base, "sessions", "open", "asker"], askerCap.io);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/36]⎯
+
+ FAIL  packages/core/test/checkpoint.test.ts > CheckpointBuilder > snapshots exact published revisions and skips unpublished documents
+AssertionError: expected { …(13) } to match object { role_id: 'writer', …(3) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "created_by_instance_id": "inst-bf1fe2f9",
+    "generation": 1,
+-   "knowledge_revision": 2,
++   "knowledge_revision": 3,
+    "role_id": "writer",
+  }
+
+ ❯ packages/core/test/checkpoint.test.ts:91:19
+     89|     ]);
+     90|     expect(built.document_snapshots.some((snapshot) => snapshot.docume…
+     91|     expect(built).toMatchObject({
+       |                   ^
+     92|       role_id: "writer",
+     93|       generation: session.generation,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/36]⎯
+
+ FAIL  packages/core/test/checkpoint.test.ts > CheckpointBuilder > captures the knowledge_revision at build time, not a stale view
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ packages/core/test/checkpoint.test.ts:129:39
+    127|     });
+    128|     const before = buildCheckpoint(store, { role_id: "writer", summary…
+    129|     expect(before.knowledge_revision).toBe(1);
+       |                                       ^
+    130|     await coordinator.publishDocument({
+    131|       session_id: session.session_id,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/36]⎯
+
+ FAIL  packages/core/test/documents.test.ts > documents.read and visibility > enforces the visibility matrix across roles and session kinds
+RoleDockError: Request scope denies documents.read.
+ ❯ requireSessionCapability packages/core/src/policy.ts:46:11
+     44|   const row = store.prepare("SELECT kind, capability_scope_json FROM s…
+     45|   if (row.kind === "request" && !(JSON.parse(row.capability_scope_json…
+     46|     throw new RoleDockError("PERMISSION_DENIED", `Request scope denies…
+       |           ^
+     47|   }
+     48| }
+ ❯ readDocument packages/core/src/documents/service.ts:204:3
+ ❯ Coordinator.readDocument packages/core/src/coordinator.ts:263:12
+ ❯ packages/core/test/documents.test.ts:292:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'PERMISSION_DENIED', details: undefined, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > sessions.open — first and second creation > initializes generation 1 without a handoff, then inherits as generation 2 with correct references
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:56:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > sessions.open — first and second creation > requires inherit=latest on an initialized role and rejects consultation sessions as primary
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:111:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > handoff failure and recovery modes > re-prepares when knowledge changes during preparation
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:145:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > handoff failure and recovery modes > keeps the old primary pointer when the adapter fails to create the host
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:191:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > handoff failure and recovery modes > does not blindly recreate sessions on uncertain creation; recovery honors capability
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:227:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > handoff failure and recovery modes > is idempotent on the same creation key for the initialize path
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:281:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > concurrent activation and successor rights > lets exactly one activation win; the loser gets GENERATION_CONFLICT and cannot publish
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:293:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > concurrent activation and successor rights > keeps predecessor sessions and host transcripts unpolluted by the handoff
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:356:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > sessions.resume > resumes natively without advancing the generation when the adapter declares it
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:390:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > sessions.resume > points at semantic inheritance when the adapter lacks native resume
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:401:37
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/36]⎯
+
+ FAIL  packages/core/test/handoff.test.ts > role contract freezing > freezes the role's registered pack contract into the bundle
+RoleDockError: Role pack source is not a directory: handoff-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/handoff.test.ts:431:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'handoff-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/36]⎯
+
+ FAIL  packages/core/test/loader.test.ts > role pack loader > rejects a pack whose referenced template file is missing
+AssertionError: expected '{"file":"templates/solo-notes.md"}' to contain 'missing file'
+
+Expected: "missing file"
+Received: "{"file":"templates/solo-notes.md"}"
+
+ ❯ expectValidationIssue packages/core/test/loader.test.ts:33:45
+     31|     if (isRoleDockError(error)) {
+     32|       expect(error.code).toBe("VALIDATION_FAILED");
+     33|       expect(JSON.stringify(error.details)).toContain(issue);
+       |                                             ^
+     34|       return;
+     35|     }
+ ❯ packages/core/test/loader.test.ts:59:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/36]⎯
+
+ FAIL  packages/core/test/loader.test.ts > role pack loader > rejects symlink escapes for referenced files
+AssertionError: expected '{"file":"templates/solo-notes.md"}' to contain 'path escape'
+
+Expected: "path escape"
+Received: "{"file":"templates/solo-notes.md"}"
+
+ ❯ expectValidationIssue packages/core/test/loader.test.ts:33:45
+     31|     if (isRoleDockError(error)) {
+     32|       expect(error.code).toBe("VALIDATION_FAILED");
+     33|       expect(JSON.stringify(error.details)).toContain(issue);
+       |                                             ^
+     34|       return;
+     35|     }
+ ❯ packages/core/test/loader.test.ts:75:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/36]⎯
+
+ FAIL  packages/core/test/loader.test.ts > role pack loader > rejects references that escape the pack root through a symlinked directory
+AssertionError: expected '{"file":"templates/solo-notes.md"}' to contain 'path escape'
+
+Expected: "path escape"
+Received: "{"file":"templates/solo-notes.md"}"
+
+ ❯ expectValidationIssue packages/core/test/loader.test.ts:33:45
+     31|     if (isRoleDockError(error)) {
+     32|       expect(error.code).toBe("VALIDATION_FAILED");
+     33|       expect(JSON.stringify(error.details)).toContain(issue);
+       |                                             ^
+     34|       return;
+     35|     }
+ ❯ packages/core/test/loader.test.ts:95:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/36]⎯
+
+ FAIL  packages/core/test/loader.test.ts > role pack loader > rejects remote $ref in output schemas
+AssertionError: expected '{"file":"schemas/report.json","refere…' to contain 'remote schema reference'
+
+Expected: "remote schema reference"
+Received: "{"file":"schemas/report.json","reference":"https://schemas.example.com/answer.json"}"
+
+ ❯ expectValidationIssue packages/core/test/loader.test.ts:33:45
+     31|     if (isRoleDockError(error)) {
+     32|       expect(error.code).toBe("VALIDATION_FAILED");
+     33|       expect(JSON.stringify(error.details)).toContain(issue);
+       |                                             ^
+     34|       return;
+     35|     }
+ ❯ packages/core/test/loader.test.ts:117:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > requests.create preconditions > requires read receipts or an exception rationale
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ packages/core/test/requests.test.ts:117:47
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > requests.create preconditions > returns ROLE_UNINITIALIZED when the target has no primary instance
+AssertionError: expected 'PERMISSION_DENIED' to be 'ROLE_UNINITIALIZED' // Object.is equality
+
+Expected: "ROLE_UNINITIALIZED"
+Received: "PERMISSION_DENIED"
+
+ ❯ packages/core/test/requests.test.ts:93:54
+     91|     } catch (error) {
+     92|       expect(isRoleDockError(error), `${code}: got ${String(error)}`).…
+     93|       if (isRoleDockError(error)) expect(error.code).toBe(code);
+       |                                                      ^
+     94|       return;
+     95|     }
+ ❯ packages/core/test/requests.test.ts:134:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > requests.create preconditions > is idempotent: same key same content returns the original; different content conflicts
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ createAsk packages/core/test/requests.test.ts:65:44
+ ❯ packages/core/test/requests.test.ts:167:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > isolated execution (10 concurrent requests) > executes ten queued requests without mixing messages, files, results or scopes
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ packages/core/test/requests.test.ts:190:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > requests concurrent with handoff > queued requests keep their receive-time snapshot; new requests bind the new generation
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ createAsk packages/core/test/requests.test.ts:65:44
+ ❯ packages/core/test/requests.test.ts:257:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > state machine, budgets and late results > moves to awaiting_input on needs_input, resumes after the initiator's reply
+RoleDockError: Role pack source is not a directory: ni-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/requests.test.ts:308:44
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'ni-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > state machine, budgets and late results > enforces the turn budget as a capability-scope boundary
+RoleDockError: Role pack source is not a directory: bud-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ openSessionImpl packages/core/src/sessions/open.ts:87:130
+ ❯ openSession packages/core/src/sessions/open.ts:302:19
+ ❯ Coordinator.openSession packages/core/src/coordinator.ts:177:12
+ ❯ packages/core/test/requests.test.ts:356:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'bud-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > state machine, budgets and late results > rejects late results after cancellation and duplicate completions
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ createAsk packages/core/test/requests.test.ts:65:44
+ ❯ packages/core/test/requests.test.ts:389:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > state machine, budgets and late results > expires overdue requests lazily and reclaims their temp dirs
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ packages/core/test/requests.test.ts:426:47
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > permission matrix over requests > rejects cross-identity read, reply, cancel and adopt
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ createAsk packages/core/test/requests.test.ts:65:44
+ ❯ packages/core/test/requests.test.ts:458:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > permission matrix over requests > rejects adoption of cancelled or late results
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ createAsk packages/core/test/requests.test.ts:65:44
+ ❯ packages/core/test/requests.test.ts:520:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/36]⎯
+
+ FAIL  packages/core/test/requests.test.ts > handoff interplay with candidates > gives stale-branch candidates no formal write permission after a handoff
+RoleDockError: Role pack source is not a directory: owner-pack/0.1.0
+ ❯ validationError packages/core/src/roles/loader.ts:23:10
+     21|
+     22| function validationError(message: string, details: Record<string, unkn…
+     23|   return new RoleDockError("VALIDATION_FAILED", message, { details });
+       |          ^
+     24| }
+     25|
+ ❯ loadRolePack packages/core/src/roles/loader.ts:111:11
+ ❯ roleMaterial packages/core/src/sessions/material.ts:15:18
+ ❯ packages/core/src/requests/service.ts:289:30
+ ❯ WorkspaceStore.tx packages/core/src/store/workspace.ts:101:22
+ ❯ createRequest packages/core/src/requests/service.ts:244:16
+ ❯ Coordinator.createRequest packages/core/src/coordinator.ts:342:12
+ ❯ createAsk packages/core/test/requests.test.ts:65:44
+ ❯ packages/core/test/requests.test.ts:549:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'VALIDATION_FAILED', details: { source: 'owner-pack/0.1.0', issue: 'missing pack directory' }, retryable: false, requestId: undefined, toEnvelope: 'Function<toEnvelope>' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/36]⎯
+
+ FAIL  packages/core/test/store.test.ts > workspace store > opens a fresh workspace, migrates once, and keeps a stable workspace id
+AssertionError: expected 5 to be 4 // Object.is equality
+
+- Expected
++ Received
+
+- 4
++ 5
+
+ ❯ packages/core/test/store.test.ts:48:26
+     46|       n: number;
+     47|     };
+     48|     expect(migrations.n).toBe(4);
+       |                          ^
+     49|     second.close();
+     50|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/36]⎯
+
+
+ Test Files  9 failed | 4 passed (13)
+      Tests  36 failed | 85 passed (121)
+   Start at  16:32:28
+   Duration  174.39s (tests 99%, import 1%)
+

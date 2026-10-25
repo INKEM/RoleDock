@@ -1,0 +1,6 @@
+
+> roledock@0.1.0-alpha.0 typecheck
+> tsc -b --force && tsc -p tsconfig.check.json
+
+adapters/zcode/src/index.ts(88,176): error TS2345: Argument of type '"BUDGET_EXCEEDED"' is not assignable to parameter of type '"NOT_IMPLEMENTED" | "VALIDATION_FAILED" | "NOT_FOUND" | "PERMISSION_DENIED" | "ROLE_ALREADY_EXISTS" | "ROLE_UNINITIALIZED" | "GENERATION_CONFLICT" | "REVISION_CONFLICT" | ... 5 more ... | "INTERNAL"'.
+adapters/zcode/src/index.ts(137,207): error TS2345: Argument of type '"BUDGET_EXCEEDED"' is not assignable to parameter of type '"NOT_IMPLEMENTED" | "VALIDATION_FAILED" | "NOT_FOUND" | "PERMISSION_DENIED" | "ROLE_ALREADY_EXISTS" | "ROLE_UNINITIALIZED" | "GENERATION_CONFLICT" | "REVISION_CONFLICT" | ... 5 more ... | "INTERNAL"'.

@@ -1,0 +1,41 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > declares restricted capabilities and refuses role material/scope before any host action 397ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > cannot register external identity or initialize a role through the core SDK 2402ms
+ × adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > ten overlapping RoleDock jobs are refused without spending a host turn or creating artifacts 7807ms
+   → no such table: artifacts
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > coalesces creation overlap and restores the original confirmed mapping after restart 594ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > unknown accepted creation survives restart and cannot be blindly retried or returned absent 593ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > stores a complete matching answer, replay spends no turn, and changed input conflicts 1217ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > lost send confirmation preserves intent across restart even if a later answer exists 979ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > gap trace cannot masquerade as completed 1204ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > old trace cannot masquerade as completed 993ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > multiple trace cannot masquerade as completed 1018ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > truncated trace cannot masquerade as completed 1008ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > wrong-host trace cannot masquerade as completed 999ms
+ ✓ adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > budget limits prevent new sends; actual oversize output and host close are never fake successes 1198ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  adapters/zcode/test/zcode-adapter.test.ts > ZCode restricted connector contract (fixtures) > ten overlapping RoleDock jobs are refused without spending a host turn or creating artifacts
+Error: no such table: artifacts
+ ❯ WorkspaceStore.prepare packages/core/src/store/workspace.ts:115:20
+    113|
+    114|   prepare(sql: string): ReturnType<DatabaseSync["prepare"]> {
+    115|     return this.db.prepare(sql);
+       |                    ^
+    116|   }
+    117|
+ ❯ adapters/zcode/test/zcode-adapter.test.ts:79:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_SQLITE_ERROR', errcode: 1, errstr: 'SQL logic error' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  21:32:04
+   Duration  20.79s (tests 99%, import 1%)
+

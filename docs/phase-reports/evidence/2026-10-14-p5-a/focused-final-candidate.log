@@ -1,0 +1,30 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:1743825) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ packages/core/test/anchor.test.ts (17 tests | 1 failed) 117422ms
+   ❯ external connection and anchor authority (Mock) (17)
+     × expired grants cannot activate; expiry invalidates a live binding and prevents new requests to an unserved role 8535ms
+(node:1758970) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1763709) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1764596) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/core/test/anchor.test.ts > external connection and anchor authority (Mock) > expired grants cannot activate; expiry invalidates a live binding and prevents new requests to an unserved role
+TypeError: Cannot read properties of null (reading 'state')
+ ❯ packages/core/test/anchor.test.ts:199:102
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 29 passed (30)
+   Start at  00:58:02
+   Duration  176.80s (tests 98%, import 1%, transform 1%)
+

@@ -1,0 +1,113 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > requires read receipts or an exception rationale 388ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > returns ROLE_UNINITIALIZED when the target has no primary instance 344ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > rejects nested auto-requests from consultation sessions 324ms
+ ✓ packages/core/test/requests.test.ts > requests.create preconditions > is idempotent: same key same content returns the original; different content conflicts 308ms
+ ✓ packages/core/test/requests.test.ts > isolated execution (10 concurrent requests) > executes ten queued requests without mixing messages, files, results or scopes 2014ms
+ ✓ packages/core/test/requests.test.ts > requests concurrent with handoff > queued requests keep their receive-time snapshot; new requests bind the new generation 710ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > moves to awaiting_input on needs_input, resumes after the initiator's reply 836ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > enforces the turn budget as a capability-scope boundary 498ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > rejects late results after cancellation and duplicate completions 364ms
+ ✓ packages/core/test/requests.test.ts > state machine, budgets and late results > expires overdue requests lazily and reclaims their temp dirs 412ms
+ ✓ packages/core/test/requests.test.ts > permission matrix over requests > rejects cross-identity read, reply, cancel and adopt 621ms
+ ✓ packages/core/test/requests.test.ts > permission matrix over requests > rejects adoption of cancelled or late results 315ms
+ ✓ packages/core/test/requests.test.ts > handoff interplay with candidates > gives stale-branch candidates no formal write permission after a handoff 619ms
+ ✓ packages/core/test/handoff.test.ts > sessions.open — first and second creation > initializes generation 1 without a handoff, then inherits as generation 2 with correct references 423ms
+ ✓ packages/core/test/handoff.test.ts > sessions.open — first and second creation > requires inherit=latest on an initialized role and rejects consultation sessions as primary 235ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > re-prepares when knowledge changes during preparation 460ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > keeps the old primary pointer when the adapter fails to create the host 392ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > does not blindly recreate sessions on uncertain creation; recovery honors capability 786ms
+ ✓ packages/core/test/handoff.test.ts > handoff failure and recovery modes > is idempotent on the same creation key for the initialize path 245ms
+ ✓ packages/core/test/handoff.test.ts > concurrent activation and successor rights > lets exactly one activation win; the loser gets GENERATION_CONFLICT and cannot publish 459ms
+ ✓ packages/core/test/handoff.test.ts > concurrent activation and successor rights > keeps predecessor sessions and host transcripts unpolluted by the handoff 394ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > resumes natively without advancing the generation when the adapter declares it 228ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > points at semantic inheritance when the adapter lacks native resume 232ms
+ ✓ packages/core/test/handoff.test.ts > sessions.resume > rejects unknown sessions 199ms
+ ✓ packages/core/test/handoff.test.ts > role contract freezing > freezes the role's registered pack contract into the bundle 382ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects ftp://remote/a.json 4ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects //remote/a.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects file:///tmp/a.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects ../outside.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects %2e%2e/outside.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects /tmp/a.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects missing.json 1ms
+ ✓ packages/core/test/rework.test.ts > R01 reference closure > rejects remote next-level refs, directory templates and escaping schema symlinks; accepts recursive local files 3ms
+ ✓ packages/core/test/rework.test.ts > R02/R03 actual policy and production boundary > denies no-grant and revoked actions without revisions, candidates or receipts, including direct service 318ms
+ ✓ packages/core/test/rework.test.ts > R02/R03 actual policy and production boundary > exposes no store, fixture appointment, receipt signer or low-level mutations in production 269ms
+ ✓ packages/core/test/rework.test.ts > R02/R03 actual policy and production boundary > ignores forged, unrelated and nonexistent-version receipts; real target reads work 395ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > preserves stale proposal baseline and content; adoption conflicts 336ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects traversal import before database changes 308ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects absolute import before database changes 327ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects symlink import before database changes 324ms
+ ✓ packages/core/test/rework.test.ts > R04/R05 knowledge boundaries > rejects checkpoint import before database changes 325ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > loads role material on first open, inherits committed summary and bodies, rejects stale summary bundle 614ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > recovers persisted provisioning before/after external create (false) with immutable payload 443ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > recovers persisted provisioning before/after external create (true) with immutable payload 455ms
+ ✓ packages/core/test/rework.test.ts > R06–R09 fixed knowledge, host loading and recovery > freezes request bodies on receipt and loads only shareable knowledge with a limited scope 516ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing context isolation before host spending 349ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing temp_writes isolation before host spending 347ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing results isolation before host spending 337ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > rejects missing capability_scope isolation before host spending 351ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > checks policy at creation, execution and post-await commit 863ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > cancellation during needs_input response never revives terminal state 494ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > cancellation during completed response never revives terminal state 465ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > cancellation during budget response never revives terminal state 454ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > deadline crossed during result retrieval prevents completion/needs_input (false) 3372ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > deadline crossed during result retrieval prevents completion/needs_input (true) 3361ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > reserves turns before spending and registers actual host answer hash 985ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > leaves running host results pending and retries terminal cleanup without rerunning 444ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > reconciles a lost turn ack across coordinator restart without replaying side effects 430ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > uses bound lookup for uncertain creates and preserves explicit uncertainty without lookup 870ms
+ ✓ packages/core/test/rework.test.ts > R10–R14 execution boundaries > proves ten overlapping independent requests and overlapping duplicate deliveries 2057ms
+ ✓ packages/core/test/rework.test.ts > additional independent-review counterexamples > keeps branch listing and proposal baseline fixed after a newer publish 531ms
+ × packages/core/test/rework.test.ts > additional independent-review counterexamples > records refused as a known failure and closes host 441ms
+   → promise resolved "{ request_id: 'req-e5f658db80', …(1) }" instead of rejecting
+ ✓ packages/core/test/rework.test.ts > additional independent-review counterexamples > records missing-body as a known failure and closes host 466ms
+ ✓ packages/core/test/rework.test.ts > additional independent-review counterexamples > lazy expiry of a waiting request also reclaims its host 3351ms
+ ✓ packages/core/test/rework.test.ts > additional independent-review counterexamples > keeps logical open idempotency when knowledge drifts during host creation 657ms
+ ✓ packages/core/test/rework.test.ts > additional independent-review counterexamples > does not reuse another initiator's request idempotency key 309ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > publishes v1, bumps knowledge_revision, and keeps history immutable 356ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects a stale expected_revision with REVISION_CONFLICT; loser content survives as a candidate 334ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects wrong expected_generation with GENERATION_CONFLICT 288ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects an old-generation session with INVALID_STATE_TRANSITION 322ms
+ ✓ packages/core/test/documents.test.ts > documents.publish > rejects non-owner publishes and undeclared document keys 292ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > enforces the visibility matrix across roles and session kinds 530ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > records read receipts bound to the true calling session; forgery fails 387ms
+ ✓ packages/core/test/documents.test.ts > documents.read and visibility > filters documents.list by calling identity 366ms
+ ✓ packages/core/test/documents.test.ts > candidates > adopts a candidate after re-validating its baseline; stale adoption keeps the candidate 396ms
+ ✓ packages/core/test/documents.test.ts > candidates > proposing on an unpublished foreign document is denied 276ms
+ ✓ packages/core/test/documents.test.ts > testing fixture boundary > is not reachable from the SDK operation surface or the coordinator object 152ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/core/test/rework.test.ts > additional independent-review counterexamples > records refused as a known failure and closes host
+AssertionError: promise resolved "{ request_id: 'req-e5f658db80', …(1) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "request_id": "req-e5f658db80",
++   "state": "failed",
+  }
+
+ ❯ packages/core/test/rework.test.ts:341:67
+    339|     }
+    340|     const adapter = new InvalidResult(); const f = await fixture(adapt…
+    341|     await expect(executeRequest(f.store, adapter, req.request_id)).rej…
+       |                                                                   ^
+    342|     expect(await f.c.getRequest({ session_id: f.beta.session_id, reque…
+    343|     expect(adapter.peek(host(f, `request-${req.request_id}`)).closed).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 76 passed (77)
+   Start at  16:48:45
+   Duration  42.64s (tests 98%, import 1%, transform 1%)
+

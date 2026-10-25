@@ -1,0 +1,8 @@
+accepted_schema_ref {"ref":"ftp://example.org/schema.json","accepted":true}
+accepted_schema_ref {"ref":"//example.org/schema.json","accepted":true}
+accepted_schema_ref {"ref":"../outside.json","accepted":true}
+accepted_schema_ref {"ref":"file:///tmp/outside-schema.json","accepted":true}
+nested_https_accepted true
+template_directory_accepted true
+(node:298) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

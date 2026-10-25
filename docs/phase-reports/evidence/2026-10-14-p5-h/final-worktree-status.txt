@@ -1,0 +1,117 @@
+ M AGENTS.md
+ M README.md
+ M adapters/README.md
+ M adapters/mock/src/index.ts
+ M adapters/mock/test/mock-adapter.test.ts
+ M docs/DEVELOPMENT_PLAN.md
+ M docs/phase-reports/P0-review.md
+ M docs/phase-reports/P1-review.md
+ M docs/phase-reports/P2-review.md
+ M docs/phase-reports/P3-review.md
+ M docs/spec/adapter-contract.md
+ M docs/spec/identity-and-permissions.md
+ M docs/spec/objects-and-state-machines.md
+ M docs/spec/sdk-operations.md
+ M docs/toolchain.md
+ M package-lock.json
+ M packages/cli/package.json
+ M packages/cli/src/cli.ts
+ M packages/cli/test/cli.test.ts
+ M packages/core/src/admin.ts
+ M packages/core/src/coordinator.ts
+ M packages/core/src/documents/checkpoint.ts
+ M packages/core/src/documents/service.ts
+ M packages/core/src/index.ts
+ M packages/core/src/knowledge/transfer.ts
+ M packages/core/src/policy.ts
+ M packages/core/src/ports/adapter.ts
+ M packages/core/src/requests/executor.ts
+ M packages/core/src/requests/service.ts
+ M packages/core/src/roles/loader.ts
+ M packages/core/src/sessions/handoff.ts
+ M packages/core/src/sessions/internal.ts
+ M packages/core/src/sessions/open.ts
+ M packages/core/src/store/migrations.ts
+ M packages/core/src/testing.ts
+ M packages/core/test/checkpoint.test.ts
+ M packages/core/test/coordinator.test.ts
+ M packages/core/test/documents.test.ts
+ M packages/core/test/handoff.test.ts
+ M packages/core/test/install.test.ts
+ M packages/core/test/knowledge-transfer.test.ts
+ M packages/core/test/loader.test.ts
+ M packages/core/test/policy.test.ts
+ M packages/core/test/requests.test.ts
+ M packages/core/test/store.test.ts
+ M packages/protocol/schemas/bootstrap-bundle.schema.json
+ M packages/protocol/schemas/knowledge-export.schema.json
+ M packages/protocol/schemas/role-head.schema.json
+ M packages/protocol/src/types.ts
+ M packages/protocol/src/validate.ts
+ M prompts/05-harness-and-demo.md
+ M prompts/06-open-source-candidate.md
+ M prompts/COMMON.md
+ M prompts/README.md
+ M tests/conformance/no-business-roles.test.ts
+ M tests/integration/examples-install.test.ts
+ M tests/integration/helpers/hold-workspace.mjs
+ M tests/integration/workspace-lock.process.test.ts
+ M tsconfig.check.json
+ M tsconfig.json
+?? adapters/mock/test/contract.test.ts
+?? adapters/process-bridge/
+?? adapters/zcode/
+?? docs/DESKTOP_GUI_PLAN.md
+?? docs/adapter-guide.md
+?? docs/adr/0007-desktop-and-explicit-session-anchor.md
+?? docs/adr/0008-runtime-materials-and-execution-intents.md
+?? docs/adr/0009-trusted-connections-and-anchor.md
+?? docs/adr/0010-zcode-restricted-integration.md
+?? docs/phase-reports/P0-P5-revalidation.md
+?? docs/phase-reports/P4-review.md
+?? docs/phase-reports/P5-A-development.md
+?? docs/phase-reports/P5-A-review.md
+?? docs/phase-reports/P5-H-development.md
+?? docs/phase-reports/P5-H-review.md
+?? docs/phase-reports/P5-R-development.md
+?? docs/phase-reports/P5-R-review.md
+?? docs/phase-reports/P5-R-rework.md
+?? docs/phase-reports/P5-development.md
+?? docs/phase-reports/P5-review.md
+?? docs/phase-reports/evidence/
+?? docs/quickstart.md
+?? docs/service-and-mcp.md
+?? docs/spec/external-session-anchor.md
+?? docs/zcode-integration.md
+?? examples/demo.mjs
+?? packages/core/src/files.ts
+?? packages/core/src/sessions/anchor.ts
+?? packages/core/src/sessions/authorization.ts
+?? packages/core/src/sessions/material.ts
+?? packages/core/test/anchor.test.ts
+?? packages/core/test/rework.test.ts
+?? packages/mcp/
+?? packages/protocol/schemas/anchor-attempt.schema.json
+?? packages/protocol/schemas/anchor-material.schema.json
+?? packages/protocol/schemas/external-registration.schema.json
+?? packages/protocol/schemas/external-session.schema.json
+?? packages/protocol/schemas/role-authorization.schema.json
+?? packages/protocol/schemas/service-control-operation.schema.json
+?? packages/protocol/schemas/session-binding.schema.json
+?? packages/protocol/schemas/session-operation.schema.json
+?? packages/protocol/test/anchor-schemas.test.ts
+?? packages/service/
+?? prompts/05A-authorization-and-anchor.md
+?? prompts/05H-external-harness.md
+?? prompts/05R-runtime-rework.md
+?? prompts/06G-desktop-management.md
+?? tests/conformance/adapter-suite.ts
+?? tests/helpers/policy.ts
+?? tests/integration/anchor-recovery.process.test.ts
+?? tests/integration/demo.test.ts
+?? tests/integration/helpers/crash-anchor.mjs
+?? tests/integration/helpers/crash-runtime.mjs
+?? tests/integration/helpers/zcode-connector-fixture.mjs
+?? tests/integration/runtime-recovery.process.test.ts
+?? tests/integration/service-restart.process.test.ts
+?? tests/integration/zcode-diagnostic-cleanup.process.test.ts
