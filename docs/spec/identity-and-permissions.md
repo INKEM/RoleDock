@@ -7,7 +7,7 @@
 
 - 角色身份来自**受信会话绑定**：协调器在创建会话时把"该会话代表哪个角色的哪个实例"写入受信状态（Session 记录），后续调用的身份以绑定为准。
 - 客户端在请求参数里自报的 `role_id` **不能自行取得角色权限**；SDK 操作若需要角色身份，从会话绑定解析，参数中的角色字段仅用于表达目标或声明，用于授权的一律忽略。
-- 一个宿主会话至多绑定一个角色实例身份；请求分支会话绑定发起请求的实例身份，用于读取记录与预算核算，不因此获得目标角色的权限。
+- 一个宿主会话至多绑定一个角色身份；请求分支绑定接收事务固定的目标角色与知识快照，不任职主实例，只取得受限的读取／提案作用域。发起者身份单独记录在请求中。
 - 角色包中的角色名称（无论叫什么）不参与框架的权限与路由判断；核心代码不存在业务角色枚举，该约束由一致性测试持续检查。
 
 ## 2. 能力声明不是授权
@@ -33,6 +33,20 @@ P0 固化校验顺序（实现于 P1+）：
 5. 事务内执行。
 
 失败返回 `PERMISSION_DENIED`（策略）或对应的对象级错误码（`GENERATION_CONFLICT`、`REVISION_CONFLICT`、`INVALID_STATE_TRANSITION` 等）；错误响应不得泄漏调用者无权看到的对象信息。
+
+P5-R 的实际动作权限如下；每次动作读取当前 grants，撤权立即生效，不从 requested 自动授予。对象级检查仍然执行。
+
+| 动作 | 所需策略权限 |
+| --- | --- |
+| 文档 list/read；继承 prepare/activate | `documents.read` |
+| 文档 publish / propose | `documents.publish` / `documents.propose` |
+| 请求 create / execute | 发起者 `requests.create`；目标 `requests.execute` 与 `documents.read` |
+| 请求 get / reply / cancel | 调用者 `requests.read` / `requests.reply` / `requests.cancel` |
+| 产物 read | `artifacts.read` |
+
+接收时把目标当时已授权的 `documents.read`／`documents.propose` 子集固定并传给宿主。分支的 list/read/propose 只可访问接收快照中的目标文档和修订，不能借默认“最新”读到后来更新；明确提案基线不得超出快照。分支始终无正式发布和嵌套请求权。
+
+`Coordinator` 根入口不导出存储、低层任职或回执签发函数；`@roledock/core/testing` 是本地所有者测试夹具，不得暴露为会话工具。直接执行任意本地代码的所有者仍可管理文件和数据库；本阶段不宣称实现远程会话身份认证，显式锚定留待 P5-A。见 ADR-0008。
 
 ## 4. 事务边界
 
@@ -66,3 +80,7 @@ P0 固化校验顺序（实现于 P1+）：
 ## 6. 不可迁移知识
 
 权限、密钥、活跃进程句柄和模型隐藏状态**不属于可迁移知识**，不得进入 Checkpoint、BootstrapBundle 或导出材料；交接与导出只携带可分享的语义知识（文档快照、交接摘要、决策引用、待办与来源）。
+
+## P5-A 增量契约（2026-10-14）
+
+授权、已有外部会话登记、sessions.anchor/binding/reconcile/release、共享连接身份和任务撤销规则见 [external-session-anchor.md](external-session-anchor.md) 与 [ADR-0009](../adr/0009-trusted-connections-and-anchor.md)。本增量的18项既有受信本地SDK操作保持；新增普通会话连接面不接受自报调用身份，普通Agent无所有者入口。RoleHead释放后允许current_instance_id=null，generation保持单调；新请求要求可服务主实例。Mock与MCP进程证据不替代P5-H真实宿主。

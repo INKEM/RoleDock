@@ -46,7 +46,7 @@
 - 身份：工作空间用户（产生新的受信绑定）
 - 语义：未初始化角色自动初始化第 1 代；已初始化角色执行 prepare→provision→activate 完整交接；准备期知识漂移自动重准备（上限 3 次）；指针被并发移动 → `GENERATION_CONFLICT` 不重准备
 - 错误：`NOT_FOUND`、`VALIDATION_FAILED`、`GENERATION_CONFLICT`、`REVISION_CONFLICT`、`IDEMPOTENCY_CONFLICT`、`ADAPTER_CAPABILITY_MISSING`
-- 幂等：创建键同键同内容 → 返回原会话；同键不确定态 → 按创建键对账恢复，不盲目新建
+- 幂等：逻辑创建键同键同内容 → 返回原会话及原实例代次／实际状态；同键不确定态 → 按内部宿主创建键对账恢复，不盲目新建。逻辑键与宿主创建键分开，不能与请求宿主键互相别名
 - 原子性：A（绑定与指针切换）+ O（宿主会话创建）
 
 ### sessions.resume
@@ -76,8 +76,9 @@
 - 输入：目标文档（所有者角色 + 键）、候选正文、基线修订、提案说明
 - 输出：CandidateUpdate 标识
 - 身份：发起会话绑定（非所有者提出候选）
-- 前置：目标文档对提案者可见
-- 错误：`NOT_FOUND`、`PERMISSION_DENIED`、`REVISION_CONFLICT`（基线过期）
+- 前置：目标文档对提案者可见；明确基线须是已存在的非负修订，省略时取调用者可见快照基线
+- 语义：过期基线允许保存候选，保留原基线和正文，不自动改为最新。所有者采纳时再检查当前修订，冲突时候选保持 open
+- 错误：`NOT_FOUND`、`PERMISSION_DENIED`、`VALIDATION_FAILED`（非法或超出分支快照基线）；采纳旧基线为 `REVISION_CONFLICT`
 - 原子性：A
 
 ### documents.publish
@@ -94,7 +95,7 @@
 - 输入：当前主实例会话 ID（+ 可选角色 ID，缺省取绑定角色）
 - 输出：bundle_id、source_generation、source_knowledge_revision、checkpoint_id、bundle payload 及其哈希
 - 身份：当前主实例会话（咨询分支与旧代次拒绝）
-- 语义：固化 checkpoint（文档快照）与角色包契约三元组；不改主指针
+- 语义：固化可分享 checkpoint、角色包契约与实际正文／来源；保留已提交摘要、待办和决策，不用空值覆盖；完整 payload 内容寻址持久化，不改主指针
 - 错误：`ROLE_UNINITIALIZED`、`INVALID_STATE_TRANSITION`、`VALIDATION_FAILED`
 - 原子性：A（Checkpoint/bundle 落库）
 
@@ -113,7 +114,7 @@
 - 身份：发起主会话绑定；consultation 分支发起 → `PERMISSION_DENIED`（原型拒绝嵌套）
 - 前置：目标已安装且有主实例（否则 `ROLE_UNINITIALIZED`）；会话真实回执或例外理由齐备；deadline 在未来
 - 错误：`ROLE_UNINITIALIZED`、`VALIDATION_FAILED`、`IDEMPOTENCY_CONFLICT`、`PERMISSION_DENIED`
-- 幂等：同键同内容 → 原请求；异内容 → 冲突
+- 幂等：同发起会话同键同内容 → 原请求；异内容 → 冲突；另一发起会话不可复用原键取得请求
 - 原子性：A（接收与绑定 + outbox 待执行事件）+ O（consultation 分支创建，创建键对账）
 
 ### requests.get
@@ -122,7 +123,7 @@
 - 身份：仅发起方或目标角色主实例；跨身份 `PERMISSION_DENIED`
 - 惰性到期：deadline 已过 → 转 expired
 - 错误：`NOT_FOUND`、`PERMISSION_DENIED`
-- 原子性：只读
+- 原子性：读取；惰性到期的终态写入为 A，宿主回收为 O，失败保留待回收标记
 
 ### requests.reply
 - 输入：请求 ID + 回复正文
@@ -130,6 +131,8 @@
 - 身份：仅发起者；跨身份 `PERMISSION_DENIED`
 - 错误：`INVALID_STATE_TRANSITION`（非 awaiting_input）、`NOT_FOUND`、`PERMISSION_DENIED`
 - 原子性：A + O
+
+reply/cancel 也先提交已发生的到期，再拒绝相应动作；错误不能回滚 expired。所有外部 await 返回后的转换重读终态、期限与当前授权。请求执行先持久化轮次预留与执行键，才调用 runTurn；不确定轮次仅 getResult 对账，不重发。`running` 不等于完成，完成须有匹配执行键、明确 completed 和可读正文；真实回答入内容寻址产物，与收件箱和终态同事务提交。终态回收宿主与临时目录，回收失败可重投重试。
 
 ### requests.cancel
 - 输入：请求 ID
@@ -185,3 +188,7 @@
 | `INTERNAL` | 未预期的内部失败，必须报告不得伪装为领域结果 |
 
 错误码注册表代码侧唯一来源：`@roledock/protocol` 的 `ERROR_CODES`；Schema 侧枚举必须与之完全一致（一致性测试保证）。
+
+## P5-A 增量契约（2026-10-14）
+
+授权、已有外部会话登记、sessions.anchor/binding/reconcile/release、共享连接身份和任务撤销规则见 [external-session-anchor.md](external-session-anchor.md) 与 [ADR-0009](../adr/0009-trusted-connections-and-anchor.md)。本增量的18项既有受信本地SDK操作保持；新增普通会话连接面不接受自报调用身份，普通Agent无所有者入口。RoleHead释放后允许current_instance_id=null，generation保持单调；新请求要求可服务主实例。Mock与MCP进程证据不替代P5-H真实宿主。

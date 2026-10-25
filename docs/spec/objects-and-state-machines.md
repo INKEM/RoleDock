@@ -74,7 +74,7 @@ accepted → queued → running → awaiting_input ─┐
 - **预算**：`max_turns`/`max_output_bytes`/`deadline` 是能力作用域的一部分——超限请求转 `failed`（错误码 `PERMISSION_DENIED`），不可绕过；模型 token 用量以宿主报告为准（Mock 不模拟）。
 - **输入等待**：宿主报告 `needs_input` 时进入 `awaiting_input`；仅发起者可 `requests.reply`，回复使请求回到 `queued` 重新排队。
 - **嵌套**：原型禁止请求执行中再自动发起请求——consultation 分支会话调用 `requests.create` 返回 `PERMISSION_DENIED`；未来若开放，必须共享总预算并做调用链检测。
-- **资源回收**：请求进入终态即清理其临时目录；正式结果（artifact）与收件箱条目保留供读取与采纳。
+- **资源回收**：请求进入终态清理其临时目录并关闭宿主；失败保留 cleanup_pending，重复投递或到期读取可重试。正式结果（artifact）与收件箱条目保留供读取与采纳。重复执行投递返回原终态与原产物，不触发新轮次；外部迟到结果仍拒收。
 
 请求前置材料：发起会话须提供真实文档读取记录（核心从回执表取，输入不可伪造）；未读文档或文档不可读时填写可验证的 `read_exception_rationale`，两者皆无 → `VALIDATION_FAILED`。
 
@@ -83,7 +83,7 @@ accepted → queued → running → awaiting_input ─┐
 ## 4. 知识版本
 
 - `RoleHead.knowledge_revision` 是角色级知识版本，从 0 起。
-- 每次正式发布（文档修订或交接摘要进入 Checkpoint）在同一事务内递增 knowledge_revision。发布校验 `expected_revision` 不匹配时返回 `REVISION_CONFLICT`，防止交接准备期间漏掉新知识。
+- 每次文档正式发布在同一事务内递增 knowledge_revision。摘要／决策／待办／来源内容明确改变时，Checkpoint 提交也同事务递增；只读快照和未改变的提交不增加修订。省略这些字段时保留最近提交的值。发布校验 `expected_revision` 不匹配时返回 `REVISION_CONFLICT`；摘要变化同样使旧交接 bundle 的知识基线失效。
 - DocumentRevision、Checkpoint、BootstrapBundle 均不可变；"更新"永远是产生新的不可变记录。
 - 数据库状态是实时权威来源；Markdown 导出是带版本的材料，外部编辑通过候选导入归并，不直接回写。
 
@@ -121,3 +121,7 @@ P2 起为四级阶梯（private < role < project < public）：
 | `handoffs.activate` | bundle_id | 已激活则幂等返回 | `GENERATION_CONFLICT` |
 
 宿主创建、执行等外部动作不在数据库事务内完成，统一走**待投递记录**（outbox）：事务内记录意图与创建键，外部动作完成后回填结果，重启后依据创建键对账（见 `identity-and-permissions.md` §5）。
+
+## P5-A 增量契约（2026-10-14）
+
+授权、已有外部会话登记、sessions.anchor/binding/reconcile/release、共享连接身份和任务撤销规则见 [external-session-anchor.md](external-session-anchor.md) 与 [ADR-0009](../adr/0009-trusted-connections-and-anchor.md)。本增量的18项既有受信本地SDK操作保持；新增普通会话连接面不接受自报调用身份，普通Agent无所有者入口。RoleHead释放后允许current_instance_id=null，generation保持单调；新请求要求可服务主实例。Mock与MCP进程证据不替代P5-H真实宿主。

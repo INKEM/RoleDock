@@ -1,5 +1,7 @@
 # P5：Harness 接入与端到端演示
 
+本文件保留原 P5 验收标准。2026-10-13 后的续作按 `05R-runtime-rework.md` → `05A-authorization-and-anchor.md` → `05H-external-harness.md` 执行；详细范围见桌面计划。CLI 已有代码保留作诊断与回归；新增产品主入口为 GUI 和外部会话，但不能据此豁免原真实宿主闭环条件。
+
 你是 RoleDock 的开发 Agent。读取共同约束、开发计划、适配契约，以及 P4 开发与验收报告。目标是从 Mock 状态验证走向真实宿主行为。
 
 ## 任务

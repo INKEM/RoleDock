@@ -4,6 +4,8 @@
 
 首次执行用 P0。只有当前阶段独立验收通过，才执行下一阶段。提示词中的阶段标签、报告路径及待交付接口都是开发目标，不代表已经存在。
 
+2026-10-13 起按 [当前工作区复验](../docs/phase-reports/P0-P5-revalidation.md) 和 [桌面／外部锚定计划](../docs/DESKTOP_GUI_PLAN.md)继续：P0 PASS、P1–P5 REWORK，真实 Harness 另有 BLOCKED 缺口。P0–P5 原提示词保留历史验收要求；当前先执行 P5-R，不能根据旧 PASS 直接开始候选版。
+
 | 顺序 | 提示词 | 目标 |
 | --- | --- | --- |
 | P0 | [00-contract-and-scaffold.md](00-contract-and-scaffold.md) | 固化通用契约，创建可运行仓库骨架 |
@@ -12,7 +14,19 @@
 | P3 | [03-session-handoff.md](03-session-handoff.md) | 实现唯一继承者及安全交接 |
 | P4 | [04-isolated-requests.md](04-isolated-requests.md) | 实现独立请求及最新继承者路由 |
 | P5 | [05-harness-and-demo.md](05-harness-and-demo.md) | 接入真实 Harness 并完成端到端演示 |
-| P6 | [06-open-source-candidate.md](06-open-source-candidate.md) | 准备 MCP 入口和独立开源候选版 |
+| P6-R | [06-open-source-candidate.md](06-open-source-candidate.md) | GUI 与真实外部锚定验收后的独立开源候选版 |
+
+当前续作顺序（一次一个子阶段，独立验收后再继续）：
+
+| 阶段 | 提示词 | 门槛 |
+| --- | --- | --- |
+| P5-R | [05R-runtime-rework.md](05R-runtime-rework.md) | 关闭复验 R01–R15，复验受影响原阶段 |
+| P5-A | [05A-authorization-and-anchor.md](05A-authorization-and-anchor.md) | 受信授权、现有外部会话锚定、共享服务和最小 MCP 工具 |
+| P5-H 增量 B0–B4 | 按 ADR-0011 与 `docs/zcode-connector-tools.md` 续作，报告 `P5-H-bN-development.md` | B1 会话身份验证、B2 真人授权入口内部接口、B3 材料载入对账、B4 隔离实证与资源控制；每增量独立验收 |
+| G-min | GUI 最小授权确认面（自 P6-G 提前，ADR-0011） | 受信入口确认→recordHuman→锚定全链，关闭 G01-Z01 |
+| P5-H 增量 B5（ADR-0012） | 按 `docs/ADAPTER_SANDBOX_PLAN.md` 续作，报告 `P5-H-b5N-development.md` | 适配器强制隔离（沙箱执行边界）关闭 G01-Z03：B5-0 契约→B5-1 技术验证→B5-2 逃逸证据→B5-3 请求链受管接入→B5-4 翻转收口；每增量独立验收 |
+| P6-G | [06G-desktop-management.md](06G-desktop-management.md) | 桌面管理 GUI，聊天仅通过外部 Harness 接入 |
+| P6-R | [06-open-source-candidate.md](06-open-source-candidate.md) | GUI／锚定／原 v0.1 条件全部有证据 |
 
 每个阶段完成后，把 [REVIEW.md](REVIEW.md) 交给另一个验收 Agent，给定阶段编号和代码基线。需要返工时使用 [REWORK.md](REWORK.md)。这种开发／验收安排是本项目的实施流程，框架自身仍允许任意角色组织。
 
