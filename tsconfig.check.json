@@ -7,10 +7,30 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@roledock/protocol": ["packages/protocol/src/index.ts"],
-      "@roledock/core": ["packages/core/src/index.ts"],
-      "@roledock/cli": ["packages/cli/src/index.ts"],
-      "@roledock/adapter-mock": ["adapters/mock/src/index.ts"]
+      "@roledock/protocol": [
+        "packages/protocol/src/index.ts"
+      ],
+      "@roledock/core": [
+        "packages/core/src/index.ts"
+      ],
+      "@roledock/cli": [
+        "packages/cli/src/index.ts"
+      ],
+      "@roledock/adapter-mock": [
+        "adapters/mock/src/index.ts"
+      ],
+      "@roledock/adapter-process-bridge": [
+        "adapters/process-bridge/src/index.ts"
+      ],
+      "@roledock/service": [
+        "packages/service/src/index.ts"
+      ],
+      "@roledock/mcp": [
+        "packages/mcp/src/index.ts"
+      ],
+      "@roledock/adapter-zcode": [
+        "adapters/zcode/src/index.ts"
+      ]
     }
   },
   "include": [

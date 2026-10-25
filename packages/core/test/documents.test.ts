@@ -1,14 +1,10 @@
+import { grantFixtureCapabilities } from "../../../tests/helpers/policy.js";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  Coordinator,
-  IMPLEMENTED_OPERATIONS,
-  coordinatorOperations,
-  installRolePack,
-  listCandidates,
-} from "../src/index.js";
+import { Coordinator, IMPLEMENTED_OPERATIONS, coordinatorOperations } from "../src/index.js";
+import { installRolePack, listCandidates } from "../src/testing.js";
 import { isRoleDockError } from "@roledock/protocol";
 import { coordinatorStore } from "../src/internal-store.js";
 import type { WorkspaceStore } from "../src/store/workspace.js";
@@ -66,7 +62,9 @@ function setup(): Workspace {
   writePack({ dir: readerPack, name: "reader-pack", roles: [{ id: "reader" }] });
   const store = coordinatorStore(coordinator);
   installRolePack(store, { sourcePath: writerPack });
+  grantFixtureCapabilities(store);
   installRolePack(store, { sourcePath: readerPack });
+  grantFixtureCapabilities(store);
   const writer = testingOpenPrimarySession(coordinator, { role_id: "writer" });
   const reader = testingOpenPrimarySession(coordinator, { role_id: "reader" });
   return { root, coordinator, writer, reader, store };
@@ -289,6 +287,8 @@ describe("documents.read and visibility", () => {
         "INSERT INTO sessions (id, kind, adapter, state, role_id, instance_id, creation_key, created_at) VALUES ('sess-branch-1', 'request', 'test', 'active', 'writer', NULL, NULL, '2026-10-13T00:00:00Z')",
       )
       .run();
+    const received = await coordinator.createRequest({ session_id: reader.session_id, target_role_id: "writer", question: "visibility", idempotency_key: "visibility", read_exception_rationale: "gap" });
+    store.prepare("UPDATE sessions SET capability_scope_json = ?, creation_key = ? WHERE id = 'sess-branch-1'").run(JSON.stringify(["documents.read"]), `request-${received.request_id}`);
     expect(
       (
         await coordinator.readDocument({

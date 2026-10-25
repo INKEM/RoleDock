@@ -36,3 +36,37 @@ export function testingOpenPrimarySession(coordinator: Coordinator, input: unkno
     workspace_id: optionalString(record, "workspace_id"),
   });
 }
+
+// Low-level fixtures and owner state inspection are never session tools.
+export { WorkspaceStore } from "./store/workspace.js";
+export { MIGRATIONS, runMigrations } from "./store/migrations.js";
+export { bodyHash, putObject, readObject, objectPath } from "./store/objects.js";
+export { installRolePack, checkWorkspaceId } from "./roles/install.js";
+export {
+  listDocuments,
+  readDocument,
+  proposeDocumentUpdate,
+  publishDocument,
+  listCandidates,
+  canRead,
+} from "./documents/service.js";
+export { buildCheckpoint, getLatestCheckpoint } from "./documents/checkpoint.js";
+export { exportKnowledge, importKnowledge } from "./knowledge/transfer.js";
+export {
+  resolveSessionIdentity,
+  openPrimarySession,
+  recordReadReceipt,
+  listReceiptsForSession,
+} from "./sessions/internal.js";
+export {
+  createRequest,
+  getRequest,
+  replyToRequest,
+  cancelRequest,
+  readArtifact,
+  listInboxEntries,
+  listRequests,
+  expireIfOverdue,
+} from "./requests/service.js";
+export { executeRequest, rejectLateCompletion } from "./requests/executor.js";
+export { prepareHandoff, provisionHandoff, activateHandoff } from "./sessions/handoff.js";

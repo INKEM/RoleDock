@@ -1,11 +1,10 @@
+import { grantFixtureCapabilities } from "../../../tests/helpers/policy.js";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  Coordinator,
-  installRolePack,
-} from "../src/index.js";
+import { Coordinator } from "../src/index.js";
+import { installRolePack } from "../src/testing.js";
 import type { WorkspaceStore } from "../src/store/workspace.js";
 import { coordinatorStore } from "../src/internal-store.js";
 import { MockHarnessAdapter } from "@roledock/adapter-mock";
@@ -41,6 +40,7 @@ function setup(options: { adapter?: MockHarnessAdapter } = {}): Fixture {
   const packDir = join(root, "pack");
   writePack({ dir: packDir, name: "handoff-pack", roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }] }] });
   installRolePack(coordinatorStore(coordinator), { sourcePath: packDir });
+  grantFixtureCapabilities(coordinatorStore(coordinator));
   return { root, store: coordinatorStore(coordinator), adapter, coordinator };
 }
 
@@ -186,7 +186,13 @@ describe("handoff failure and recovery modes", () => {
   });
 
   it("keeps the old primary pointer when the adapter fails to create the host", async () => {
-    const workspace = setup({ adapter: new MockHarnessAdapter({ failCreate: true }) });
+    class FailingSuccessor extends MockHarnessAdapter {
+      override async createSession(input: Parameters<MockHarnessAdapter["createSession"]>[0]) {
+        if (input.creation_key.startsWith("provision-")) throw new (await import("@roledock/protocol")).RoleDockError("INTERNAL", "hard create failure");
+        return super.createSession(input);
+      }
+    }
+    const workspace = setup({ adapter: new FailingSuccessor() });
     const { coordinator, store } = workspace;
     const first = await coordinator.openSession({ role_id: "keeper" });
     await coordinator.publishDocument({
@@ -218,10 +224,14 @@ describe("handoff failure and recovery modes", () => {
   it("does not blindly recreate sessions on uncertain creation; recovery honors capability", async () => {
     // Without a creation-key lookup: the uncertain session is recorded and
     // the structured error explains recovery; retries create nothing new.
-    const noLookup = new MockHarnessAdapter({
-      uncertainCreate: true,
-      optional: { lookup_session_by_creation_key: false },
-    });
+    class UncertainSuccessor extends MockHarnessAdapter {
+      override async createSession(input: Parameters<MockHarnessAdapter["createSession"]>[0]) {
+        const handle = await super.createSession(input);
+        if (input.creation_key.startsWith("provision-")) throw new (await import("@roledock/protocol")).RoleDockError("INTERNAL", "lost create ack", { details: { uncertain: true } });
+        return handle;
+      }
+    }
+    const noLookup = new UncertainSuccessor({ optional: { lookup_session_by_creation_key: false } });
     const workspace = setup({ adapter: noLookup });
     const { coordinator, store } = workspace;
     await coordinator.openSession({ role_id: "keeper" });
@@ -235,7 +245,7 @@ describe("handoff failure and recovery modes", () => {
       }
     }
     const sessions = store
-      .prepare("SELECT id, state FROM sessions WHERE creation_key = 'open-1'")
+      .prepare("SELECT id, state FROM sessions WHERE open_key = 'open-1'")
       .all() as Array<{ id: string; state: string }>;
     expect(sessions).toHaveLength(1);
     expect(sessions[0]?.state).toBe("uncertain");
@@ -248,7 +258,7 @@ describe("handoff failure and recovery modes", () => {
       expect(isRoleDockError(error) && error.code).toBe("ADAPTER_CAPABILITY_MISSING");
     }
     const afterRetry = store
-      .prepare("SELECT count(*) AS n FROM sessions WHERE creation_key = 'open-1'")
+      .prepare("SELECT count(*) AS n FROM sessions WHERE open_key = 'open-1'")
       .get() as { n: number };
     expect(afterRetry.n).toBe(1);
     coordinator.close();
@@ -261,11 +271,12 @@ describe("handoff failure and recovery modes", () => {
     const packDir = join(root2, "pack");
     writePack({ dir: packDir, name: "handoff-pack", roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }] }] });
     installRolePack(coordinatorStore(coordinator2), { sourcePath: packDir });
+  grantFixtureCapabilities(coordinatorStore(coordinator2));
     await coordinator2.openSession({ role_id: "keeper" });
     const opened = await coordinator2.openSession({ role_id: "keeper", inherit: "latest", creation_key: "open-2" });
     expect(opened).toMatchObject({ generation: 2, handoff: { performed: true } });
     const hostSessions = coordinatorStore(coordinator2)
-      .prepare("SELECT count(*) AS n FROM sessions WHERE creation_key = 'open-2'")
+      .prepare("SELECT count(*) AS n FROM sessions WHERE open_key = 'open-2'")
       .get() as { n: number };
     expect(hostSessions.n).toBe(1);
     // Same key again: idempotent — the original session comes back.

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:human-authorization-event",
+  "title": "human-authorization-event",
+  "description": "Verbatim record of a human role-authorization confirmation captured by a trusted local entry (owner-face writer only). The event facts mirror the core HarnessAdapter port; entry/recorded_at are provenance of the trusted channel that captured them. Storing or reading this record never grants authorization by itself.",
+  "type": "object",
+  "properties": {
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "host_session_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "connection_subject": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "event_ref": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "role_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+      },
+      "uniqueItems": true
+    },
+    "inherit": {
+      "enum": [
+        "initialize",
+        "takeover"
+      ]
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "entry": {
+      "description": "Trusted local entry that captured the human confirmation; new entries require a protocol revision.",
+      "enum": [
+        "cli-console",
+        "gui-confirm"
+      ]
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "workspace_id",
+    "host_session_id",
+    "connection_subject",
+    "event_ref",
+    "actor_id",
+    "role_id",
+    "capabilities",
+    "inherit",
+    "expires_at",
+    "entry",
+    "recorded_at"
+  ],
+  "additionalProperties": false
+}

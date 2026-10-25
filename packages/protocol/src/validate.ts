@@ -5,6 +5,15 @@ import ajvFormatsModule from "ajv-formats";
 import type { RolePack } from "./types.js";
 
 export type SchemaName =
+  | "anchor-material"
+  | "external-registration"
+  | "service-control-operation"
+  | "external-session"
+  | "role-authorization"
+  | "anchor-attempt"
+  | "session-binding"
+  | "session-operation"
+  | "human-authorization-event"
   | "rolepack"
   | "role-head"
   | "document-revision"
@@ -17,6 +26,14 @@ export type SchemaName =
   | "error-envelope";
 
 export const SCHEMA_NAMES: readonly SchemaName[] = [
+  "external-registration",
+  "service-control-operation",
+  "external-session",
+  "role-authorization",
+  "anchor-attempt",
+  "session-binding",
+  "session-operation",
+  "human-authorization-event",
   "rolepack",
   "role-head",
   "document-revision",
@@ -27,6 +44,7 @@ export const SCHEMA_NAMES: readonly SchemaName[] = [
   "knowledge-export",
   "output-envelope",
   "error-envelope",
+  "anchor-material",
 ];
 
 export interface SchemaValidationError {

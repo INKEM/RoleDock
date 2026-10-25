@@ -1,12 +1,9 @@
+import { grantFixtureCapabilities } from "../../../tests/helpers/policy.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { validate } from "@roledock/protocol";
 import type { Checkpoint } from "@roledock/protocol";
-import {
-  buildCheckpoint,
-  Coordinator,
-  getLatestCheckpoint,
-  installRolePack,
-} from "../src/index.js";
+import { Coordinator } from "../src/index.js";
+import { buildCheckpoint, getLatestCheckpoint, installRolePack } from "../src/testing.js";
 import { coordinatorStore } from "../src/internal-store.js";
 import { isRoleDockError } from "@roledock/protocol";
 import { testingOpenPrimarySession } from "../src/testing.js";
@@ -49,6 +46,7 @@ function setup(): { coordinator: Coordinator; store: WorkspaceStore; root: strin
   });
   const store = coordinatorStore(coordinator);
   installRolePack(store, { sourcePath: packDir });
+  grantFixtureCapabilities(store);
   const session = testingOpenPrimarySession(coordinator, { role_id: "writer" });
   return { coordinator, store, root, session };
 }
@@ -93,7 +91,7 @@ describe("CheckpointBuilder", () => {
     expect(built).toMatchObject({
       role_id: "writer",
       generation: session.generation,
-      knowledge_revision: 2,
+      knowledge_revision: 3,
       created_by_instance_id: session.instance_id,
     });
     expect(built.handoff_summary).toMatchObject({
@@ -128,7 +126,7 @@ describe("CheckpointBuilder", () => {
       expected_generation: session.generation,
     });
     const before = buildCheckpoint(store, { role_id: "writer", summary_body: "first" });
-    expect(before.knowledge_revision).toBe(1);
+    expect(before.knowledge_revision).toBe(2);
     await coordinator.publishDocument({
       session_id: session.session_id,
       document_key: "state",
@@ -137,7 +135,7 @@ describe("CheckpointBuilder", () => {
       expected_generation: session.generation,
     });
     const after = buildCheckpoint(store, { role_id: "writer", summary_body: "second" });
-    expect(after.knowledge_revision).toBe(2);
+    expect(after.knowledge_revision).toBe(4);
     // Snapshots reference the exact new revision, not the checkpoint-time mix.
     expect(after.document_snapshots).toEqual([
       { document_key: "state", revision: 2, content_hash: expect.any(String) },
@@ -151,6 +149,7 @@ describe("CheckpointBuilder", () => {
     const packDir = join(root, "other-pack");
     writePack({ dir: packDir, name: "other-pack", roles: [{ id: "hermit", documents: false }] });
     installRolePack(store, { sourcePath: packDir });
+  grantFixtureCapabilities(store);
     try {
       buildCheckpoint(store, { role_id: "hermit", summary_body: "x" });
       expect.unreachable("expected ROLE_UNINITIALIZED");

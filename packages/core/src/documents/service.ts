@@ -9,6 +9,7 @@ import {
   requireRoleIdentity,
   resolveSessionIdentity,
 } from "../sessions/internal.js";
+import { requireSessionCapability } from "../policy.js";
 import type { TrustedIdentity } from "../identity.js";
 
 type SessionIdentity = TrustedIdentity & { kind: "primary" | "request" };
@@ -117,6 +118,14 @@ function requireVisible(
   }
 }
 
+function requestSnapshot(store: WorkspaceStore, identity: SessionIdentity): { target_role_id: string; entries: { document_key: string; revision: number }[] } | undefined {
+  if (identity.kind !== "request") return undefined;
+  const request = store.prepare("SELECT r.target_role_id, r.binding_snapshot_json FROM requests r JOIN sessions s ON s.creation_key = 'request-' || r.request_id WHERE s.id = ?")
+    .get(identity.sessionId) as { target_role_id: string; binding_snapshot_json: string } | undefined;
+  if (!request) throw new RoleDockError("PERMISSION_DENIED", "Consultation session has no task binding.");
+  return { target_role_id: request.target_role_id, entries: JSON.parse(request.binding_snapshot_json) };
+}
+
 // -- documents.list -----------------------------------------------------------
 
 export interface DocumentListEntry {
@@ -135,6 +144,17 @@ export function listDocuments(
   input: { session_id: string; role_id?: string },
 ): { documents: DocumentListEntry[] } {
   const identity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, identity, "documents.read");
+  const snapshot = requestSnapshot(store, identity);
+  if (snapshot) {
+    if (input.role_id && input.role_id !== snapshot.target_role_id) return { documents: [] };
+    return { documents: snapshot.entries.map((entry) => {
+      const revision = getRevisionRow(store, snapshot.target_role_id, entry.document_key, entry.revision)!;
+      requireVisible(identity, snapshot.target_role_id, revision.visibility, revision.created_by_instance_id);
+      return { owner_role_id: snapshot.target_role_id, document_key: entry.document_key, published: true,
+        latest_revision: revision.revision, latest_content_hash: revision.content_hash, visibility: revision.visibility, updated_at: revision.created_at };
+    }) };
+  }
   const ownerRoles =
     input.role_id !== undefined
       ? [input.role_id]
@@ -199,6 +219,7 @@ export function readDocument(
   input: { session_id: string; target_role_id?: string; document_key: string; revision?: number },
 ): DocumentReadResult {
   const identity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, identity, "documents.read");
   const ownerRoleId = input.target_role_id ?? identity.roleId;
   if (ownerRoleId === undefined) {
     throw new RoleDockError(
@@ -214,7 +235,15 @@ export function readDocument(
       { details: { owner_role_id: ownerRoleId, document_key: input.document_key } },
     );
   }
-  const revision = input.revision ?? registry.latest_revision;
+  let revision = input.revision ?? registry.latest_revision;
+  const snapshot = requestSnapshot(store, identity);
+  if (snapshot) {
+    const entry = snapshot.entries.find((item) => item.document_key === input.document_key);
+    if (snapshot.target_role_id !== ownerRoleId || !entry || (input.revision !== undefined && input.revision !== entry.revision)) {
+      throw new RoleDockError("PERMISSION_DENIED", "Document is outside the request's fixed snapshot.");
+    }
+    revision = entry.revision;
+  }
   if (revision < 1 || revision > registry.latest_revision) {
     throw new RoleDockError(
       "NOT_FOUND",
@@ -281,6 +310,8 @@ export function publishDocument(
   },
 ): DocumentPublishResult {
   const identity = requireRoleIdentity(resolveSessionIdentity(store, input.session_id));
+  requireSessionCapability(store, identity, "documents.publish");
+  if (identity.kind !== "primary") throw new RoleDockError("INVALID_STATE_TRANSITION", "Consultation branches cannot publish formal revisions.");
   const ownerRoleId = identity.roleId;
   const now = new Date().toISOString();
 
@@ -561,17 +592,29 @@ export function proposeDocumentUpdate(
     document_key: string;
     body: string;
     note?: string;
+    baseline_revision?: number;
   },
 ): CandidateProposalResult {
-  const identity = requireRoleIdentity(resolveSessionIdentity(store, input.session_id));
+  const identity = resolveSessionIdentity(store, input.session_id);
+  if (!identity.roleId) throw new RoleDockError("PERMISSION_DENIED", "Proposal requires a role-bound session.");
+  requireSessionCapability(store, identity, "documents.propose");
   const now = new Date().toISOString();
 
   return store.tx(() => {
     const registry = getDocumentRow(store, input.target_role_id, input.document_key);
     const latestRevision = registry?.latest_revision ?? 0;
+    const snapshot = requestSnapshot(store, identity);
+    const entry = snapshot?.entries.find((item) => item.document_key === input.document_key);
+    if (snapshot && (snapshot.target_role_id !== input.target_role_id || !entry || (input.baseline_revision !== undefined && input.baseline_revision !== entry.revision))) {
+      throw new RoleDockError("PERMISSION_DENIED", "Proposal is outside the request's fixed edit baseline.");
+    }
+    const baseline = input.baseline_revision ?? entry?.revision ?? latestRevision;
+    if (!Number.isInteger(baseline) || baseline < 0 || baseline > latestRevision) {
+      throw new RoleDockError("VALIDATION_FAILED", "Invalid proposal baseline.");
+    }
     if (latestRevision > 0) {
       // Proposers must be able to see what they propose against.
-      const latest = getRevisionRow(store, input.target_role_id, input.document_key, latestRevision);
+      const latest = getRevisionRow(store, input.target_role_id, input.document_key, baseline || latestRevision);
       if (latest === undefined) {
         throw new RoleDockError("INTERNAL", "Document registry points at a missing revision.");
       }
@@ -589,11 +632,11 @@ export function proposeDocumentUpdate(
       workspace_id: store.workspaceId,
       target_role_id: input.target_role_id,
       document_key: input.document_key,
-      baseline_revision: latestRevision,
+      baseline_revision: baseline,
       proposed_body_hash: putObject(store, input.body),
       ...(input.note !== undefined ? { note: input.note } : {}),
       proposed_by_session_id: identity.sessionId,
-      proposed_by_role_id: identity.roleId,
+      proposed_by_role_id: identity.roleId!,
       source: "documents.propose",
       state: "open",
       created_at: now,

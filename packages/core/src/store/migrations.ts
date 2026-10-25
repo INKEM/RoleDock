@@ -282,6 +282,91 @@ export const MIGRATIONS: readonly Migration[] = [
       `ALTER TABLE candidate_updates_new RENAME TO candidate_updates`,
     ],
   },
+  {
+    id: 5,
+    name: "runtime-rework-intents",
+    statements: [
+      `ALTER TABLE sessions ADD COLUMN capability_scope_json TEXT`,
+      `ALTER TABLE sessions ADD COLUMN bootstrap_payload TEXT`,
+      `ALTER TABLE sessions ADD COLUMN open_input_hash TEXT`,
+      `ALTER TABLE sessions ADD COLUMN open_key TEXT`,
+      `CREATE UNIQUE INDEX sessions_open_key ON sessions(open_key) WHERE open_key IS NOT NULL`,
+      `ALTER TABLE bootstrap_bundles ADD COLUMN open_input_hash TEXT`,
+      `ALTER TABLE bootstrap_bundles ADD COLUMN open_key TEXT`,
+      `CREATE UNIQUE INDEX bundles_open_key ON bootstrap_bundles(open_key) WHERE open_key IS NOT NULL`,
+      `ALTER TABLE requests ADD COLUMN execution_phase TEXT NOT NULL DEFAULT 'pending'`,
+      `ALTER TABLE requests ADD COLUMN turns_reserved INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE requests ADD COLUMN turn_key TEXT`,
+      `ALTER TABLE requests ADD COLUMN output_bytes_used INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE requests ADD COLUMN cleanup_pending INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE requests ADD COLUMN binding_material_json TEXT`,
+      `ALTER TABLE requests ADD COLUMN capability_scope_json TEXT NOT NULL DEFAULT '[]'`,
+    ],
+  },
+  {
+    id: 6,
+    name: "external-session-authorization-anchor",
+    statements: [
+      `CREATE TABLE external_sessions (
+        external_session_id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL,
+        adapter TEXT NOT NULL, host_session_id TEXT NOT NULL, connection_subject TEXT NOT NULL,
+        capability_ceiling_json TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'connected', created_at TEXT NOT NULL,
+        UNIQUE(adapter, host_session_id)
+      )`,
+      `CREATE TABLE role_authorizations (
+        authorization_id TEXT PRIMARY KEY, external_session_id TEXT NOT NULL REFERENCES external_sessions(external_session_id),
+        role_id TEXT NOT NULL, record_json TEXT NOT NULL, revoked_at TEXT,
+        source_key TEXT NOT NULL UNIQUE, input_hash TEXT NOT NULL
+      )`,
+      `CREATE TABLE anchor_attempts (
+        attempt_id TEXT PRIMARY KEY, external_session_id TEXT NOT NULL REFERENCES external_sessions(external_session_id),
+        authorization_id TEXT NOT NULL REFERENCES role_authorizations(authorization_id),
+        idempotency_key TEXT NOT NULL, input_hash TEXT NOT NULL, bundle_hash TEXT NOT NULL, load_key TEXT NOT NULL UNIQUE,
+        source_generation INTEGER NOT NULL, source_knowledge_revision INTEGER NOT NULL,
+        state TEXT NOT NULL CHECK(state IN ('prepared','loading','uncertain','active','failed')),
+        confirmation_json TEXT, error_json TEXT, created_at TEXT NOT NULL,
+        UNIQUE(external_session_id, idempotency_key)
+      )`,
+      `CREATE UNIQUE INDEX one_pending_anchor ON anchor_attempts(external_session_id)
+        WHERE state IN ('prepared','loading','uncertain')`,
+      `CREATE TABLE anchor_loads (
+        load_key TEXT PRIMARY KEY, attempt_id TEXT NOT NULL REFERENCES anchor_attempts(attempt_id),
+        bundle_hash TEXT NOT NULL, prepared_at TEXT NOT NULL, confirmation_json TEXT
+      )`,
+      `CREATE TABLE session_bindings (
+        external_session_id TEXT PRIMARY KEY REFERENCES external_sessions(external_session_id),
+        session_id TEXT NOT NULL UNIQUE REFERENCES sessions(id), instance_id TEXT NOT NULL UNIQUE,
+        role_id TEXT NOT NULL, generation INTEGER NOT NULL, authorization_id TEXT NOT NULL UNIQUE,
+        state TEXT NOT NULL CHECK(state IN ('active','superseded','released','revoked','expired')),
+        created_at TEXT NOT NULL
+      )`,
+      `ALTER TABLE requests ADD COLUMN initiating_authorization_id TEXT`,
+      `ALTER TABLE requests ADD COLUMN target_authorization_id TEXT`,
+    ],
+  },
+  {
+    id: 7,
+    name: "human-authorization-events",
+    statements: [
+      // B2 (ADR-0011): verbatim records of trusted-entry human confirmations.
+      // Written only by the owner face (submitHumanEvent); storage alone
+      // grants nothing — recordHuman still validates via the adapter port.
+      `CREATE TABLE human_authorization_events (
+        workspace_id TEXT NOT NULL,
+        external_session_id TEXT NOT NULL REFERENCES external_sessions(external_session_id),
+        host_session_id TEXT NOT NULL, connection_subject TEXT NOT NULL,
+        event_ref TEXT NOT NULL, actor_id TEXT NOT NULL, role_id TEXT NOT NULL,
+        capabilities_json TEXT NOT NULL,
+        inherit TEXT NOT NULL CHECK (inherit IN ('initialize','takeover')),
+        expires_at TEXT NOT NULL,
+        entry TEXT NOT NULL CHECK (entry IN ('cli-console','gui-confirm')),
+        recorded_at TEXT NOT NULL, input_hash TEXT NOT NULL,
+        PRIMARY KEY (workspace_id, external_session_id, event_ref)
+      )`,
+      `CREATE INDEX human_authorization_events_lookup
+        ON human_authorization_events(workspace_id, host_session_id, event_ref)`,
+    ],
+  },
 ];
 
 function migrationChecksum(migration: Migration): string {

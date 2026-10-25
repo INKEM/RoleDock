@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { RoleDockError, isRoleDockError } from "@roledock/protocol";
-import { WorkspaceStore } from "../src/index.js";
+import { WorkspaceStore } from "../src/testing.js";
 import { installRolePack } from "../src/roles/install.js";
 import { writePack } from "../../../tests/helpers/packs.js";
 

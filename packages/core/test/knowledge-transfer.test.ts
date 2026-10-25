@@ -1,9 +1,11 @@
+import { grantFixtureCapabilities } from "../../../tests/helpers/policy.js";
 import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { buildCheckpoint, Coordinator, exportKnowledge, importKnowledge, installRolePack, listCandidates } from "../src/index.js";
+import { Coordinator } from "../src/index.js";
+import { buildCheckpoint, exportKnowledge, importKnowledge, installRolePack, listCandidates } from "../src/testing.js";
 import type { KnowledgeExportManifest } from "@roledock/protocol";
 import { isRoleDockError, validate } from "@roledock/protocol";
 import { coordinatorStore } from "../src/internal-store.js";
@@ -51,6 +53,7 @@ function makeSource(): Source {
   });
   const store = coordinatorStore(coordinator);
   installRolePack(store, { sourcePath: packDir });
+  grantFixtureCapabilities(store);
   const session = testingOpenPrimarySession(coordinator, { role_id: "keeper" });
   for (const [key, body] of [
     ["notes", "private material"],
@@ -133,6 +136,7 @@ describe("knowledge.import into another workspace (second adapter)", () => {
     const targetPack = join(targetRoot, "pack");
     writePack({ dir: targetPack, name: "src-pack", roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }, { key: "blog", visibility: "public" }] }] });
     installRolePack(coordinatorStore(target), { sourcePath: targetPack });
+  grantFixtureCapabilities(coordinatorStore(target));
 
     const imported = await target.importKnowledge({ bundle_dir: bundle.bundle_dir });
     expect(imported.source_workspace_id).toMatch(/^ws-[0-9a-f]{8}$/);
@@ -167,6 +171,7 @@ describe("knowledge.import into another workspace (second adapter)", () => {
     const targetPack = join(targetRoot, "pack");
     writePack({ dir: targetPack, name: "src-pack", roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }] }] });
     installRolePack(coordinatorStore(target), { sourcePath: targetPack });
+  grantFixtureCapabilities(coordinatorStore(target));
 
     const stateEntry = bundle.manifest.entries.find((entry) => entry.document_key === "state");
     writeFileSync(join(bundle.bundle_dir, stateEntry?.file ?? ""), "tampered content");
@@ -224,6 +229,7 @@ describe("knowledge.import into another workspace (second adapter)", () => {
       ],
     });
     installRolePack(coordinatorStore(target), { sourcePath: targetPack });
+  grantFixtureCapabilities(coordinatorStore(target));
 
     const imported = await target.importKnowledge({ bundle_dir: bundle.bundle_dir });
     // Only the legitimate project/public entries become candidates; the
@@ -246,6 +252,7 @@ describe("knowledge.import into another workspace (second adapter)", () => {
     const targetPack = join(targetRoot, "pack");
     writePack({ dir: targetPack, name: "src-pack", roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }] }] });
     installRolePack(coordinatorStore(target), { sourcePath: targetPack });
+  grantFixtureCapabilities(coordinatorStore(target));
     const targetSession = testingOpenPrimarySession(target, { role_id: "keeper" });
     // Target advances its own state to revision 1 before importing.
     await target.publishDocument({

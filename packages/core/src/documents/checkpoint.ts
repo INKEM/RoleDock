@@ -8,11 +8,12 @@ import type { WorkspaceStore } from "../store/workspace.js";
 export interface BuildCheckpointInput {
   role_id: string;
   /** Handoff summary text, supplied by the caller; P2 has no model summary service. */
-  summary_body: string;
+  summary_body?: string;
   user_decision_refs?: UserDecisionRef[];
   todos?: CheckpointTodo[];
   sources?: CheckpointSource[];
   workspace_id?: string;
+  shareable_only?: boolean;
 }
 
 export interface BuiltCheckpoint extends Checkpoint {
@@ -58,42 +59,53 @@ export function buildCheckpoint(store: WorkspaceStore, input: BuildCheckpointInp
       .all(input.role_id) as Array<{ document_key: string; latest_revision: number }>;
     const documentSnapshots = registryRows
       .filter((row) => row.latest_revision > 0)
-      .map((row) => {
+      .flatMap((row) => {
         const revision = store
           .prepare(
-            "SELECT content_hash FROM document_revisions WHERE role_id = ? AND document_key = ? AND revision = ?",
+            "SELECT content_hash, visibility FROM document_revisions WHERE role_id = ? AND document_key = ? AND revision = ?",
           )
           .get(input.role_id, row.document_key, row.latest_revision) as
-          | { content_hash: string }
+          | { content_hash: string; visibility: string }
           | undefined;
         if (revision === undefined) {
           throw new RoleDockError("INTERNAL", "Document registry points at a missing revision.");
         }
-        return {
+        if (input.shareable_only && revision.visibility === "private") return [];
+        return [{
           document_key: row.document_key,
           revision: row.latest_revision,
           content_hash: revision.content_hash,
-        };
+        }];
       });
 
-    const summaryContentHash = createHash("sha256").update(input.summary_body, "utf8").digest("hex");
+    const prior = getLatestCheckpoint(store, input.role_id);
+    const summary = input.summary_body ?? prior?.handoff_summary.body ?? "";
+    const decisions = input.user_decision_refs ?? prior?.user_decision_refs ?? [];
+    const todos = input.todos ?? prior?.todos ?? [];
+    const sources = input.sources ?? prior?.sources ?? [];
+    const changed = JSON.stringify([summary, decisions, todos, sources]) !== JSON.stringify([
+      prior?.handoff_summary.body ?? "", prior?.user_decision_refs ?? [], prior?.todos ?? [], prior?.sources ?? [],
+    ]);
+    const revision = head.knowledge_revision + (changed ? 1 : 0);
+    if (changed) store.prepare("UPDATE role_heads SET knowledge_revision = ?, updated_at = ? WHERE role_id = ?").run(revision, now, input.role_id);
+    const summaryContentHash = createHash("sha256").update(summary, "utf8").digest("hex");
     const checkpoint: Checkpoint = {
       checkpoint_id: `ckpt-${randomBytes(5).toString("hex")}`,
       workspace_id: store.workspaceId,
       role_id: input.role_id,
       generation: head.generation,
-      knowledge_revision: head.knowledge_revision,
+      knowledge_revision: revision,
       document_snapshots: documentSnapshots,
       handoff_summary: {
         format: "markdown",
-        body: input.summary_body,
+        body: summary,
         content_hash: summaryContentHash,
       },
-      ...(input.user_decision_refs !== undefined && input.user_decision_refs.length > 0
-        ? { user_decision_refs: input.user_decision_refs }
+      ...(decisions.length > 0
+        ? { user_decision_refs: decisions }
         : {}),
-      todos: input.todos ?? [],
-      sources: input.sources ?? [],
+      todos,
+      sources,
       created_by_instance_id: head.current_instance_id,
       created_at: now,
     };
@@ -131,7 +143,7 @@ export function buildCheckpoint(store: WorkspaceStore, input: BuildCheckpointInp
 export function getLatestCheckpoint(store: WorkspaceStore, roleId: string): Checkpoint | undefined {
   const row = store
     .prepare(
-      "SELECT * FROM checkpoints WHERE role_id = ? ORDER BY created_at DESC, checkpoint_id DESC LIMIT 1",
+      "SELECT * FROM checkpoints WHERE role_id = ? ORDER BY rowid DESC LIMIT 1",
     )
     .get(roleId) as
     | {

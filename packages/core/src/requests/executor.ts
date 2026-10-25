@@ -3,319 +3,229 @@ import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import { RoleDockError } from "@roledock/protocol";
 import type { CollaborationRequest, ErrorCode } from "@roledock/protocol";
-import { putObject } from "../store/objects.js";
+import { putObject, bodyHash } from "../store/objects.js";
 import type { WorkspaceStore } from "../store/workspace.js";
+import { isFullAccess } from "../ports/adapter.js";
 import type { AdapterSessionHandle, HarnessAdapter } from "../ports/adapter.js";
+import { requireCapability } from "../policy.js";
 import { expireIfOverdue, requestTempDir } from "./service.js";
 import type { RequestBudget, RequestRow } from "./service.js";
+import { requireDelegatedAuthorizations } from "../sessions/authorization.js";
 
-function getRequestRow(store: WorkspaceStore, requestId: string): RequestRow | undefined {
-  return store.prepare("SELECT * FROM requests WHERE request_id = ?").get(requestId) as
-    | RequestRow
-    | undefined;
+const TERMINAL = new Set(["completed", "failed", "cancelled", "expired"]);
+const inFlight = new WeakMap<WorkspaceStore, Map<string, Promise<ExecutionResult>>>();
+function getRow(store: WorkspaceStore, id: string): RequestRow {
+  const row = store.prepare("SELECT * FROM requests WHERE request_id = ?").get(id) as RequestRow | undefined;
+  if (!row) throw new RoleDockError("NOT_FOUND", `Request ${id} does not exist.`);
+  return row;
 }
-
-function markState(
-  store: WorkspaceStore,
-  requestId: string,
-  state: CollaborationRequest["state"],
-  extra?: {
-    error?: { code: ErrorCode; message: string };
-    artifact?: { artifact_id: string; content_hash: string };
-  },
-): void {
-  const now = new Date().toISOString();
-  const terminal =
-    state === "completed" || state === "failed" || state === "cancelled" || state === "expired";
-  store
-    .prepare(
-      `UPDATE requests SET state = ?, updated_at = ?
-       ${terminal ? ", terminal_at = ?" : ""}
-       ${extra?.error !== undefined ? ", error_json = ?" : ""}
-       ${extra?.artifact !== undefined ? ", result_artifact_id = ?, result_content_hash = ?" : ""}
-       WHERE request_id = ?`,
-    )
-    .run(
-      state,
-      now,
-      ...(terminal ? [now] : []),
-      ...(extra?.error !== undefined ? [JSON.stringify(extra.error)] : []),
-      ...(extra?.artifact !== undefined ? [extra.artifact.artifact_id, extra.artifact.content_hash] : []),
-      requestId,
-    );
+export interface ExecutionResult { request_id: string; state: CollaborationRequest["state"]; artifact_id?: string }
+function status(row: RequestRow): ExecutionResult {
+  return { request_id: row.request_id, state: row.state, ...(row.result_artifact_id ? { artifact_id: row.result_artifact_id } : {}) };
 }
-
-function reclaimTempDir(store: WorkspaceStore, requestId: string): void {
-  rmSync(join(requestTempDir(store, requestId), "tmp"), { recursive: true, force: true });
+function authorization(store: WorkspaceStore, row: RequestRow, adapter: HarnessAdapter): void {
+  requireDelegatedAuthorizations(store, row.request_id);
+  requireCapability(store, row.initiating_role_id, "requests.create");
+  requireCapability(store, row.target_role_id, "requests.execute");
+  requireCapability(store, row.target_role_id, "documents.read");
+  const initiator = store.prepare("SELECT state FROM sessions WHERE id = ?").get(row.initiating_session_id) as { state: string } | undefined;
+  if (initiator?.state !== "active") throw new RoleDockError("PERMISSION_DENIED", "Request initiator is no longer active.");
+  if (!isFullAccess(adapter.getCapabilities())) throw new RoleDockError("ADAPTER_CAPABILITY_MISSING", "Independent requests require all four isolation scopes.");
+  const scope = JSON.parse(row.capability_scope_json) as string[];
+  for (const capability of scope) requireCapability(store, row.target_role_id, capability);
 }
-
-export interface ExecutionResult {
-  request_id: string;
-  state: CollaborationRequest["state"];
-  artifact_id?: string;
+/** Every post-await transition re-reads terminal state, expiry and live policy. */
+function current(store: WorkspaceStore, id: string, adapter: HarnessAdapter): RequestRow {
+  const row = expireIfOverdue(store, getRow(store, id));
+  if (!TERMINAL.has(row.state)) authorization(store, row, adapter);
+  return row;
 }
-
-function isUncertainAdapterError(error: unknown): boolean {
-  return (
-    error instanceof RoleDockError &&
-    (error.details as { uncertain?: unknown } | undefined)?.uncertain === true
-  );
-}
-
-/**
- * Secure the isolated consultation host session for a request.
- *
- * Creation is keyed by `request-<id>`; an uncertain outcome is recorded
- * (execution_uncertain) and reconciled by creation-key lookup when the
- * adapter supports it — a retry never repeats the side effect blindly, and
- * without lookup support the failure is structured, with the recorded state
- * kept for recovery.
- */
-async function secureConsultationSession(
-  store: WorkspaceStore,
-  adapter: HarnessAdapter,
-  row: RequestRow,
-): Promise<{ sessionId: string; handle: AdapterSessionHandle }> {
-  const creationKey = `request-${row.request_id}`;
-  const existing = store
-    .prepare("SELECT id, state, host_session_ref FROM sessions WHERE creation_key = ?")
-    .get(creationKey) as { id: string; state: string; host_session_ref: string | null } | undefined;
-
-  const bootstrapPayload = JSON.stringify({
-    request_id: row.request_id,
-    question: row.question,
-    snapshot: JSON.parse(row.binding_snapshot_json),
-    target_role_id: row.target_role_id,
-  });
-  const bootstrap = {
-    bundle_id: `request-${row.request_id}`,
-    role_id: row.target_role_id,
-    content_hash: putObject(store, bootstrapPayload),
-    payload: bootstrapPayload,
-  };
-
-  const insertSessionRow = (hostSessionId: string, state: string): string => {
-    const sessionId = `sess-${randomBytes(4).toString("hex")}`;
-    store
-      .prepare(
-        "INSERT INTO sessions (id, kind, adapter, state, role_id, instance_id, host_session_ref, creation_key, created_at) VALUES (?, 'request', ?, ?, ?, NULL, ?, ?, ?)",
-      )
-      .run(sessionId, adapter.getCapabilities().adapter, state, row.target_role_id, hostSessionId, creationKey, new Date().toISOString());
-    return sessionId;
-  };
-
-  const reconcile = async (): Promise<AdapterSessionHandle> => {
-    const lookup = adapter.lookupSessionByCreationKey;
-    if (adapter.getCapabilities().optional.lookup_session_by_creation_key === true && lookup !== undefined) {
-      const handle = await lookup(creationKey);
-      if (handle !== null) return handle;
-      // Host never created: a clean create under the same key is safe.
-      const handle2 = await adapter.createSession({ creation_key: creationKey, bootstrap });
-      return handle2;
-    }
-    throw new RoleDockError(
-      "ADAPTER_CAPABILITY_MISSING",
-      `Consultation session creation for request "${row.request_id}" is uncertain and the adapter cannot reconcile by creation key; the recorded state is kept and no side effect is repeated.`,
-      {
-        details: {
-          request_id: row.request_id,
-          creation_key: creationKey,
-          execution_uncertain: true,
-        },
-      },
-    );
-  };
-
-  if (existing !== undefined && (existing.state === "uncertain" || existing.state === "provisioning")) {
-    const handle = await reconcile();
-    markProvisionedConsultation(store, row.request_id, existing.id, handle.host_session_id);
-    return { sessionId: existing.id, handle };
-  }
-  if (existing !== undefined && existing.state === "active" && existing.host_session_ref !== null) {
-    return {
-      sessionId: existing.id,
-      handle: {
-        adapter: adapter.getCapabilities().adapter,
-        host_session_id: existing.host_session_ref,
-        creation_key: creationKey,
-      },
-    };
-  }
-
-  try {
-    const handle = await adapter.createSession({ creation_key: creationKey, bootstrap });
-    const sessionId = insertSessionRow(handle.host_session_id, "active");
-    return { sessionId, handle };
-  } catch (error) {
-    if (!isUncertainAdapterError(error)) {
-      throw new RoleDockError(
-        "INTERNAL",
-        `Consultation session creation failed: ${(error as Error).message}`,
-        { details: { request_id: row.request_id, stage: "consultation-create" } },
-      );
-    }
-    // Uncertain: record without claiming an outcome, then reconcile.
-    store.prepare("UPDATE requests SET execution_uncertain = 1 WHERE request_id = ?").run(row.request_id);
-    const sessionId = insertSessionRow("unknown", "uncertain");
-    const handle = await reconcile();
-    store.prepare("UPDATE requests SET execution_uncertain = 0 WHERE request_id = ?").run(row.request_id);
-    markProvisionedConsultation(store, row.request_id, sessionId, handle.host_session_id);
-    return { sessionId, handle };
-  }
-}
-
-function markProvisionedConsultation(
-  store: WorkspaceStore,
-  requestId: string,
-  sessionId: string,
-  hostSessionId: string,
-): void {
-  store
-    .prepare("UPDATE sessions SET state = 'active', host_session_ref = ? WHERE id = ?")
-    .run(hostSessionId, sessionId);
-}
-
-export interface ExecutionResult {
-  request_id: string;
-  state: CollaborationRequest["state"];
-  artifact_id?: string;
-}
-
-/**
- * Execute one queued request: secure the isolated consultation session
- * (shareable snapshot + question only), run the budgeted turn, register the
- * formal result exactly once. Late completions (cancelled/expired/already
- * completed) are rejected without registering anything.
- */
-export async function executeRequest(
-  store: WorkspaceStore,
-  adapter: HarnessAdapter,
-  requestId: string,
-): Promise<ExecutionResult> {
-  const initial = getRequestRow(store, requestId);
-  if (initial === undefined) {
-    throw new RoleDockError("NOT_FOUND", `Request "${requestId}" does not exist.`);
-  }
-  const pre = expireIfOverdue(store, initial);
-  if (pre.state === "expired") {
-    reclaimTempDir(store, requestId);
-    return { request_id: requestId, state: "expired" };
-  }
-  if (pre.state !== "accepted" && pre.state !== "queued") {
-    throw new RoleDockError(
-      "INVALID_STATE_TRANSITION",
-      `Request is ${pre.state}; only accepted/queued requests can execute.`,
-      { details: { request_id: requestId, state: pre.state } },
-    );
-  }
-  const budget = JSON.parse(pre.budget_json) as RequestBudget;
-
-  const failBudget = (message: string): never => {
-    markState(store, requestId, "failed", {
-      error: { code: "PERMISSION_DENIED", message },
-    });
-    reclaimTempDir(store, requestId);
-    throw new RoleDockError("PERMISSION_DENIED", message, {
-      details: { request_id: requestId, stage: "budget" },
-    });
-  };
-
-  // Isolated working materials: question file and private tmp dir.
-  const dir = requestTempDir(store, requestId);
-  mkdirSync(join(dir, "tmp"), { recursive: true });
-  writeFileSync(join(dir, "question.md"), pre.question, "utf8");
-
-  const { sessionId: consultationSessionId, handle } = await secureConsultationSession(store, adapter, pre);
-
-  // Running only starts once the isolated session is secured.
-  markState(store, requestId, "running");
-
-  // Deadline check before spending the turn.
-  const beforeTurn = expireIfOverdue(store, getRequestRow(store, requestId) ?? pre);
-  if (beforeTurn.state === "expired") {
-    await adapter.closeSession(handle).catch(() => undefined);
-    reclaimTempDir(store, requestId);
-    return { request_id: requestId, state: "expired" };
-  }
-
-  await adapter.runTurn(handle, { message: pre.question });
-  const result = await adapter.getResult(handle);
-
-  // Budget: turns and output size (token usage is host-reported; the mock
-  // does not simulate it).
-  if (budget.max_turns !== undefined && result.turn_count > budget.max_turns) {
-    failBudget(`Request budget exhausted: ${result.turn_count} turn(s) exceed max_turns ${budget.max_turns}.`);
-  }
-  const outputBytes = Buffer.byteLength(pre.question, "utf8");
-  if (budget.max_output_bytes !== undefined && outputBytes > budget.max_output_bytes) {
-    failBudget(`Request budget exhausted: material exceeds max_output_bytes ${budget.max_output_bytes}.`);
-  }
-
-  if (result.needs_input === true) {
-    markState(store, requestId, "awaiting_input");
-    return { request_id: requestId, state: "awaiting_input" };
-  }
-
-  // Formal completion: only from running; late results are rejected.
-  const current = getRequestRow(store, requestId);
-  if (current === undefined || current.state !== "running") {
-    throw new RoleDockError(
-      "INVALID_STATE_TRANSITION",
-      `Request is ${current?.state ?? "unknown"}; late results are rejected and not registered.`,
-      { details: { request_id: requestId, state: current?.state ?? null } },
-    );
-  }
-  const artifactBody = `Result for ${requestId} (consultation of "${pre.target_role_id}", ${result.turn_count} turn(s)).`;
-  const contentHash = putObject(store, artifactBody);
-  const artifactId = `art-${randomBytes(5).toString("hex")}`;
-  const now = new Date().toISOString();
+function fail(store: WorkspaceStore, id: string, code: ErrorCode, message: string, preserveUncertain = false): void {
   store.tx(() => {
-    store
-      .prepare(
-        "INSERT INTO request_artifacts (artifact_id, workspace_id, request_id, producing_role_id, content_hash, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      )
-      .run(artifactId, store.workspaceId, requestId, pre.target_role_id, contentHash, `Consultation result for ${requestId}`, now);
-    store
-      .prepare(
-        "INSERT INTO request_inbox (entry_id, workspace_id, owner_role_id, request_id, artifact_id, content_hash, summary, state, delivered_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'unread', ?)",
-      )
-      .run(`inbox-${randomBytes(5).toString("hex")}`, store.workspaceId, pre.target_role_id, requestId, artifactId, contentHash, `Consultation result for ${requestId}`, now);
+    const row = expireIfOverdue(store, getRow(store, id));
+    if (TERMINAL.has(row.state)) return;
+    const now = new Date().toISOString();
+    store.prepare("UPDATE requests SET state = 'failed', error_json = ?, terminal_at = ?, updated_at = ?, cleanup_pending = 1, execution_uncertain = ? WHERE request_id = ?")
+      .run(JSON.stringify({ code, message }), now, now, preserveUncertain ? row.execution_uncertain : 0, id);
   });
-  markState(store, requestId, "completed", {
-    artifact: { artifact_id: artifactId, content_hash: contentHash },
-  });
-  reclaimTempDir(store, requestId);
-  return { request_id: requestId, state: "completed", artifact_id: artifactId };
 }
-
-/** Coordinator-negotiated cancel for a running request (adapter capability). */
-export async function cancelRunningRequest(
-  store: WorkspaceStore,
-  adapter: HarnessAdapter,
-  requestId: string,
-): Promise<void> {
-  const creationKey = `request-${requestId}`;
-  const row = store
-    .prepare("SELECT host_session_ref FROM sessions WHERE creation_key = ?")
-    .get(creationKey) as { host_session_ref: string | null } | undefined;
-  if (row?.host_session_ref !== null && row?.host_session_ref !== undefined && adapter.cancel !== undefined) {
-    await adapter.cancel({
-      adapter: adapter.getCapabilities().adapter,
-      host_session_id: row.host_session_ref,
-      creation_key: creationKey,
+export async function cleanupRequest(store: WorkspaceStore, adapter: HarnessAdapter, id: string): Promise<void> {
+  rmSync(join(requestTempDir(store, id), "tmp"), { recursive: true, force: true });
+  const session = store.prepare("SELECT id, state, host_session_ref, creation_key, kind, role_id FROM sessions WHERE creation_key = ?").get(`request-${id}`) as { id: string; state: string; host_session_ref: string | null; creation_key: string; kind: string; role_id: string | null } | undefined;
+  if (session && (session.kind !== "request" || session.role_id !== getRow(store, id).target_role_id)) {
+    store.prepare("UPDATE requests SET cleanup_pending = 1 WHERE request_id = ?").run(id);
+    return;
+  }
+  if (!session || session.state === "closed") {
+    store.prepare("UPDATE requests SET cleanup_pending = 0 WHERE request_id = ?").run(id);
+    return;
+  }
+  store.prepare("UPDATE requests SET cleanup_pending = 1 WHERE request_id = ?").run(id);
+  try {
+    let handle: AdapterSessionHandle | null = session.host_session_ref ? {
+      adapter: adapter.getCapabilities().adapter, host_session_id: session.host_session_ref, creation_key: session.creation_key,
+    } : null;
+    if (!handle) {
+      if (!adapter.getCapabilities().optional.lookup_session_by_creation_key || !adapter.lookupSessionByCreationKey) return;
+      handle = await adapter.lookupSessionByCreationKey(session.creation_key);
+    }
+    if (handle) await adapter.closeSession(handle);
+    store.tx(() => {
+      store.prepare("UPDATE sessions SET state = 'closed' WHERE id = ?").run(session.id);
+      store.prepare("UPDATE requests SET cleanup_pending = 0 WHERE request_id = ?").run(id);
     });
+  } catch {
+    // Durable cleanup_pending is retried by redelivery, including after restart.
   }
 }
-
-/** Late formal completion from outside the engine is always rejected. */
-export function rejectLateCompletion(store: WorkspaceStore, requestId: string): void {
-  const row = getRequestRow(store, requestId);
-  if (row === undefined) {
-    throw new RoleDockError("NOT_FOUND", `Request "${requestId}" does not exist.`);
+async function secureSession(store: WorkspaceStore, adapter: HarnessAdapter, row: RequestRow): Promise<AdapterSessionHandle> {
+  const key = `request-${row.request_id}`;
+  let session = store.prepare("SELECT * FROM sessions WHERE creation_key = ?").get(key) as { id: string; state: string; host_session_ref: string | null; bootstrap_payload: string; kind: string; role_id: string | null } | undefined;
+  if (session && (session.kind !== "request" || session.role_id !== row.target_role_id)) throw new RoleDockError("VALIDATION_FAILED", "Host creation key collides with another session binding.");
+  const recovery = session !== undefined;
+  if (!session) {
+    if (!row.binding_material_json) throw new RoleDockError("NOT_IMPLEMENTED", "Legacy request lacks frozen materials; recreate the request.");
+    const id = `sess-${randomBytes(5).toString("hex")}`;
+    const payload = JSON.stringify({ request_id: row.request_id, question: row.question, target_role_id: row.target_role_id,
+      generation: row.binding_generation, knowledge_revision: row.binding_knowledge_revision,
+      materials: JSON.parse(row.binding_material_json) });
+    store.prepare("INSERT INTO sessions (id, kind, adapter, state, role_id, creation_key, created_at, bootstrap_payload, capability_scope_json) VALUES (?, 'request', ?, 'provisioning', ?, ?, ?, ?, ?)")
+      .run(id, adapter.getCapabilities().adapter, row.target_role_id, key, new Date().toISOString(), payload, row.capability_scope_json);
+    session = { id, state: "provisioning", host_session_ref: null, bootstrap_payload: payload, kind: "request", role_id: row.target_role_id };
   }
-  throw new RoleDockError(
-    "INVALID_STATE_TRANSITION",
-    `Request is ${row.state}; late results are rejected and cannot complete it or trigger a publish.`,
-    { details: { request_id: requestId, state: row.state } },
-  );
+  if (session.host_session_ref) return { adapter: adapter.getCapabilities().adapter, host_session_id: session.host_session_ref, creation_key: key };
+  let handle: AdapterSessionHandle | null = null;
+  if (recovery) {
+    if (!adapter.getCapabilities().optional.lookup_session_by_creation_key || !adapter.lookupSessionByCreationKey) {
+      throw new RoleDockError("ADAPTER_CAPABILITY_MISSING", "Creation outcome requires reconciliation.", { details: { uncertain: true } });
+    }
+    handle = await adapter.lookupSessionByCreationKey(key);
+    if (TERMINAL.has(current(store, row.request_id, adapter).state)) {
+      if (handle) store.prepare("UPDATE sessions SET host_session_ref = ? WHERE id = ?").run(handle.host_session_id, session.id);
+      throw new RoleDockError("INVALID_STATE_TRANSITION", "Request terminated during reconciliation.");
+    }
+  }
+  if (!handle) {
+    try {
+      handle = await adapter.createSession({ creation_key: key,
+        bootstrap: { bundle_id: key, role_id: row.target_role_id, payload: session.bootstrap_payload, content_hash: bodyHash(session.bootstrap_payload) },
+        capability_scope: JSON.parse(row.capability_scope_json), temp_dir: join(requestTempDir(store, row.request_id), "tmp") });
+    } catch (error) {
+      store.prepare("UPDATE sessions SET state = 'uncertain' WHERE id = ?").run(session.id);
+      if (adapter.getCapabilities().optional.lookup_session_by_creation_key && adapter.lookupSessionByCreationKey) handle = await adapter.lookupSessionByCreationKey(key);
+      if (!handle) throw error;
+    }
+  }
+  store.prepare("UPDATE sessions SET state = 'active', host_session_ref = ? WHERE id = ?").run(handle.host_session_id, session.id);
+  return handle;
+}
+async function execute(store: WorkspaceStore, adapter: HarnessAdapter, id: string): Promise<ExecutionResult> {
+  let row = getRow(store, id);
+  row = expireIfOverdue(store, row);
+  if (TERMINAL.has(row.state)) { await cleanupRequest(store, adapter, id); return status(getRow(store, id)); }
+  if (row.state === "awaiting_input") return status(row);
+  try {
+    row = store.tx(() => {
+      const checked = current(store, id, adapter);
+      if (TERMINAL.has(checked.state)) return checked;
+      if (checked.state === "accepted" || checked.state === "queued") {
+        store.prepare("UPDATE requests SET state = 'running', execution_phase = 'creating', execution_uncertain = 1 WHERE request_id = ?").run(id);
+      }
+      return getRow(store, id);
+    });
+    if (TERMINAL.has(row.state)) return status(row);
+    const dir = requestTempDir(store, id);
+    mkdirSync(join(dir, "tmp"), { recursive: true });
+    writeFileSync(join(dir, "question.md"), row.question, "utf8");
+    const handle = await secureSession(store, adapter, row);
+    if (getRow(store, id).execution_phase === "creating") store.prepare("UPDATE requests SET execution_uncertain = 0 WHERE request_id = ?").run(id);
+    row = store.tx(() => current(store, id, adapter));
+    if (TERMINAL.has(row.state)) return status(row);
+    const budget = JSON.parse(row.budget_json) as RequestBudget;
+    if (row.execution_phase === "creating") {
+      row = store.tx(() => {
+        const checked = current(store, id, adapter);
+        if (TERMINAL.has(checked.state)) return checked;
+        if (budget.max_turns !== undefined && checked.turns_reserved >= budget.max_turns) {
+          throw new RoleDockError("PERMISSION_DENIED", "Request turn budget exhausted before execution.");
+        }
+        const key = `${id}:turn:${checked.turns_reserved + 1}`;
+        store.prepare("UPDATE requests SET turns_reserved = turns_reserved + 1, turn_key = ?, execution_phase = 'turn-intent', execution_uncertain = 1 WHERE request_id = ?").run(key, id);
+        return getRow(store, id);
+      });
+      if (TERMINAL.has(row.state)) return status(row);
+      const turn = await adapter.runTurn(handle, { message: row.question, execution_key: row.turn_key!, budget });
+      store.prepare("UPDATE requests SET execution_uncertain = 0, execution_phase = 'result' WHERE request_id = ?").run(id);
+      row = store.tx(() => current(store, id, adapter));
+      if (TERMINAL.has(row.state)) return status(row);
+      if (!turn.accepted) throw new RoleDockError("INVALID_STATE_TRANSITION", "Host refused the request turn.");
+      store.prepare("UPDATE requests SET execution_phase = 'result', execution_uncertain = 0 WHERE request_id = ?").run(id);
+    }
+    // A persisted turn-intent is only queried, never resent after a lost ack.
+    const result = await adapter.getResult(handle);
+    return store.tx(() => {
+      const checked = current(store, id, adapter);
+      if (TERMINAL.has(checked.state)) return status(checked);
+      if (result.execution_key !== checked.turn_key) {
+        store.prepare("UPDATE requests SET execution_uncertain = 1 WHERE request_id = ?").run(id);
+        return status(getRow(store, id));
+      }
+      store.prepare("UPDATE requests SET execution_uncertain = 0, execution_phase = 'result' WHERE request_id = ?").run(id);
+      const bytes = result.body === undefined ? result.output_bytes ?? 0 : Math.max(Buffer.byteLength(result.body, "utf8"), result.output_bytes ?? 0);
+      if (budget.max_output_bytes !== undefined && checked.output_bytes_used + bytes > budget.max_output_bytes) {
+        throw new RoleDockError("PERMISSION_DENIED", "Request output budget exhausted.");
+      }
+      if (result.needs_input) {
+        store.prepare("UPDATE requests SET state = 'awaiting_input', execution_phase = 'waiting', output_bytes_used = output_bytes_used + ? WHERE request_id = ?").run(bytes, id);
+        return status(getRow(store, id));
+      }
+      if (result.state === "running" || !result.completed) return status(getRow(store, id));
+      if (typeof result.body !== "string") throw new RoleDockError("NOT_IMPLEMENTED", "Host completion has no readable answer material.");
+      const hash = putObject(store, result.body);
+      const artifactId = `art-${randomBytes(5).toString("hex")}`;
+      const now = new Date().toISOString();
+      store.prepare("INSERT INTO request_artifacts (artifact_id, workspace_id, request_id, producing_role_id, content_hash, summary, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run(artifactId, store.workspaceId, id, checked.target_role_id, hash, `Result ${id}`, now);
+      store.prepare("INSERT INTO request_inbox (entry_id, workspace_id, owner_role_id, request_id, artifact_id, content_hash, summary, state, delivered_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'unread', ?)").run(`inbox-${id}`, store.workspaceId, checked.target_role_id, id, artifactId, hash, `Result ${id}`, now);
+      store.prepare("UPDATE requests SET state = 'completed', execution_phase = 'done', result_artifact_id = ?, result_content_hash = ?, terminal_at = ?, updated_at = ?, output_bytes_used = output_bytes_used + ?, cleanup_pending = 1, error_json = NULL WHERE request_id = ?").run(artifactId, hash, now, now, bytes, id);
+      return status(getRow(store, id));
+    });
+  } catch (error) {
+    const row = expireIfOverdue(store, getRow(store, id));
+    if (TERMINAL.has(row.state)) return status(row);
+    const declaredUncertain = error instanceof RoleDockError && (error.details as { uncertain?: boolean } | undefined)?.uncertain === true;
+    const uncertain = declaredUncertain || ((row.execution_phase === "turn-intent" || row.execution_phase === "result" || row.execution_phase === "creating") &&
+      (!(error instanceof RoleDockError) || error.code === "INTERNAL"));
+    if (uncertain && !(error instanceof RoleDockError && (error.code === "PERMISSION_DENIED" || (error.code === "ADAPTER_CAPABILITY_MISSING" && (error.details as { uncertain?: boolean } | undefined)?.uncertain !== true)))) {
+      store.prepare("UPDATE requests SET execution_uncertain = 1, error_json = ? WHERE request_id = ?").run(JSON.stringify({ code: "INTERNAL", message: "External action needs reconciliation." }), id);
+    } else fail(store, id, error instanceof RoleDockError ? error.code : "INTERNAL", (error as Error).message,
+      row.execution_phase === "turn-intent" && error instanceof RoleDockError && error.code === "PERMISSION_DENIED");
+    throw error;
+  } finally {
+    if (TERMINAL.has(getRow(store, id).state)) await cleanupRequest(store, adapter, id);
+  }
+}
+/** Coalesce live duplicate deliveries; durable phase is claimed before any host action. */
+export async function executeRequest(store: WorkspaceStore, adapter: HarnessAdapter, requestId: string): Promise<ExecutionResult> {
+  const active = inFlight.get(store) ?? new Map();
+  inFlight.set(store, active);
+  const existing = active.get(requestId);
+  if (existing) return existing;
+  const promise = execute(store, adapter, requestId);
+  active.set(requestId, promise);
+  try { return await promise; } finally { active.delete(requestId); }
+}
+export async function cancelRunningRequest(store: WorkspaceStore, adapter: HarnessAdapter, requestId: string): Promise<void> {
+  const request = getRow(store, requestId);
+  const row = store.prepare("SELECT host_session_ref, kind, role_id FROM sessions WHERE creation_key = ?").get(`request-${requestId}`) as { host_session_ref: string | null; kind: string; role_id: string | null } | undefined;
+  try {
+    if (row?.kind === "request" && row.role_id === request.target_role_id && row.host_session_ref && adapter.getCapabilities().optional.cancel && adapter.cancel) {
+      await adapter.cancel({ adapter: adapter.getCapabilities().adapter, host_session_id: row.host_session_ref, creation_key: `request-${requestId}` });
+    }
+  } finally {
+    await cleanupRequest(store, adapter, requestId);
+  }
+}
+export function rejectLateCompletion(store: WorkspaceStore, requestId: string): never {
+  const row = getRow(store, requestId);
+  throw new RoleDockError("INVALID_STATE_TRANSITION", `Request is ${row.state}; external late completion is rejected.`);
 }

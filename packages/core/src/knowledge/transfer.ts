@@ -13,6 +13,7 @@ import type {
 } from "@roledock/protocol";
 import { getLatestCheckpoint } from "../documents/checkpoint.js";
 import { getRoleRow } from "../store/queries.js";
+import { readConfined } from "../files.js";
 import { objectPath, putObject } from "../store/objects.js";
 import type { WorkspaceStore } from "../store/workspace.js";
 import { asRecord, optionalString } from "../parse.js";
@@ -205,12 +206,15 @@ export function importKnowledge(store: WorkspaceStore, input: { bundle_dir: stri
   }
   const manifestData = validated.value;
 
+  const verifiedBodies = new Map<string, Buffer>();
   // Verify every entry hash first: a tampered bundle must not touch the DB.
   for (const entry of manifestData.entries) {
     const filePath = join(input.bundle_dir, entry.file);
     let actual: string;
     try {
-      actual = createHash("sha256").update(readFileSync(filePath)).digest("hex");
+      const bytes = readConfined(input.bundle_dir, entry.file);
+      verifiedBodies.set(entry.file, bytes);
+      actual = createHash("sha256").update(bytes).digest("hex");
     } catch {
       throw new RoleDockError(
         "VALIDATION_FAILED",
@@ -237,7 +241,7 @@ export function importKnowledge(store: WorkspaceStore, input: { bundle_dir: stri
     const filePath = join(input.bundle_dir, checkpoint.file);
     let actual: string;
     try {
-      actual = sha256File(filePath);
+      actual = createHash("sha256").update(readConfined(input.bundle_dir, checkpoint.file)).digest("hex");
     } catch {
       throw new RoleDockError(
         "VALIDATION_FAILED",
@@ -299,7 +303,7 @@ export function importKnowledge(store: WorkspaceStore, input: { bundle_dir: stri
         continue;
       }
 
-      const body = readFileSync(join(input.bundle_dir, entry.file), "utf8");
+      const body = verifiedBodies.get(entry.file)!.toString("utf8");
       // Store the verified body content-addressed; adoption reads it back.
       const proposedBodyHash = putObject(store, body);
       const candidate: CandidateUpdate = {

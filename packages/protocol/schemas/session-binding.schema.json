@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:session-binding",
+  "title": "session-binding",
+  "type": "object",
+  "properties": {
+    "external_session_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "role_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "state": {
+      "enum": [
+        "active",
+        "superseded",
+        "released",
+        "revoked",
+        "expired"
+      ]
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+      },
+      "uniqueItems": true
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "human-event",
+            "owner-selection"
+          ]
+        },
+        "event_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "actor_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "kind",
+        "event_ref",
+        "actor_id"
+      ],
+      "additionalProperties": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "external_session_id",
+    "session_id",
+    "instance_id",
+    "role_id",
+    "generation",
+    "authorization_id",
+    "state",
+    "capabilities",
+    "source",
+    "created_at"
+  ],
+  "additionalProperties": false
+}

@@ -1,9 +1,32 @@
 {
   "files": [],
   "references": [
-    { "path": "packages/protocol" },
-    { "path": "packages/core" },
-    { "path": "packages/cli" },
-    { "path": "adapters/mock" }
+    {
+      "path": "packages/protocol"
+    },
+    {
+      "path": "packages/core"
+    },
+    {
+      "path": "packages/cli"
+    },
+    {
+      "path": "adapters/mock"
+    },
+    {
+      "path": "adapters/process-bridge"
+    },
+    {
+      "path": "packages/service"
+    },
+    {
+      "path": "packages/mcp"
+    },
+    {
+      "path": "packages/desktop"
+    },
+    {
+      "path": "adapters/zcode"
+    }
   ]
 }

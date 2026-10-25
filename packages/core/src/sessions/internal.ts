@@ -3,6 +3,7 @@ import { RoleDockError } from "@roledock/protocol";
 import { getHead, getRoleRow } from "../store/queries.js";
 import type { WorkspaceStore } from "../store/workspace.js";
 import type { TrustedIdentity } from "../identity.js";
+import { requireBindingCapability } from "./authorization.js";
 
 export interface SessionRow {
   id: string;
@@ -22,6 +23,7 @@ export interface SessionRow {
 export function resolveSessionIdentity(store: WorkspaceStore, sessionId: string): TrustedIdentity & {
   kind: "primary" | "request";
 } {
+  requireBindingCapability(store, sessionId);
   const row = store.prepare("SELECT * FROM sessions WHERE id = ?").get(sessionId) as
     | (SessionRow & { created_at: string })
     | undefined;
@@ -184,6 +186,9 @@ export function recordReadReceipt(
         { details: { session_id: input.session_id } },
       );
     }
+    const document = store.prepare("SELECT content_hash FROM document_revisions WHERE workspace_id = ? AND role_id = ? AND document_key = ? AND revision = ?")
+      .get(store.workspaceId, input.owner_role_id, input.document_key, input.revision) as { content_hash: string } | undefined;
+    if (!document || document.content_hash !== input.content_hash) throw new RoleDockError("VALIDATION_FAILED", "Read receipt must reference an existing exact document revision.");
     const receipt: NewReadReceipt = {
       receipt_id: `rcpt-${randomBytes(5).toString("hex")}`,
       session_id: session.id,

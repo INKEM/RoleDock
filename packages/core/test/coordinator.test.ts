@@ -4,11 +4,8 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { ERROR_CODES, isRoleDockError } from "@roledock/protocol";
 import type { ErrorCode } from "@roledock/protocol";
-import {
-  Coordinator,
-  IMPLEMENTED_OPERATIONS,
-  coordinatorOperations,
-} from "../src/index.js";
+import { Coordinator, IMPLEMENTED_OPERATIONS, coordinatorOperations } from "../src/index.js";
+
 import { MockHarnessAdapter } from "@roledock/adapter-mock";
 import { writePack } from "../../../tests/helpers/packs.js";
 

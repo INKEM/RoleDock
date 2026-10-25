@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { PROTOCOL_VERSION, RoleDockError, validateRolePack } from "@roledock/protocol";
+import { confinedFile } from "../files.js";
 import type { RolePack } from "@roledock/protocol";
 
 export interface PackFile {
@@ -45,41 +46,61 @@ function collectFiles(root: string, dir: string, out: PackFile[]): void {
  * inside the pack root even across symlinked directories (realpath check).
  */
 function resolveWithinPack(packRoot: string, referencedPath: string): string {
-  const absolute = resolve(packRoot, referencedPath);
-  let real: string;
-  try {
-    real = realpathSync(absolute);
-  } catch {
-    throw validationError(`Role pack references a missing file: ${referencedPath}`, {
-      file: referencedPath,
-      issue: "missing file",
-    });
-  }
-  const realRoot = realpathSync(packRoot);
-  if (real !== realRoot && !real.startsWith(realRoot + sep)) {
-    throw validationError(
-      `Role pack reference escapes the pack root: ${referencedPath}`,
-      { file: referencedPath, resolved: real, issue: "path escape" },
-    );
-  }
-  return absolute;
+  return confinedFile(packRoot, referencedPath);
 }
 
-/** Remote references in output schemas are data-loading hazards; only local (#, relative) refs are allowed. */
-function findRemoteRefs(node: unknown, found: string[]): void {
-  if (Array.isArray(node)) {
-    for (const item of node) findRemoteRefs(item, found);
-    return;
-  }
-  if (node !== null && typeof node === "object") {
+/** Walk the complete reference graph, including recursive local schemas. */
+function validateSchemaClosure(root: string, path: string, visited: Set<string>): void {
+  const file = resolveWithinPack(root, path);
+  if (visited.has(file)) return;
+  visited.add(file);
+  let doc: unknown;
+  try { doc = JSON.parse(readFileSync(file, "utf8")); }
+  catch { throw validationError("Output schema is not valid JSON", { file: path }); }
+  const walk = (node: unknown): void => {
+    if (!node || typeof node !== "object") return;
     for (const [key, value] of Object.entries(node)) {
-      if (key === "$ref" && typeof value === "string" && /^https?:\/\//i.test(value)) {
-        found.push(value);
-      } else {
-        findRemoteRefs(value, found);
-      }
+      if ((key === "$ref" || key === "$dynamicRef" || key === "$id") && typeof value === "string") {
+        if (/^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith("//") || value.includes("?") || value.includes("\\")) {
+          throw validationError("Only local schema references are allowed", { file: path, reference: value, issue: "remote schema reference" });
+        }
+        const [refPath, fragment] = value.split("#");
+        if (fragment !== undefined && !/^(?:|\/[\s\S]*|[A-Za-z_][A-Za-z0-9_.:-]*)$/.test(fragment)) {
+          throw validationError("Invalid schema fragment", { reference: value });
+        }
+        if (key === "$id" && refPath) {
+          throw validationError("Schema ids must be local fragments; relative references use the containing file", { reference: value });
+        }
+        if (key !== "$id") {
+          let decoded: string;
+          let decodedFragment: string;
+          try { decoded = decodeURIComponent(refPath ?? ""); decodedFragment = decodeURIComponent(fragment ?? ""); }
+          catch { throw validationError("Invalid schema URI", { reference: value }); }
+          if (decoded.startsWith("/") || /^[a-z][a-z0-9+.-]*:/i.test(decoded) || decoded.includes("\\")) throw validationError("Invalid schema URI", { reference: value });
+          const targetPath = decoded ? relative(root, resolve(dirname(file), decoded)) : path;
+          const targetFile = resolveWithinPack(root, targetPath);
+          let target: unknown;
+          try { target = targetFile === file ? doc : JSON.parse(readFileSync(targetFile, "utf8")); }
+          catch { throw validationError("Referenced schema is not valid JSON", { reference: value }); }
+          if (decodedFragment.startsWith("/")) {
+            let selected = target;
+            for (const token of decodedFragment.slice(1).split("/")) {
+              if (/~(?![01])/.test(token)) throw validationError("Invalid JSON pointer", { reference: value });
+              const property = token.replace(/~1/g, "/").replace(/~0/g, "~");
+              if (!selected || typeof selected !== "object" || !Object.hasOwn(selected, property)) throw validationError("Missing schema fragment", { reference: value });
+              selected = (selected as Record<string, unknown>)[property];
+            }
+          } else if (decodedFragment) {
+            const hasAnchor = (node: unknown): boolean => !!node && typeof node === "object" &&
+              (Object.entries(node).some(([k, v]) => ((k === "$anchor" || k === "$dynamicAnchor") && v === decodedFragment) || (k === "$id" && v === `#${decodedFragment}`)) || Object.values(node).some(hasAnchor));
+            if (!hasAnchor(target)) throw validationError("Missing schema anchor", { reference: value });
+          }
+          validateSchemaClosure(root, targetPath, visited);
+        }
+      } else walk(value);
     }
-  }
+  };
+  walk(doc);
 }
 
 function hashFiles(files: readonly PackFile[]): string {
@@ -155,24 +176,7 @@ export function loadRolePack(sourceDir: string): LoadedRolePack {
       resolveWithinPack(packRoot, document.template);
     }
     for (const outputSchema of role.output_schemas ?? []) {
-      const schemaPath = resolveWithinPack(packRoot, outputSchema.schema);
-      let schemaDoc: unknown;
-      try {
-        schemaDoc = JSON.parse(readFileSync(schemaPath, "utf8"));
-      } catch (error) {
-        throw validationError(
-          `Output schema ${outputSchema.schema} is not valid JSON: ${(error as Error).message}`,
-          { file: outputSchema.schema, issue: "invalid JSON" },
-        );
-      }
-      const remoteRefs: string[] = [];
-      findRemoteRefs(schemaDoc, remoteRefs);
-      if (remoteRefs.length > 0) {
-        throw validationError(
-          `Output schema ${outputSchema.schema} references remote locations, which are not allowed at runtime.`,
-          { file: outputSchema.schema, remote_refs: remoteRefs, issue: "remote schema reference" },
-        );
-      }
+      validateSchemaClosure(packRoot, outputSchema.schema, new Set());
     }
   }
 
@@ -184,4 +188,11 @@ export function loadRolePack(sourceDir: string): LoadedRolePack {
   }
 
   return { manifest: pack, packRoot, contentHash: hashFiles(files), files };
+}
+
+/** Complete local file set for one role's output schema; used in host materials. */
+export function schemaClosureFiles(root: string, path: string): string[] {
+  const visited = new Set<string>();
+  validateSchemaClosure(root, path, visited);
+  return [...visited].map((file) => relative(root, file).split(sep).join("/"));
 }

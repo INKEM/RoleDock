@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:anchor-material",
+  "type": "object",
+  "properties": {
+    "protocol_version": {
+      "const": "0.1",
+      "description": "Protocol version the bundle serializes; lets a second adapter validate compatibility on import."
+    },
+    "workspace_id": {
+      "$ref": "#/$defs/id"
+    },
+    "role_id": {
+      "$ref": "#/$defs/id"
+    },
+    "source_generation": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Generation whose knowledge this bundle carries. The successor becomes source_generation + 1."
+    },
+    "source_knowledge_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Role knowledge_revision captured when the bundle was prepared. Activation fails with GENERATION_CONFLICT or REVISION_CONFLICT if the pointer or knowledge moved since."
+    },
+    "materials": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "object",
+          "properties": {
+            "package_name": {
+              "type": "string"
+            },
+            "package_version": {
+              "type": "string"
+            },
+            "content_hash": {
+              "$ref": "#/$defs/sha256"
+            },
+            "definition": {
+              "$ref": "urn:roledock:protocol:0.1:rolepack#/$defs/roleDefinition"
+            },
+            "instructions": {
+              "type": "string"
+            },
+            "templates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "body": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "body"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "schemas": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string"
+                  },
+                  "body": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file",
+                  "body"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "package_name",
+            "package_version",
+            "content_hash",
+            "definition",
+            "instructions",
+            "templates",
+            "schemas"
+          ],
+          "additionalProperties": false
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "$ref": "urn:roledock:protocol:0.1:checkpoint"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "owner_role_id": {
+                "type": "string"
+              },
+              "document_key": {
+                "type": "string"
+              },
+              "revision": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "content_hash": {
+                "$ref": "#/$defs/sha256"
+              },
+              "visibility": {
+                "enum": [
+                  "role",
+                  "project",
+                  "public"
+                ]
+              },
+              "body": {
+                "type": "string"
+              },
+              "created_by_instance_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "owner_role_id",
+              "document_key",
+              "revision",
+              "content_hash",
+              "visibility",
+              "body",
+              "created_by_instance_id",
+              "created_at"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "role",
+        "checkpoint",
+        "documents"
+      ],
+      "additionalProperties": false,
+      "description": "P5-R fixed, verified material transport. Reference-only historical bundles may omit this field but are not proof of host loading."
+    },
+    "capability_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "protocol_version",
+    "workspace_id",
+    "role_id",
+    "source_generation",
+    "source_knowledge_revision",
+    "materials",
+    "capability_scope"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "roleContract": {
+      "type": "object",
+      "properties": {
+        "package_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "package_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+        },
+        "content_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "package_name",
+        "package_version",
+        "content_hash"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -5,7 +5,9 @@
   "description": "The unique primary pointer of a role: exactly one exists per (workspace_id, role_id). Request branches never replace the primary pointer. Handoff activation swaps this pointer atomically with a compare-and-swap on generation.",
   "type": "object",
   "properties": {
-    "workspace_id": { "$ref": "#/$defs/id" },
+    "workspace_id": {
+      "$ref": "#/$defs/id"
+    },
     "role_id": {
       "$ref": "#/$defs/id",
       "description": "Role id as defined by its role pack; the core has no business role enumeration."
@@ -21,11 +23,22 @@
       "description": "Role-wide knowledge version. Increases whenever the role publishes a document revision or a handoff summary, so handoff preparation can detect knowledge drift."
     },
     "current_instance_id": {
-      "$ref": "#/$defs/id",
-      "description": "AgentInstance currently holding the primary pointer. Older instances lose formal publish rights."
+      "anyOf": [
+        {
+          "$ref": "#/$defs/id"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Null after release/revocation/expiry; generation remains monotonic."
     },
-    "role_contract": { "$ref": "#/$defs/roleContract" },
-    "updated_at": { "$ref": "#/$defs/timestamp" }
+    "role_contract": {
+      "$ref": "#/$defs/roleContract"
+    },
+    "updated_at": {
+      "$ref": "#/$defs/timestamp"
+    }
   },
   "required": [
     "workspace_id",
@@ -67,7 +80,11 @@
           "description": "SHA-256 over the role pack content this contract was installed from."
         }
       },
-      "required": ["package_name", "package_version", "content_hash"],
+      "required": [
+        "package_name",
+        "package_version",
+        "content_hash"
+      ],
       "additionalProperties": false
     }
   }

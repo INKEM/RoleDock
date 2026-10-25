@@ -147,6 +147,23 @@ export interface Checkpoint {
 }
 
 /** Immutable handoff bundle a new host session loads; shareable knowledge only. */
+export interface RoleMaterials {
+  package_name: string;
+  package_version: string;
+  content_hash: Sha256;
+  definition: RoleDefinition;
+  instructions: string;
+  templates: { key: string; body: string }[];
+  schemas: { file: string; body: string }[];
+}
+export interface DocumentMaterials extends DocumentSnapshot {
+  owner_role_id: Id;
+  visibility: "role" | "project" | "public";
+  body: string;
+  created_by_instance_id: Id | null;
+  created_at: Iso8601Timestamp;
+}
+
 export interface BootstrapBundle {
   bundle_id: Id;
   protocol_version: "0.1";
@@ -162,6 +179,7 @@ export interface BootstrapBundle {
   created_by_instance_id: Id;
   created_at: Iso8601Timestamp;
   provisioned_session_id?: Id;
+  materials?: { role: RoleMaterials; checkpoint: Checkpoint; documents: DocumentMaterials[] };
 }
 
 // ---------------------------------------------------------------------------
@@ -328,3 +346,45 @@ export interface ErrorEnvelope {
 }
 
 export type Envelope<T = unknown> = OutputEnvelope<T> | ErrorEnvelope;
+
+/** P5-A: identities and grants issued only by trusted owner/host connections. */
+export interface AuthorizationSource { kind: "human-event" | "owner-selection"; event_ref: string; actor_id: string }
+/**
+ * B0 (P5-H b1): verbatim facts of a human role-authorization confirmation,
+ * read back by the adapter's readHumanAuthorization port. Schema
+ * human-authorization-event adds the trusted-entry provenance on the stored
+ * record; the port returns only these facts.
+ */
+export interface HumanAuthorizationEvent {
+  workspace_id: string; host_session_id: string; connection_subject: string; event_ref: string;
+  actor_id: string; role_id: string; capabilities: string[]; inherit: "initialize" | "takeover"; expires_at: string;
+}
+/** Trusted local entry that captured the confirmation; written by owner-face code only. */
+export type HumanAuthorizationEntry = "cli-console" | "gui-confirm";
+export interface HumanAuthorizationEventRecord extends HumanAuthorizationEvent {
+  entry: HumanAuthorizationEntry; recorded_at: string;
+}
+export interface ExternalSession {
+  external_session_id: string; workspace_id: string; adapter: string; host_session_id: string;
+  connection_subject: string; capability_ceiling: string[]; state: "connected" | "disconnected"; created_at: string;
+}
+export interface RoleAuthorization {
+  authorization_id: string; workspace_id: string; external_session_id: string; connection_subject: string;
+  role_id: string; role_contract: { package_name: string; package_version: string; content_hash: string };
+  capabilities: string[]; inherit: "initialize" | "takeover"; expected_generation: number;
+  expected_instance_id: string | null; expires_at: string; revoked_at: string | null;
+  source: AuthorizationSource; created_at: string;
+}
+export interface AnchorConfirmation { host_session_id: string; load_key: string; content_hash: string; load_version: number }
+export interface AnchorAttempt {
+  attempt_id: string; external_session_id: string; authorization_id: string; idempotency_key: string;
+  input_hash: string; bundle_hash: string; load_key: string; source_generation: number;
+  source_knowledge_revision: number; state: "prepared" | "loading" | "uncertain" | "active" | "failed";
+  confirmation: AnchorConfirmation | null; error: { code: string; message: string } | null; created_at: string;
+}
+export interface SessionBinding {
+  external_session_id: string; session_id: string; instance_id: string; role_id: string; generation: number;
+  authorization_id: string; state: "active" | "superseded" | "released" | "revoked" | "expired";
+  capabilities: string[]; source: AuthorizationSource; created_at: string;
+}
+export type SessionOperation = "sessions.anchor" | "sessions.binding" | "sessions.reconcile" | "sessions.release" | "authorizations.get";

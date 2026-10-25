@@ -6,6 +6,8 @@ import { WorkspaceStore } from "./store/workspace.js";
 import type { HandleOptions } from "./options.js";
 import { assertCapabilityName } from "./policy.js";
 import { optionalString, requiredString, asRecord } from "./parse.js";
+import type { Coordinator } from "./coordinator.js";
+import { coordinatorStore } from "./internal-store.js";
 
 export interface PolicyEntry {
   role_id: string;
@@ -36,6 +38,10 @@ export interface GrantResult {
  * never touches this policy.
  */
 export class WorkspaceAdmin {
+  /** Trusted local owner only; shares the service's existing writer. Do not expose to session tools. */
+  static forCoordinator(coordinator: Coordinator): WorkspaceAdmin {
+    return new WorkspaceAdmin(coordinatorStore(coordinator), false);
+  }
   static open(options: HandleOptions): WorkspaceAdmin {
     const store = WorkspaceStore.open({ root: options.root });
     try {
@@ -47,7 +53,7 @@ export class WorkspaceAdmin {
     return new WorkspaceAdmin(store);
   }
 
-  private constructor(private readonly store: WorkspaceStore) {}
+  private constructor(private readonly store: WorkspaceStore, private readonly ownsStore = true) {}
 
   get workspaceId(): string {
     return this.store.workspaceId;
@@ -58,7 +64,7 @@ export class WorkspaceAdmin {
   }
 
   close(): void {
-    this.store.close();
+    if (this.ownsStore) this.store.close();
   }
 
   showPolicy(input: unknown = {}): PolicyReport {
@@ -75,6 +81,70 @@ export class WorkspaceAdmin {
       };
     });
     return { workspace_id: this.store.workspaceId, roles };
+  }
+
+  /** Owner diagnostic: the collaboration-request inbox, optionally per role. */
+  showInbox(input: unknown = {}): {
+    workspace_id: string;
+    entries: Array<{
+      entry_id: string;
+      owner_role_id: string;
+      request_id: string;
+      artifact_id: string;
+      state: string;
+      delivered_at: string;
+    }>;
+  } {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const ownerRoleId = optionalString(record, "owner_role_id");
+    const rows = this.store
+      .prepare("SELECT * FROM request_inbox ORDER BY delivered_at")
+      .all() as unknown as Array<{
+      workspace_id: string;
+      entry_id: string;
+      owner_role_id: string;
+      request_id: string;
+      artifact_id: string;
+      state: string;
+      delivered_at: string;
+    }>;
+    return {
+      workspace_id: this.store.workspaceId,
+      entries: rows
+        .filter((row) => ownerRoleId === undefined || row.owner_role_id === ownerRoleId)
+        .map(({ workspace_id: _workspaceId, ...entry }) => entry),
+    };
+  }
+
+  /** Owner diagnostic: the pending-delivery event log (outbox). */
+  showEvents(input: unknown = {}): {
+    workspace_id: string;
+    events: Array<{
+      id: string;
+      kind: string;
+      state: string;
+      created_at: string;
+    }>;
+  } {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const kind = optionalString(record, "kind");
+    const rows = this.store
+      .prepare("SELECT id, workspace_id, kind, state, created_at FROM outbox_events ORDER BY created_at")
+      .all() as unknown as Array<{
+      workspace_id: string;
+      id: string;
+      kind: string;
+      state: string;
+      created_at: string;
+    }>;
+    return {
+      workspace_id: this.store.workspaceId,
+      events: rows
+        .filter((row) => kind === undefined || row.kind === kind)
+        .map(({ workspace_id: _workspaceId, ...event }) => event),
+    };
   }
 
   grant(input: unknown): GrantResult {

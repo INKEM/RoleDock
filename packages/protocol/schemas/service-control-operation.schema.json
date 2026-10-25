@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:service-control-operation",
+  "type": "object",
+  "properties": {
+    "operation": {
+      "enum": [
+        "connections.trust",
+        "externalSessions.register",
+        "externalSessions.list",
+        "authorizations.recordHuman",
+        "authorizations.recordOwner",
+        "authorizations.revoke",
+        "authorizations.submitHumanEvent"
+      ]
+    },
+    "input": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "operation",
+    "input"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "connections.trust"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "capability_ceiling": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "subject",
+              "capability_ceiling"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "externalSessions.register"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "host_session_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "host_session_id"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "externalSessions.list"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G-min: owner-face read view for the desktop confirmation surface (registered sessions with their live authorization summary). Read-only; grants nothing.",
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "authorizations.recordHuman"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "external_session_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "event_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              }
+            },
+            "required": [
+              "external_session_id",
+              "event_ref"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "authorizations.recordOwner"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "external_session_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "event_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "actor_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "role_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+                },
+                "uniqueItems": true
+              },
+              "inherit": {
+                "enum": [
+                  "initialize",
+                  "takeover"
+                ]
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "external_session_id",
+              "event_ref",
+              "actor_id",
+              "role_id",
+              "capabilities",
+              "inherit",
+              "expires_at"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "authorizations.revoke"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "authorization_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "required": [
+              "authorization_id"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "authorizations.submitHumanEvent"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "Owner-face trusted writer only (CLI console now, GUI confirm in P6-G-min). The event facts mirror the human-authorization-event schema; workspace_id is filled by the service, not the caller. The service stores the record and matches it to the registered external session; storage alone grants nothing (recordHuman still validates via the adapter port).",
+            "properties": {
+              "external_session_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "host_session_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "connection_subject": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "event_ref": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "actor_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "role_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+                },
+                "uniqueItems": true
+              },
+              "inherit": {
+                "enum": [
+                  "initialize",
+                  "takeover"
+                ]
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "entry": {
+                "enum": [
+                  "cli-console",
+                  "gui-confirm"
+                ]
+              },
+              "recorded_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "external_session_id",
+              "host_session_id",
+              "connection_subject",
+              "event_ref",
+              "actor_id",
+              "role_id",
+              "capabilities",
+              "inherit",
+              "expires_at",
+              "entry",
+              "recorded_at"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ]
+}

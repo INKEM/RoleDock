@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { RoleDockError } from "@roledock/protocol";
 import type { HarnessAdapter } from "../ports/adapter.js";
 import { getHead, getRoleRow } from "../store/queries.js";
@@ -10,6 +10,8 @@ import {
   provisionHandoff,
   rehydratePreparation,
 } from "./handoff.js";
+import { roleMaterial } from "./material.js";
+import { bodyHash } from "../store/objects.js";
 import { resolveSessionIdentity } from "./internal.js";
 
 export interface OpenSessionInput {
@@ -26,27 +28,14 @@ export interface OpenSessionResult {
   role_id: string;
   generation: number;
   predecessor_instance_id?: string;
+  session_state?: string;
+  instance_state?: string;
   handoff: {
     performed: boolean;
     bundle_id?: string;
     checkpoint_id?: string;
     reprepared?: boolean;
   };
-}
-
-function createPrimarySessionRow(
-  store: WorkspaceStore,
-  roleId: string,
-  instanceId: string,
-  creationKey: string | null,
-): string {
-  const sessionId = `sess-${randomBytes(4).toString("hex")}`;
-  store
-    .prepare(
-      "INSERT INTO sessions (id, kind, adapter, state, role_id, instance_id, host_session_ref, creation_key, created_at) VALUES (?, 'primary', ?, 'active', ?, ?, NULL, ?, ?)",
-    )
-    .run(sessionId, "core", roleId, instanceId, creationKey, new Date().toISOString());
-  return sessionId;
 }
 
 /**
@@ -57,7 +46,7 @@ function createPrimarySessionRow(
  * a moved primary pointer (a concurrent successor won) fails with
  * GENERATION_CONFLICT and never re-prepares over it.
  */
-export async function openSession(
+async function openSessionImpl(
   store: WorkspaceStore,
   adapter: HarnessAdapter,
   input: OpenSessionInput,
@@ -76,60 +65,61 @@ export async function openSession(
     });
   }
 
-  // Idempotent creation: same key returns the original session.
-  if (input.creation_key !== undefined) {
-    const existing = store
-      .prepare("SELECT id, state, role_id, instance_id FROM sessions WHERE creation_key = ?")
-      .get(input.creation_key) as
-      | { id: string; state: string; role_id: string | null; instance_id: string | null }
-      | undefined;
-    if (existing !== undefined && existing.state === "active") {
-      if (existing.role_id !== roleId) {
-        throw new RoleDockError(
-          "IDEMPOTENCY_CONFLICT",
-          `Creation key "${input.creation_key}" was already used for role "${existing.role_id}" with different content.`,
-          { details: { creation_key: input.creation_key, existing_role_id: existing.role_id } },
-        );
-      }
-      const head = getHead(store, roleId);
-      return {
-        session_id: existing.id,
-        instance_id: existing.instance_id ?? "",
-        role_id: roleId,
-        generation: head?.generation ?? 0,
-        handoff: { performed: false, reprepared: undefined },
-      };
-    }
+  const inputHash = bodyHash(JSON.stringify({ role_id: roleId, inherit: input.inherit ?? null }));
+  const existing = store.prepare("SELECT * FROM sessions WHERE open_key = ? OR (creation_key = ? AND kind = 'primary' AND open_key IS NULL)").get(input.creation_key!, input.creation_key!) as {
+    id: string; role_id: string | null; instance_id: string | null; state: string; creation_key: string;
+    open_input_hash: string | null; bootstrap_payload: string | null; host_session_ref: string | null;
+  } | undefined;
+  if (existing?.open_input_hash && existing.open_input_hash !== inputHash) {
+    throw new RoleDockError("IDEMPOTENCY_CONFLICT", "Creation key was used with different session input.");
+  }
+  if (existing && existing.state === "active" && existing.instance_id) {
+    if (existing.role_id !== roleId) throw new RoleDockError("IDEMPOTENCY_CONFLICT", "Creation key belongs to a different role.");
+    const instance = store.prepare("SELECT generation, state, predecessor_instance_id FROM agent_instances WHERE id = ?").get(existing.instance_id) as { generation: number; state: string; predecessor_instance_id: string | null };
+    return { session_id: existing.id, instance_id: existing.instance_id, role_id: roleId,
+      generation: instance.generation, session_state: existing.state, instance_state: instance.state,
+      ...(instance.predecessor_instance_id ? { predecessor_instance_id: instance.predecessor_instance_id } : {}), handoff: { performed: false } };
   }
 
   const head = getHead(store, roleId);
   if (head === undefined || head.generation === 0) {
-    // First open auto-initializes the primary instance (spec §2).
-    const now = new Date().toISOString();
+    const sessionId = existing?.id ?? `sess-${randomBytes(4).toString("hex")}`;
+    const hostKey = existing?.creation_key ?? `initial-${sessionId}`;
+    const payload = existing?.bootstrap_payload ?? JSON.stringify({ protocol_version: "0.1", role_id: roleId, materials: { role: roleMaterial(store, roleId), documents: [] } });
+    if (!existing) store.prepare("INSERT INTO sessions (id, kind, adapter, state, role_id, creation_key, created_at, bootstrap_payload, open_input_hash, open_key) VALUES (?, 'primary', ?, 'provisioning', ?, ?, ?, ?, ?, ?)")
+      .run(sessionId, adapter.getCapabilities().adapter, roleId, hostKey, new Date().toISOString(), payload, inputHash, input.creation_key!);
+    let handle;
+    try {
+      if (existing) {
+        if (!adapter.getCapabilities().optional.lookup_session_by_creation_key || !adapter.lookupSessionByCreationKey) {
+          throw new RoleDockError("ADAPTER_CAPABILITY_MISSING", "Initial creation is pending reconciliation.", { details: { execution_uncertain: true } });
+        }
+        handle = await adapter.lookupSessionByCreationKey(hostKey);
+      }
+      if (!handle) handle = await adapter.createSession({ creation_key: hostKey, bootstrap: { bundle_id: `initial-${sessionId}`, role_id: roleId, payload, content_hash: bodyHash(payload) } });
+    } catch (error) {
+      store.prepare("UPDATE sessions SET state = 'uncertain' WHERE id = ?").run(sessionId);
+      if (adapter.getCapabilities().optional.lookup_session_by_creation_key && adapter.lookupSessionByCreationKey) {
+        handle = await adapter.lookupSessionByCreationKey(hostKey);
+      }
+      if (!handle) throw error;
+    }
     const instanceId = `inst-${randomBytes(4).toString("hex")}`;
-    const sessionId = `sess-${randomBytes(4).toString("hex")}`;
-    store.tx(() => {
-      store
-        .prepare(
-          "INSERT INTO agent_instances (id, role_id, generation, predecessor_instance_id, state, created_at) VALUES (?, ?, 1, NULL, 'active', ?)",
-        )
-        .run(instanceId, roleId, now);
-      store
-        .prepare("UPDATE role_heads SET generation = 1, current_instance_id = ?, updated_at = ? WHERE role_id = ?")
-        .run(instanceId, now, roleId);
-      store
-        .prepare(
-          "INSERT INTO sessions (id, kind, adapter, state, role_id, instance_id, host_session_ref, creation_key, created_at) VALUES (?, 'primary', 'core', 'active', ?, ?, NULL, ?, ?)",
-        )
-        .run(sessionId, roleId, instanceId, input.creation_key ?? null, now);
-    });
-    return {
-      session_id: sessionId,
-      instance_id: instanceId,
-      role_id: roleId,
-      generation: 1,
-      handoff: { performed: false },
-    };
+    try {
+      return store.tx(() => {
+        const current = getHead(store, roleId)!;
+        if (current.generation !== 0) throw new RoleDockError("GENERATION_CONFLICT", "Another first session activated.");
+        const now = new Date().toISOString();
+        store.prepare("INSERT INTO agent_instances (id, role_id, generation, state, created_at) VALUES (?, ?, 1, 'active', ?)").run(instanceId, roleId, now);
+        store.prepare("UPDATE role_heads SET generation = 1, current_instance_id = ?, updated_at = ? WHERE role_id = ?").run(instanceId, now, roleId);
+        store.prepare("UPDATE sessions SET state = 'active', instance_id = ?, host_session_ref = ? WHERE id = ?").run(instanceId, handle.host_session_id, sessionId);
+        return { session_id: sessionId, instance_id: instanceId, role_id: roleId, generation: 1, handoff: { performed: false } };
+      });
+    } catch (error) {
+      await adapter.closeSession(handle);
+      store.prepare("UPDATE sessions SET state = 'abandoned' WHERE id = ?").run(sessionId);
+      throw error;
+    }
   }
 
   if (input.inherit !== "latest") {
@@ -146,12 +136,15 @@ export async function openSession(
   if (input.creation_key !== undefined) {
     const interrupted = store
       .prepare(
-        "SELECT bundle_id FROM bootstrap_bundles WHERE creation_key = ? AND state IN ('prepared', 'provisioned')",
+        "SELECT bundle_id, role_id, open_input_hash FROM bootstrap_bundles WHERE (open_key = ? OR creation_key = ?) AND state IN ('prepared', 'provisioned')",
       )
-      .get(input.creation_key) as { bundle_id: string } | undefined;
+      .get(input.creation_key, input.creation_key) as { bundle_id: string; role_id: string; open_input_hash: string | null } | undefined;
     if (interrupted !== undefined) {
-      const prep = rehydratePreparation(store, interrupted.bundle_id, input.creation_key);
+      if (interrupted.role_id !== roleId || (interrupted.open_input_hash && interrupted.open_input_hash !== inputHash)) throw new RoleDockError("IDEMPOTENCY_CONFLICT", "Pending creation key has different input.");
+      const prep = rehydratePreparation(store, interrupted.bundle_id);
       const provisioned = await provisionHandoff(store, adapter, prep);
+      store.prepare("UPDATE sessions SET open_input_hash = ? WHERE id = ?").run(inputHash, provisioned.session_id);
+      try {
       const activation = activateHandoff(store, { bundle_id: prep.bundle_id });
       return {
         session_id: provisioned.session_id,
@@ -166,22 +159,25 @@ export async function openSession(
           reprepared: true,
         },
       };
+      } catch (error) {
+        await abandonProvisioned(store, adapter, prep.bundle_id);
+        store.tx(() => {
+          store.prepare("UPDATE bootstrap_bundles SET open_key = NULL WHERE bundle_id = ?").run(prep.bundle_id);
+          store.prepare("UPDATE sessions SET open_key = NULL WHERE id = ?").run(provisioned.session_id);
+        });
+        if (!(error instanceof RoleDockError) || error.code !== "REVISION_CONFLICT") throw error;
+      }
     }
   }
 
   let reprepared = false;
   let lastPrep = prepareHandoff(store, { role_id: roleId });
-  if (input.creation_key !== undefined) {
-    // Stable provision key: retries of the same open reconcile by it.
-    lastPrep = { ...lastPrep, creation_key: input.creation_key };
-    store.prepare("UPDATE bootstrap_bundles SET creation_key = ? WHERE bundle_id = ?").run(
-      input.creation_key,
-      lastPrep.bundle_id,
-    );
-  }
+  // Logical open keys remain stable; each host attempt has its own creation key.
+  store.prepare("UPDATE bootstrap_bundles SET open_key = ?, open_input_hash = ? WHERE bundle_id = ?").run(input.creation_key!, inputHash, lastPrep.bundle_id);
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const provisioned = await provisionHandoff(store, adapter, lastPrep);
     try {
+      store.prepare("UPDATE sessions SET open_input_hash = ? WHERE id = ?").run(inputHash, provisioned.session_id);
       const activation = activateHandoff(store, { bundle_id: lastPrep.bundle_id });
       return {
         session_id: provisioned.session_id,
@@ -208,7 +204,12 @@ export async function openSession(
       // knowledge state; the stale provisioned host session is abandoned.
       reprepared = true;
       await abandonProvisioned(store, adapter, lastPrep.bundle_id);
+      store.tx(() => {
+        store.prepare("UPDATE bootstrap_bundles SET open_key = NULL WHERE bundle_id = ?").run(lastPrep.bundle_id);
+        store.prepare("UPDATE sessions SET open_key = NULL WHERE id = ?").run(provisioned.session_id);
+      });
       lastPrep = prepareHandoff(store, { role_id: roleId });
+      store.prepare("UPDATE bootstrap_bundles SET open_key = ?, open_input_hash = ? WHERE bundle_id = ?").run(input.creation_key!, inputHash, lastPrep.bundle_id);
     }
   }
   throw new RoleDockError("INTERNAL", "Handoff orchestration exited its retry loop.");
@@ -246,18 +247,18 @@ export async function resumeSession(
     );
   }
   const identity = resolveSessionIdentity(store, input.session_id);
-  const head = identity.roleId !== undefined ? getHead(store, identity.roleId) : undefined;
+  const instance = store.prepare("SELECT generation FROM agent_instances WHERE id = ?").get(identity.instanceId ?? "") as { generation: number } | undefined;
   const capabilities = adapter.getCapabilities();
   if (capabilities.optional.native_resume === true && adapter.nativeResume !== undefined) {
     const hostRef = store
-      .prepare("SELECT host_session_ref FROM sessions WHERE id = ?")
-      .get(input.session_id) as { host_session_ref: string | null } | undefined;
+      .prepare("SELECT host_session_ref, creation_key FROM sessions WHERE id = ?")
+      .get(input.session_id) as { host_session_ref: string | null; creation_key: string } | undefined;
     if (hostRef?.host_session_ref !== null && hostRef?.host_session_ref !== undefined) {
       try {
         await adapter.nativeResume({
           adapter: capabilities.adapter,
           host_session_id: hostRef.host_session_ref,
-          creation_key: input.session_id,
+          creation_key: hostRef.creation_key,
         });
       } catch (error) {
         if (!(error instanceof RoleDockError) || error.code !== "NOT_FOUND") throw error;
@@ -268,7 +269,7 @@ export async function resumeSession(
           session_id: identity.sessionId,
           role_id: identity.roleId ?? null,
           instance_id: identity.instanceId ?? null,
-          generation: head?.generation ?? 0,
+          generation: instance?.generation ?? 0,
           resumed: false,
           method: null,
           alternative:
@@ -276,11 +277,11 @@ export async function resumeSession(
         };
       }
     }
-    return {
+    if (hostRef?.host_session_ref) return {
       session_id: identity.sessionId,
       role_id: identity.roleId ?? null,
       instance_id: identity.instanceId ?? null,
-      generation: head?.generation ?? 0,
+      generation: instance?.generation ?? 0,
       resumed: true,
       method: "native",
     };
@@ -289,10 +290,26 @@ export async function resumeSession(
     session_id: identity.sessionId,
     role_id: identity.roleId ?? null,
     instance_id: identity.instanceId ?? null,
-    generation: head?.generation ?? 0,
+    generation: instance?.generation ?? 0,
     resumed: false,
     method: null,
     alternative:
       "open a new primary session with inherit=latest for semantic inheritance",
   };
+}
+
+const opens = new WeakMap<WorkspaceStore, Map<string, { hash: string; promise: Promise<OpenSessionResult> }>>();
+export async function openSession(store: WorkspaceStore, adapter: HarnessAdapter, input: OpenSessionInput): Promise<OpenSessionResult> {
+  const key = input.creation_key ?? `open-${randomBytes(8).toString("hex")}`;
+  const hash = bodyHash(JSON.stringify(input));
+  const active = opens.get(store) ?? new Map();
+  opens.set(store, active);
+  const existing = active.get(key);
+  if (existing) {
+    if (existing.hash !== hash) throw new RoleDockError("IDEMPOTENCY_CONFLICT", "Concurrent open input differs.");
+    return existing.promise;
+  }
+  const promise = openSessionImpl(store, adapter, { ...input, creation_key: key });
+  active.set(key, { hash, promise });
+  try { return await promise; } finally { active.delete(key); }
 }

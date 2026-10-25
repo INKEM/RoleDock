@@ -1,4 +1,6 @@
-import type { BootstrapBundle } from "@roledock/protocol";
+import type { AnchorConfirmation, HumanAuthorizationEvent, HumanAuthorizationEventRecord } from "@roledock/protocol";
+
+export type { HumanAuthorizationEvent, HumanAuthorizationEventRecord };
 
 /**
  * Harness adapter port (docs/spec/adapter-contract.md).
@@ -34,6 +36,8 @@ export interface AdapterCapabilities {
     native_resume: boolean;
     native_fork: boolean;
   };
+  /** Existing-session claims are separate from branch isolation. Missing means unsupported. */
+  external?: { current_session_identity: boolean; human_authorization_events: boolean; load_materials: boolean; reconcile_load: boolean };
 }
 
 /** The shareable role knowledge a new host session must load (P3 handoff). */
@@ -49,11 +53,15 @@ export interface CreateSessionInput {
   /** Idempotent creation key; hosts may be looked up by it after crashes. */
   creation_key: string;
   bootstrap?: BootstrapLoad;
+  capability_scope?: readonly string[];
+  temp_dir?: string;
 }
 
 export interface TurnInput {
   /** Caller-visible turn content; the core never injects handoff instructions into old sessions. */
   message: string;
+  execution_key?: string;
+  budget?: { max_turns?: number; max_output_bytes?: number; deadline?: string };
 }
 
 export interface TurnResult {
@@ -68,6 +76,15 @@ export interface AdapterSessionResult {
   turn_count: number;
   /** Host reports the branch needs initiator input (drives awaiting_input). */
   needs_input?: boolean;
+  /**
+   * Host-reported size of its latest answer material in bytes. Core uses
+   * the larger of this report and the actual UTF-8 answer body size.
+   */
+  output_bytes?: number;
+  /** Completion is explicit; running results never become formal artifacts. */
+  completed?: boolean;
+  body?: string;
+  execution_key?: string;
 }
 
 /** Scope requested of a native fork; full private history across roles is rejected. */
@@ -94,6 +111,27 @@ export interface HarnessAdapter {
   lookupSessionByCreationKey?(creationKey: string): Promise<AdapterSessionHandle | null>;
   nativeResume?(handle: AdapterSessionHandle): Promise<AdapterSessionHandle>;
   nativeFork?(handle: AdapterSessionHandle, request: NativeForkRequest): Promise<AdapterSessionHandle>;
+  verifyExternalSession?(hostSessionId: string, connectionSubject: string): Promise<boolean>;
+  readHumanAuthorization?(hostSessionId: string, eventRef: string): Promise<HumanAuthorizationEvent | null>;
+  loadExternalMaterials?(input: ExternalMaterialLoad): Promise<AnchorConfirmation>;
+  lookupExternalLoad?(hostSessionId: string, loadKey: string): Promise<ExternalLoadLookup>;
+  /** B2: the trusted authority installs the workspace event store view on construction. */
+  useHumanAuthorizationSource?(source: HumanAuthorizationSource): void;
+}
+
+export interface ExternalMaterialLoad {
+  host_session_id: string; connection_subject: string; load_key: string;
+  bootstrap: BootstrapLoad; capability_scope: readonly string[];
+}
+export type ExternalLoadLookup = { state: "loaded"; confirmation: AnchorConfirmation } | { state: "absent" | "unknown" };
+
+/**
+ * B2 (ADR-0011): read view over the workspace human-authorization event
+ * store, wired by the trusted authority into adapters that attest human
+ * events. The writer side is the owner face only (submitHumanEvent).
+ */
+export interface HumanAuthorizationSource {
+  readEvent(hostSessionId: string, eventRef: string): Promise<HumanAuthorizationEventRecord | null>;
 }
 
 /** Type guard: is the adapter's isolation complete enough for full access? */

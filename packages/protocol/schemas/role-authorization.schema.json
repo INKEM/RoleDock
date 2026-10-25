@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:role-authorization",
+  "title": "role-authorization",
+  "type": "object",
+  "properties": {
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "external_session_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "connection_subject": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "role_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "role_contract": {
+      "type": "object",
+      "properties": {
+        "package_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "package_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "package_name",
+        "package_version",
+        "content_hash"
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+      },
+      "uniqueItems": true
+    },
+    "inherit": {
+      "enum": [
+        "initialize",
+        "takeover"
+      ]
+    },
+    "expected_generation": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "expected_instance_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revoked_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "human-event",
+            "owner-selection"
+          ]
+        },
+        "event_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "actor_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "kind",
+        "event_ref",
+        "actor_id"
+      ],
+      "additionalProperties": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "authorization_id",
+    "workspace_id",
+    "external_session_id",
+    "connection_subject",
+    "role_id",
+    "role_contract",
+    "capabilities",
+    "inherit",
+    "expected_generation",
+    "expected_instance_id",
+    "expires_at",
+    "revoked_at",
+    "source",
+    "created_at"
+  ],
+  "additionalProperties": false
+}

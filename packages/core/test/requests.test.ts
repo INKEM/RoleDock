@@ -1,13 +1,10 @@
+import { grantFixtureCapabilities } from "../../../tests/helpers/policy.js";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  Coordinator,
-  installRolePack,
-  listCandidates,
-  listInboxEntries,
-} from "../src/index.js";
+import { Coordinator } from "../src/index.js";
+import { installRolePack, listCandidates, listInboxEntries } from "../src/testing.js";
 import type { WorkspaceStore } from "../src/store/workspace.js";
 import { coordinatorStore } from "../src/internal-store.js";
 import { MockHarnessAdapter } from "@roledock/adapter-mock";
@@ -56,7 +53,9 @@ function setup(): Fixture {
     roles: [{ id: "owner", docs: [{ key: "state", visibility: "project" }] }],
   });
   installRolePack(store, { sourcePath: askerPack });
+  grantFixtureCapabilities(store);
   installRolePack(store, { sourcePath: ownerPack });
+  grantFixtureCapabilities(store);
   const asker = testingOpenPrimarySession(coordinator, { role_id: "asker" });
   const owner = testingOpenPrimarySession(coordinator, { role_id: "owner" });
   return { root, coordinator, store, adapter, asker, owner };
@@ -132,6 +131,7 @@ describe("requests.create preconditions", () => {
     const packDir = join(fixture.root, "ghost-pack");
     writePack({ dir: packDir, name: "ghost-pack", roles: [{ id: "hermit" }] });
     installRolePack(fixture.store, { sourcePath: packDir });
+    grantFixtureCapabilities(fixture.store);
     await expectError("ROLE_UNINITIALIZED", () =>
       fixture.coordinator.createRequest({
         session_id: fixture.asker.session_id,
@@ -303,6 +303,7 @@ describe("state machine, budgets and late results", () => {
     const packDir = join(root, "pack");
     writePack({ dir: packDir, name: "ni-pack", roles: [{ id: "asker" }, { id: "owner" }] });
     installRolePack(store, { sourcePath: packDir });
+  grantFixtureCapabilities(store);
     const asker = testingOpenPrimarySession(coordinator, { role_id: "asker" });
     // The target role needs a primary instance (production open path).
     const ownerPrimary = await coordinator.openSession({ role_id: "owner" });
@@ -351,6 +352,7 @@ describe("state machine, budgets and late results", () => {
     const packDir = join(root, "pack");
     writePack({ dir: packDir, name: "bud-pack", roles: [{ id: "asker" }, { id: "owner" }] });
     installRolePack(store, { sourcePath: packDir });
+  grantFixtureCapabilities(store);
     const asker = testingOpenPrimarySession(coordinator, { role_id: "asker" });
     await coordinator.openSession({ role_id: "owner" });
     const created = await coordinator.createRequest({
@@ -394,13 +396,8 @@ describe("state machine, budgets and late results", () => {
       .prepare("SELECT state FROM requests WHERE request_id = ?")
       .get(created.request_id) as { state: string };
     expect(cancelled.state).toBe("cancelled");
-    // Late execution cannot complete a cancelled request.
-    try {
-      await executeRequest(fixture.store, fixture.adapter, created.request_id);
-      expect.unreachable("expected INVALID_STATE_TRANSITION");
-    } catch (error) {
-      expect(isRoleDockError(error) && error.code).toBe("INVALID_STATE_TRANSITION");
-    }
+    // Duplicate delivery returns the terminal state and performs no host work.
+    expect((await executeRequest(fixture.store, fixture.adapter, created.request_id)).state).toBe("cancelled");
     const stillCancelled = fixture.store
       .prepare("SELECT state FROM requests WHERE request_id = ?")
       .get(created.request_id) as { state: string };
@@ -481,7 +478,7 @@ describe("permission matrix over requests", () => {
       session_id: fixture.asker.session_id,
       artifact_id: artifactId,
     });
-    expect(read.body).toContain("consultation");
+    expect(read.body).toBe("ack:1");
     // Cross-role adoption: asker cannot adopt owner's artifact (from the
     // current asker primary session — the fixture created one more when
     // seeding the outsider role set).

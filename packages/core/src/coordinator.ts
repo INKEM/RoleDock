@@ -38,7 +38,7 @@ import type {
   CreateRequestResult,
   RequestBudget,
 } from "./requests/service.js";
-import { cancelRunningRequest, executeRequest } from "./requests/executor.js";
+import { cancelRunningRequest, executeRequest, cleanupRequest } from "./requests/executor.js";
 import {
   activateHandoff,
   prepareHandoff,
@@ -104,33 +104,35 @@ export class Coordinator {
     return coordinator;
   }
 
-  private constructor(
-    private readonly store: WorkspaceStore,
-    private readonly adapter?: HarnessAdapter,
-  ) {}
+  readonly #store: WorkspaceStore;
+  readonly #adapter: HarnessAdapter | undefined;
+  private constructor(store: WorkspaceStore, adapter?: HarnessAdapter) {
+    this.#store = store;
+    this.#adapter = adapter;
+  }
 
   private requireAdapter(): HarnessAdapter {
-    if (this.adapter === undefined) {
+    if (this.#adapter === undefined) {
       throw new RoleDockError(
         "VALIDATION_FAILED",
         "This operation needs a Harness adapter; pass one via Coordinator.open({ adapter }).",
         { details: { operation: "adapter" } },
       );
     }
-    return this.adapter;
+    return this.#adapter;
   }
 
   get workspaceId(): string {
-    return this.store.workspaceId;
+    return this.#store.workspaceId;
   }
 
   get root(): string {
-    return this.store.root;
+    return this.#store.root;
   }
 
   /** Release the workspace write lock. */
   close(): void {
-    this.store.close();
+    this.#store.close();
   }
 
   // -- roles (implemented in P1) --------------------------------------------
@@ -141,25 +143,25 @@ export class Coordinator {
     };
     const workspaceId = optionalString(record, "workspace_id");
     if (workspaceId !== undefined) request.workspaceId = workspaceId;
-    return installRolePack(this.store, request);
+    return installRolePack(this.#store, request);
   }
 
   async listRoles(input: unknown): Promise<{ roles: RoleSummary[] }> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    return { roles: summarizeRoles(this.store) };
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    return { roles: summarizeRoles(this.#store) };
   }
 
   async resolveRole(input: unknown): Promise<RoleResolution> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    return resolveRoleRecord(this.store, requiredString(record, "role_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    return resolveRoleRecord(this.#store, requiredString(record, "role_id"));
   }
 
   // -- sessions & handoffs (implemented in P3) ---------------------------------
   async openSession(input: unknown): Promise<OpenSessionResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const openInput: Parameters<typeof openSession>[2] = {
       role_id: requiredString(record, "role_id"),
     };
@@ -174,13 +176,13 @@ export class Coordinator {
     if (creationKey !== undefined) openInput.creation_key = creationKey;
     const workspaceId = optionalString(record, "workspace_id");
     if (workspaceId !== undefined) openInput.workspace_id = workspaceId;
-    return openSession(this.store, this.requireAdapter(), openInput);
+    return openSession(this.#store, this.requireAdapter(), openInput);
   }
 
   async resumeSession(input: unknown): Promise<ResumeSessionResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    return resumeSession(this.store, this.requireAdapter(), {
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    return resumeSession(this.#store, this.requireAdapter(), {
       session_id: requiredString(record, "session_id"),
       workspace_id: optionalString(record, "workspace_id"),
     });
@@ -196,8 +198,8 @@ export class Coordinator {
     payload_hash: string;
   }> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    const prep = prepareHandoff(this.store, {
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    const prep = prepareHandoff(this.#store, {
       session_id: requiredString(record, "session_id"),
       role_id: optionalString(record, "role_id"),
     });
@@ -214,35 +216,35 @@ export class Coordinator {
 
   async activateHandoff(input: unknown): Promise<ActivationResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const bundleId = requiredString(record, "bundle_id");
     // Provision on demand so the public two-step surface (prepare/activate)
     // covers the host creation; the internal orchestration uses the
     // three-step flow directly.
     const prep = this.rehydratePreparation(bundleId);
-    await provisionHandoff(this.store, this.requireAdapter(), prep);
-    return activateHandoff(this.store, { bundle_id: bundleId });
+    await provisionHandoff(this.#store, this.requireAdapter(), prep);
+    return activateHandoff(this.#store, { bundle_id: bundleId });
   }
 
   private rehydratePreparation(bundleId: string): HandoffPreparation {
-    return rehydratePreparationPublic(this.store, bundleId);
+    return rehydratePreparationPublic(this.#store, bundleId);
   }
 
   // -- documents (implemented in P2) ------------------------------------------
   async listDocuments(input: unknown): Promise<{ documents: DocumentListEntry[] }> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const listInput: { session_id: string; role_id?: string } = {
       session_id: requiredString(record, "session_id"),
     };
     const roleId = optionalString(record, "role_id");
     if (roleId !== undefined) listInput.role_id = roleId;
-    return listDocuments(this.store, listInput);
+    return listDocuments(this.#store, listInput);
   }
 
   async readDocument(input: unknown): Promise<DocumentReadResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const readInput: {
       session_id: string;
       document_key: string;
@@ -260,32 +262,34 @@ export class Coordinator {
       }
       readInput.revision = record.revision;
     }
-    return readDocument(this.store, readInput);
+    return readDocument(this.#store, readInput);
   }
 
   async proposeDocumentUpdate(input: unknown): Promise<CandidateProposalResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const proposeInput: {
       session_id: string;
       target_role_id: string;
       document_key: string;
       body: string;
       note?: string;
+      baseline_revision?: number;
     } = {
       session_id: requiredString(record, "session_id"),
       target_role_id: requiredString(record, "target_role_id"),
       document_key: requiredString(record, "document_key"),
       body: requiredString(record, "body"),
     };
+    if (record.baseline_revision !== undefined) proposeInput.baseline_revision = requireInteger(record, "baseline_revision");
     const note = optionalString(record, "note");
     if (note !== undefined) proposeInput.note = note;
-    return proposeDocumentUpdate(this.store, proposeInput);
+    return proposeDocumentUpdate(this.#store, proposeInput);
   }
 
   async publishDocument(input: unknown): Promise<DocumentPublishResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const publishInput: {
       session_id: string;
       document_key: string;
@@ -305,13 +309,13 @@ export class Coordinator {
     if (candidateId !== undefined) publishInput.candidate_id = candidateId;
     const adoptArtifactId = optionalString(record, "adopt_artifact_id");
     if (adoptArtifactId !== undefined) publishInput.adopt_artifact_id = adoptArtifactId;
-    return publishDocument(this.store, publishInput);
+    return publishDocument(this.#store, publishInput);
   }
 
   // -- requests & artifacts (implemented in P4) ---------------------------------
   async createRequest(input: unknown): Promise<CreateRequestResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const budgetRecord = record.budget;
     let budget: RequestBudget | undefined;
     if (budgetRecord !== undefined) {
@@ -337,7 +341,7 @@ export class Coordinator {
       }
     }
     const rationale = optionalString(record, "read_exception_rationale");
-    return createRequest(this.store, {
+    return createRequest(this.#store, {
       session_id: requiredString(record, "session_id"),
       target_role_id: requiredString(record, "target_role_id"),
       question: requiredString(record, "question"),
@@ -350,25 +354,33 @@ export class Coordinator {
 
   async getRequest(input: unknown): Promise<ReturnType<typeof getRequest>> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    return getRequest(this.store, {
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    const result = getRequest(this.#store, {
       session_id: requiredString(record, "session_id"),
       request_id: requiredString(record, "request_id"),
     });
+    if (result.state === "expired" && this.#adapter) await cleanupRequest(this.#store, this.#adapter, result.request_id);
+    return result;
   }
 
   async replyToRequest(input: unknown): Promise<ReturnType<typeof replyToRequest>> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    const result = replyToRequest(this.store, {
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    let result: ReturnType<typeof replyToRequest>;
+    try {
+      result = replyToRequest(this.#store, {
       session_id: requiredString(record, "session_id"),
       request_id: requiredString(record, "request_id"),
       body: requiredString(record, "body"),
     });
+    } catch (error) {
+      await cleanupExpiredRequest(this.#store, this.#adapter, requiredString(record, "request_id"));
+      throw error;
+    }
     // A reply re-queues the request; run the budgeted execution turn and
     // reflect the recorded state through the initiator's own read path.
     if (result.state === "queued") {
-      await executeRequest(this.store, this.requireAdapter(), result.request_id).catch(() => undefined);
+      await executeRequest(this.#store, this.requireAdapter(), result.request_id).catch(() => undefined);
       return this.getRequest({
         session_id: result.initiating.session_id,
         request_id: result.request_id,
@@ -379,25 +391,31 @@ export class Coordinator {
 
   async cancelRequest(input: unknown): Promise<ReturnType<typeof cancelRequest>> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    const result = cancelRequest(
-      this.store,
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    let result: ReturnType<typeof cancelRequest>;
+    try {
+      result = cancelRequest(
+      this.#store,
       this.requireAdapter().getCapabilities().optional.cancel === true,
       {
         session_id: requiredString(record, "session_id"),
         request_id: requiredString(record, "request_id"),
       },
     );
+    } catch (error) {
+      await cleanupExpiredRequest(this.#store, this.#adapter, requiredString(record, "request_id"));
+      throw error;
+    }
     if (result.state === "cancelled") {
-      await cancelRunningRequest(this.store, this.requireAdapter(), result.request_id).catch(() => undefined);
+      await cancelRunningRequest(this.#store, this.requireAdapter(), result.request_id).catch(() => undefined);
     }
     return result;
   }
 
   async readArtifact(input: unknown): Promise<ArtifactReadResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    return readArtifact(this.store, {
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    return readArtifact(this.#store, {
       session_id: requiredString(record, "session_id"),
       artifact_id: requiredString(record, "artifact_id"),
     });
@@ -406,7 +424,7 @@ export class Coordinator {
   // -- knowledge (implemented in P2, owner-level) ------------------------------
   async exportKnowledge(input: unknown): Promise<ExportResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
     const exportInput: { scope?: KnowledgeExportScope; role_id?: string } = {};
     const scope = optionalString(record, "scope");
     if (scope !== undefined) {
@@ -417,13 +435,13 @@ export class Coordinator {
     }
     const roleId = optionalString(record, "role_id");
     if (roleId !== undefined) exportInput.role_id = roleId;
-    return exportKnowledge(this.store, exportInput);
+    return exportKnowledge(this.#store, exportInput);
   }
 
   async importKnowledge(input: unknown): Promise<ImportResult> {
     const record = asRecord(input);
-    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
-    return importKnowledge(this.store, { bundle_dir: requiredString(record, "bundle_dir") });
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    return importKnowledge(this.#store, { bundle_dir: requiredString(record, "bundle_dir") });
   }
 }
 
@@ -475,3 +493,8 @@ export const P1_IMPLEMENTED_OPERATIONS: readonly string[] = [
   "listRoles",
   "resolveRole",
 ].sort();
+
+async function cleanupExpiredRequest(store: WorkspaceStore, adapter: HarnessAdapter | undefined, requestId: string): Promise<void> {
+  const row = store.prepare("SELECT state FROM requests WHERE request_id = ?").get(requestId) as { state: string } | undefined;
+  if (row?.state === "expired" && adapter) await cleanupRequest(store, adapter, requestId);
+}

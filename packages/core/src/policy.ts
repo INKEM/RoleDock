@@ -29,3 +29,29 @@ export type CapabilityGrants = Readonly<Record<string, readonly string[]>>;
 export function evaluate(grants: CapabilityGrants, roleId: string, capability: string): boolean {
   return grants[roleId]?.includes(capability) ?? false;
 }
+
+import type { WorkspaceStore } from "./store/workspace.js";
+import type { TrustedIdentity } from "./identity.js";
+import { requireBindingCapability, requireDelegatedAuthorizations } from "./sessions/authorization.js";
+
+export function requireCapability(store: WorkspaceStore, roleId: string | undefined, capability: string): void {
+  if (!roleId || !evaluate(store.getConfig().policy.grants, roleId, capability)) {
+    throw new RoleDockError("PERMISSION_DENIED", `Workspace policy denies ${capability}.`, { details: { capability } });
+  }
+}
+
+export function requireSessionCapability(store: WorkspaceStore, identity: TrustedIdentity, capability: string): void {
+  requireBindingCapability(store, identity.sessionId, capability);
+  requireCapability(store, identity.roleId, capability);
+  const row = store.prepare("SELECT kind, capability_scope_json FROM sessions WHERE id = ?").get(identity.sessionId) as { kind: string; capability_scope_json: string | null };
+  if (row.kind === "request" && !(JSON.parse(row.capability_scope_json ?? "[]") as string[]).includes(capability)) {
+    throw new RoleDockError("PERMISSION_DENIED", `Request scope denies ${capability}.`);
+  }
+  if (row.kind === "primary" && row.capability_scope_json !== null && !(JSON.parse(row.capability_scope_json) as string[]).includes(capability)) {
+    throw new RoleDockError("PERMISSION_DENIED", `Loaded session scope denies ${capability}.`);
+  }
+  if (row.kind === "request") {
+    const request = store.prepare("SELECT request_id FROM requests WHERE ('request-' || request_id) = (SELECT creation_key FROM sessions WHERE id = ?)").get(identity.sessionId) as { request_id: string } | undefined;
+    if (request) requireDelegatedAuthorizations(store, request.request_id);
+  }
+}

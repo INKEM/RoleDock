@@ -1,3 +1,5 @@
+import { requireCapability, requireSessionCapability } from "../policy.js";
+import { roleMaterial, documentMaterial } from "../sessions/material.js";
 import { createHash } from "node:crypto";
 import { randomBytes } from "node:crypto";
 import { RoleDockError } from "@roledock/protocol";
@@ -8,6 +10,7 @@ import { bodyHash, readObject } from "../store/objects.js";
 import { listReceiptsForSession, requireRoleIdentity, resolveSessionIdentity } from "../sessions/internal.js";
 import { asRecord, optionalString, requiredString } from "../parse.js";
 import type { TrustedIdentity } from "../identity.js";
+import { sweepAuthorizations } from "../sessions/authorization.js";
 
 type SessionIdentity = TrustedIdentity & { kind: "primary" | "request" };
 
@@ -38,7 +41,14 @@ export interface RequestRow {
   budget_json: string;
   question: string;
   state: CollaborationRequest["state"];
-  execution_uncertain_flag: number;
+  execution_uncertain: number;
+  execution_phase: string;
+  turns_reserved: number;
+  turn_key: string | null;
+  cleanup_pending: number;
+  output_bytes_used: number;
+  binding_material_json: string | null;
+  capability_scope_json: string;
   result_artifact_id: string | null;
   result_content_hash: string | null;
   error_json: string | null;
@@ -95,10 +105,10 @@ export function expireIfOverdue(store: WorkspaceStore, row: RequestRow): Request
     return row;
   }
   const budget = JSON.parse(row.budget_json) as RequestBudget;
-  if (budget.deadline === undefined || budget.deadline > new Date().toISOString()) return row;
+  if (budget.deadline === undefined || Date.parse(budget.deadline) > Date.now()) return row;
   const now = new Date().toISOString();
   store
-    .prepare("UPDATE requests SET state = 'expired', terminal_at = ?, updated_at = ? WHERE request_id = ?")
+    .prepare("UPDATE requests SET state = 'expired', cleanup_pending = 1, terminal_at = ?, updated_at = ? WHERE request_id = ?")
     .run(now, now, row.request_id);
   return { ...row, state: "expired", terminal_at: now, updated_at: now };
 }
@@ -153,6 +163,9 @@ function canonicalRequestContent(input: CreateRequestInput): string {
 }
 
 export function createRequest(store: WorkspaceStore, input: CreateRequestInput): CreateRequestResult {
+  // New requests distinguish an expired/released target from a serviceable
+  // primary even before the shared service's next maintenance tick.
+  sweepAuthorizations(store);
   if (input.workspace_id !== undefined && input.workspace_id !== store.workspaceId) {
     throw new RoleDockError(
       "VALIDATION_FAILED",
@@ -161,6 +174,9 @@ export function createRequest(store: WorkspaceStore, input: CreateRequestInput):
     );
   }
   const sessionIdentity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, sessionIdentity, "requests.create");
+  requireCapability(store, input.target_role_id, "requests.execute");
+  requireCapability(store, input.target_role_id, "documents.read");
   // Prototype rejects nested auto-requests: consultation branches cannot create.
   if (sessionIdentity.kind !== "primary") {
     throw new RoleDockError(
@@ -174,10 +190,11 @@ export function createRequest(store: WorkspaceStore, input: CreateRequestInput):
     throw new RoleDockError("VALIDATION_FAILED", "Request question must not be empty.");
   }
   const budget = input.budget ?? {};
-  if (budget.max_turns !== undefined && budget.max_turns < 1) {
+  if (budget.max_turns !== undefined && (!Number.isInteger(budget.max_turns) || budget.max_turns < 1)) {
     throw new RoleDockError("VALIDATION_FAILED", "budget.max_turns must be at least 1.");
   }
-  if (budget.deadline !== undefined && budget.deadline <= new Date().toISOString()) {
+  if (budget.max_output_bytes !== undefined && (!Number.isInteger(budget.max_output_bytes) || budget.max_output_bytes < 0)) throw new RoleDockError("VALIDATION_FAILED", "Invalid output budget.");
+  if (budget.deadline !== undefined && (!Number.isFinite(Date.parse(budget.deadline)) || Date.parse(budget.deadline) <= Date.now())) {
     throw new RoleDockError("VALIDATION_FAILED", "budget.deadline must be in the future.");
   }
 
@@ -187,6 +204,7 @@ export function createRequest(store: WorkspaceStore, input: CreateRequestInput):
   // Idempotent creation: same key + same content returns the original.
   const existing = getRequestByIdempotencyKey(store, input.idempotency_key);
   if (existing !== undefined) {
+    if (existing.initiating_session_id !== identity.sessionId) throw new RoleDockError("PERMISSION_DENIED", "Idempotency key belongs to another initiating session.");
     if (existing.idem_content_hash === contentHash) {
       return {
         request_id: existing.request_id,
@@ -215,7 +233,11 @@ export function createRequest(store: WorkspaceStore, input: CreateRequestInput):
 
   // Precondition material: this session's true read receipts, or an explicit
   // verifiable exception. Receipts are never taken from request input.
-  const receipts = listReceiptsForSession(store, input.session_id);
+  const receipts = store.prepare(`SELECT rr.receipt_id FROM read_receipts rr
+    JOIN document_revisions dr ON dr.role_id = rr.owner_role_id AND dr.document_key = rr.document_key
+      AND dr.revision = rr.revision AND dr.content_hash = rr.content_hash AND dr.workspace_id = rr.workspace_id
+    WHERE rr.session_id = ? AND rr.reader_role_id = ? AND rr.instance_id = ? AND rr.owner_role_id = ?`)
+    .all(input.session_id, identity.roleId, identity.instanceId, input.target_role_id);
   if (receipts.length === 0 && (input.read_exception_rationale === undefined || input.read_exception_rationale.trim().length === 0)) {
     throw new RoleDockError(
       "VALIDATION_FAILED",
@@ -232,7 +254,7 @@ export function createRequest(store: WorkspaceStore, input: CreateRequestInput):
       });
     }
     const head = getHead(store, input.target_role_id);
-    if (head === undefined || head.generation === 0) {
+    if (head === undefined || head.generation === 0 || head.current_instance_id === null) {
       throw new RoleDockError(
         "ROLE_UNINITIALIZED",
         `Target role "${input.target_role_id}" has no primary instance; open the role first.`,
@@ -267,6 +289,23 @@ export function createRequest(store: WorkspaceStore, input: CreateRequestInput):
         now,
         now,
       );
+    const scope = ["documents.read", "documents.propose"].filter((capability) =>
+      store.getConfig().policy.grants[input.target_role_id]?.includes(capability));
+    const initiatingBinding = store.prepare("SELECT authorization_id FROM session_bindings WHERE session_id = ?").get(identity.sessionId) as { authorization_id: string } | undefined;
+    const targetBinding = store.prepare("SELECT authorization_id, session_id FROM session_bindings WHERE instance_id = ?").get(head.current_instance_id) as { authorization_id: string; session_id: string } | undefined;
+    if (targetBinding) {
+      const targetIdentity = resolveSessionIdentity(store, targetBinding.session_id);
+      requireSessionCapability(store, targetIdentity, "requests.execute");
+      requireSessionCapability(store, targetIdentity, "documents.read");
+      const loaded = store.prepare("SELECT capability_scope_json FROM sessions WHERE id = ?").get(targetBinding.session_id) as { capability_scope_json: string };
+      const allowed = JSON.parse(loaded.capability_scope_json) as string[];
+      for (let i = scope.length - 1; i >= 0; i--) if (!allowed.includes(scope[i]!)) scope.splice(i, 1);
+    }
+    store.prepare("UPDATE requests SET initiating_authorization_id = ?, target_authorization_id = ? WHERE request_id = ?")
+      .run(initiatingBinding?.authorization_id ?? null, targetBinding?.authorization_id ?? null, requestId);
+    const material = { role: roleMaterial(store, input.target_role_id), documents: documentMaterial(store, input.target_role_id, snapshot, true) };
+    store.prepare("UPDATE requests SET binding_material_json = ?, capability_scope_json = ? WHERE request_id = ?")
+      .run(JSON.stringify(material), JSON.stringify(scope), requestId);
     // Pending execution event: the outbox bridges to the (external) executor.
     store
       .prepare(
@@ -296,6 +335,7 @@ export function getRequest(
   input: { session_id: string; request_id: string },
 ): CollaborationRequest & { question: string; budget: RequestBudget } {
   const identity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, identity, "requests.read");
   const row = getRequestRow(store, input.request_id);
   if (row === undefined) {
     throw new RoleDockError("NOT_FOUND", `Request "${input.request_id}" does not exist.`, {
@@ -324,7 +364,7 @@ function toPublicRequest(row: RequestRow): CollaborationRequest & { question: st
     },
     budget: JSON.parse(row.budget_json) as RequestBudget,
     state: row.state as CollaborationRequest["state"],
-    ...(row.execution_uncertain_flag === 1 ? { execution_uncertain: true } : {}),
+    ...(row.execution_uncertain === 1 ? { execution_uncertain: true } : {}),
     ...(row.result_artifact_id !== null && row.result_artifact_id !== undefined
       ? {
           result: {
@@ -350,9 +390,12 @@ export function replyToRequest(
   input: { session_id: string; request_id: string; body: string },
 ): CollaborationRequest & { question: string; budget: RequestBudget } {
   const identity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, identity, "requests.reply");
   if (input.body.trim().length === 0) {
     throw new RoleDockError("VALIDATION_FAILED", "Reply body must not be empty.");
   }
+  const expiring = getRequestRow(store, input.request_id);
+  if (expiring?.initiating_session_id === identity.sessionId) expireIfOverdue(store, expiring);
   return store.tx(() => {
     const row = getRequestRow(store, input.request_id);
     if (row === undefined) {
@@ -398,6 +441,9 @@ export function cancelRequest(
   input: { session_id: string; request_id: string },
 ): CollaborationRequest & { question: string; budget: RequestBudget } {
   const identity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, identity, "requests.cancel");
+  const expiring = getRequestRow(store, input.request_id);
+  if (expiring?.initiating_session_id === identity.sessionId) expireIfOverdue(store, expiring);
   return store.tx(() => {
     const row = getRequestRow(store, input.request_id);
     if (row === undefined) {
@@ -430,7 +476,7 @@ export function cancelRequest(
     }
     const now = new Date().toISOString();
     store
-      .prepare("UPDATE requests SET state = 'cancelled', terminal_at = ?, updated_at = ? WHERE request_id = ?")
+      .prepare("UPDATE requests SET state = 'cancelled', terminal_at = ?, updated_at = ?, cleanup_pending = 1 WHERE request_id = ?")
       .run(now, now, row.request_id);
     const updated = getRequestRow(store, row.request_id) ?? current;
     return toPublicRequest(updated);
@@ -453,6 +499,7 @@ export function readArtifact(
   input: { session_id: string; artifact_id: string },
 ): ArtifactReadResult {
   const identity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, identity, "artifacts.read");
   const artifact = store
     .prepare("SELECT * FROM request_artifacts WHERE artifact_id = ?")
     .get(input.artifact_id) as

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { RoleDockError, isRoleDockError } from "@roledock/protocol";
-import { WorkspaceStore } from "../src/index.js";
+import { WorkspaceStore } from "../src/testing.js";
 
 const TEMP_ROOTS: string[] = [];
 
@@ -45,7 +45,7 @@ describe("workspace store", () => {
     const migrations = second.prepare("SELECT count(*) AS n FROM schema_migrations").get() as {
       n: number;
     };
-    expect(migrations.n).toBe(4);
+    expect(migrations.n).toBe(7); // migration 7: human-authorization-events (B2, ADR-0011)
     second.close();
   });
 

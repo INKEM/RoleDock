@@ -1,8 +1,11 @@
 import { createHash } from "node:crypto";
 import { randomBytes } from "node:crypto";
-import { RoleDockError } from "@roledock/protocol";
+import { RoleDockError, validate } from "@roledock/protocol";
 import type { BootstrapBundle } from "@roledock/protocol";
 import { getHead, getPack, getRoleRow } from "../store/queries.js";
+import { putObject, readObject, bodyHash } from "../store/objects.js";
+import { roleMaterial, documentMaterial } from "./material.js";
+import { requireCapability } from "../policy.js";
 import { buildCheckpoint } from "../documents/checkpoint.js";
 import type { WorkspaceStore } from "../store/workspace.js";
 import type { AdapterSessionHandle, HarnessAdapter } from "../ports/adapter.js";
@@ -62,13 +65,17 @@ export function rehydratePreparation(
       details: { bundle_id: bundleId },
     });
   }
+  let payload: string;
+  try { payload = readObject(store, row.payload_hash); }
+  catch { throw new RoleDockError("NOT_IMPLEMENTED", "Legacy bundle has no durable material payload; prepare again."); }
+  if (bodyHash(payload) !== row.payload_hash) throw new RoleDockError("VALIDATION_FAILED", "Persisted bootstrap hash mismatch.");
   return {
     bundle_id: row.bundle_id,
     role_id: row.role_id,
     source_generation: row.source_generation,
     source_knowledge_revision: row.source_knowledge_revision,
     checkpoint_id: row.checkpoint_id,
-    payload: "",
+    payload,
     payload_hash: row.payload_hash,
     creation_key: creationKey ?? row.creation_key ?? `provision-${row.bundle_id}`,
   };
@@ -133,7 +140,8 @@ export function prepareHandoff(
   // Freeze knowledge first (own transaction inside buildCheckpoint): the
   // checkpoint pins exact document revisions; activate later verifies the
   // pair (generation, knowledge_revision) is still current.
-  const checkpoint = buildCheckpoint(store, { role_id: roleId, summary_body: "" });
+  requireCapability(store, roleId, "documents.read");
+  const { summary_content_hash: _summaryHash, ...checkpoint } = buildCheckpoint(store, { role_id: roleId, shareable_only: true });
   const checkpointHash = createHash("sha256")
     .update(serialize(checkpoint), "utf8")
     .digest("hex");
@@ -164,8 +172,11 @@ export function prepareHandoff(
     created_by_instance_id: head.current_instance_id ?? "",
     created_at: new Date().toISOString(),
   };
+  bundle.materials = { role: roleMaterial(store, roleId), checkpoint, documents: documentMaterial(store, roleId, checkpoint.document_snapshots, false) };
+  const checked = validate<BootstrapBundle>("bootstrap-bundle", bundle);
+  if (!checked.ok) throw new RoleDockError("VALIDATION_FAILED", "Invalid bootstrap material contract.", { details: { errors: checked.errors } });
   const payload = serialize(bundle);
-  const payloadHash = createHash("sha256").update(payload, "utf8").digest("hex");
+  const payloadHash = putObject(store, payload);
   const creationKey = `provision-${bundleId}`;
 
   store.tx(() => {
@@ -213,6 +224,7 @@ function isUncertainAdapterError(error: unknown): boolean {
 
 function insertProvisioningSession(
   store: WorkspaceStore,
+  adapterName: string,
   creationKey: string,
   hostSessionRef: string | null,
   state: "provisioning" | "uncertain",
@@ -223,7 +235,7 @@ function insertProvisioningSession(
       .prepare(
         "INSERT INTO sessions (id, kind, adapter, state, role_id, instance_id, host_session_ref, creation_key, created_at) VALUES (?, 'primary', ?, ?, NULL, NULL, ?, ?, ?)",
       )
-      .run(sessionId, "mock", state, hostSessionRef, creationKey, new Date().toISOString());
+      .run(sessionId, adapterName, state, hostSessionRef, creationKey, new Date().toISOString());
   });
   return sessionId;
 }
@@ -235,11 +247,12 @@ function insertProvisioningSession(
  * crash or uncertain outcome is resolved by lookup — never by blindly
  * creating another session.
  */
-export async function provisionHandoff(
+async function provisionHandoffImpl(
   store: WorkspaceStore,
   adapter: HarnessAdapter,
   prep: HandoffPreparation,
 ): Promise<{ session_id: string; host_session_id: string }> {
+  prep = rehydratePreparation(store, prep.bundle_id);
   const bundle = getBundleRow(store, prep.bundle_id);
   if (bundle === undefined) {
     throw new RoleDockError("NOT_FOUND", `Bundle "${prep.bundle_id}" does not exist.`);
@@ -262,7 +275,15 @@ export async function provisionHandoff(
     return { session_id: existing.id, host_session_id: handle.host_session_id };
   }
 
-  const sessionId = insertProvisioningSession(store, prep.creation_key, null, "provisioning");
+  const sessionId = insertProvisioningSession(
+    store,
+    adapter.getCapabilities().adapter,
+    prep.creation_key,
+    null,
+    "provisioning",
+  );
+  const logical = store.prepare("SELECT open_key, open_input_hash FROM bootstrap_bundles WHERE bundle_id = ?").get(prep.bundle_id) as { open_key: string | null; open_input_hash: string | null };
+  store.prepare("UPDATE sessions SET open_key = ?, open_input_hash = ? WHERE id = ?").run(logical.open_key, logical.open_input_hash, sessionId);
   const handle = await createHostOrFail(store, adapter, prep, sessionId);
   markProvisioned(store, prep.bundle_id, sessionId, handle.host_session_id);
   return { session_id: sessionId, host_session_id: handle.host_session_id };
@@ -405,6 +426,7 @@ export function activateHandoff(
         { details: { state: bundle.state } },
       );
     }
+    requireCapability(store, bundle.role_id, "documents.read");
     const head = getHead(store, bundle.role_id);
     if (head === undefined) {
       throw new RoleDockError("INTERNAL", "Role head vanished before activation.");
@@ -502,4 +524,15 @@ export async function abandonProvisioned(
         // Best-effort host cleanup; the authoritative state is the DB.
       });
   }
+}
+
+const provisioning = new WeakMap<WorkspaceStore, Map<string, Promise<{ session_id: string; host_session_id: string }>>>();
+export async function provisionHandoff(store: WorkspaceStore, adapter: HarnessAdapter, prep: HandoffPreparation): Promise<{ session_id: string; host_session_id: string }> {
+  const active = provisioning.get(store) ?? new Map();
+  provisioning.set(store, active);
+  const pending = active.get(prep.bundle_id);
+  if (pending) return pending;
+  const promise = provisionHandoffImpl(store, adapter, prep);
+  active.set(prep.bundle_id, promise);
+  try { return await promise; } finally { active.delete(prep.bundle_id); }
 }

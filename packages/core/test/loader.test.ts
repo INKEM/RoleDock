@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { RoleDockError, isRoleDockError } from "@roledock/protocol";
 import { loadRolePack } from "../src/index.js";
+
 import { writePack } from "../../../tests/helpers/packs.js";
 
 const TEMP_ROOTS: string[] = [];

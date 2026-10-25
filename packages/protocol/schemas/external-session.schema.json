@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:external-session",
+  "title": "external-session",
+  "type": "object",
+  "properties": {
+    "external_session_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "workspace_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,63}$"
+    },
+    "adapter": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "host_session_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "connection_subject": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "capability_ceiling": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$"
+      },
+      "uniqueItems": true
+    },
+    "state": {
+      "enum": [
+        "connected",
+        "disconnected"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "external_session_id",
+    "workspace_id",
+    "adapter",
+    "host_session_id",
+    "connection_subject",
+    "capability_ceiling",
+    "state",
+    "created_at"
+  ],
+  "additionalProperties": false
+}
