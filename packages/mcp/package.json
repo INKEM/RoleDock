@@ -1,0 +1,6 @@
+{
+  "name": "@roledock/mcp", "version": "0.1.0-alpha.0", "private": true, "type": "module", "license": "Apache-2.0",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "bin": { "roledock-mcp": "./dist/bin.js" }, "files": ["dist"],
+  "dependencies": { "@roledock/service": "0.1.0-alpha.0", "@roledock/protocol": "0.1.0-alpha.0", "@modelcontextprotocol/sdk": "1.32.1" }
+}
