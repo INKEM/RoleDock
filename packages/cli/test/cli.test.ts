@@ -23,6 +23,11 @@ afterEach(() => {
   }
 });
 
+async function grantTestPolicy(root: string, roles: string[]): Promise<void> {
+  for (const role of roles) for (const capability of ["documents.read", "documents.publish", "documents.propose", "requests.create", "requests.execute", "requests.read", "requests.reply", "requests.cancel", "artifacts.read"]) {
+    expect((await runCli(["--json", "--root", root, "admin", "grant", role, capability], capture().io)).exitCode).toBe(0);
+  }
+}
 function capture() {
   const out: string[] = [];
   const err: string[] = [];
@@ -204,6 +209,7 @@ describe("cli P2 operations", () => {
     const bodyFile = join(root, "body.md");
     writeFileSync(bodyFile, "v1 body");
     expect((await runCli(["--json", "--root", root, "roles", "install", packDir], capture().io)).exitCode).toBe(0);
+    await grantTestPolicy(root, ["worker"]);
 
     // Mint a session through the SDK testing entry (CLI does not mint sessions).
     const { Coordinator } = await import("@roledock/core");
@@ -243,6 +249,7 @@ describe("cli P2 operations", () => {
     const bodyFile = join(sourceRoot, "body.md");
     writeFileSync(bodyFile, "knowledge body");
     expect((await runCli(["--json", "--root", sourceRoot, "roles", "install", packDir], capture().io)).exitCode).toBe(0);
+    await grantTestPolicy(sourceRoot, ["worker"]);
 
     const { Coordinator } = await import("@roledock/core");
     const { testingOpenPrimarySession } = await import("@roledock/core/testing");
@@ -296,6 +303,7 @@ describe("cli P3 session operations", () => {
     const packDir = join(root, "src-pack");
     writePack({ dir: packDir, name: "p3-pack", roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }] }] });
     expect((await runCli(["--json", "--root", root, "roles", "install", packDir], capture().io)).exitCode).toBe(0);
+    await grantTestPolicy(root, ["keeper"]);
 
     const firstCap = capture();
     const first = await runCli(["--json", "--root", root, "sessions", "open", "keeper"], firstCap.io);
@@ -366,5 +374,183 @@ describe("cli P3 session operations", () => {
     expect(result.exitCode).toBe(1);
     const envelope = JSON.parse(cap.err()) as ErrorEnvelope;
     expect(envelope.error.code).toBe("VALIDATION_FAILED");
+  });
+});
+
+describe("P5: adapter selection, adoption and owner diagnostics", () => {
+  it("rejects an unknown --adapter value with exit code 2", async () => {
+    const cap = capture();
+    const result = await runCli(["--json", "--root", makeRoot(), "--adapter", "pod", "roles", "list"], cap.io);
+    expect(result.exitCode).toBe(2);
+  });
+
+  it("drives a full handoff through the process bridge and reports diagnostics", async () => {
+    const root = makeRoot();
+    const packDir = join(root, "src-pack");
+    writePack({
+      dir: packDir,
+      name: "p5-pack",
+      roles: [{ id: "keeper", docs: [{ key: "state", visibility: "project" }] }],
+    });
+    const bridge = ["--json", "--root", root, "--adapter", "bridge"];
+    expect((await runCli([...bridge, "roles", "install", packDir], capture().io)).exitCode).toBe(0);
+    await grantTestPolicy(root, ["keeper"]);
+    const firstCap = capture();
+    expect((await runCli([...bridge, "sessions", "open", "keeper"], firstCap.io)).exitCode).toBe(0);
+    const first = JSON.parse(firstCap.out()) as OutputEnvelope<{ session_id: string; generation: number }>;
+
+    // Publish knowledge via the bridge-backed session.
+    const bodyFile = join(root, "state.md");
+    const { writeFileSync } = await import("node:fs");
+    writeFileSync(bodyFile, "state v1 for the bridge", "utf8");
+    const publishCap = capture();
+    expect(
+      (
+        await runCli(
+          [...bridge, "--session", first.data?.session_id ?? "", "documents", "publish", "state", bodyFile, "0", String(first.data?.generation ?? 1)],
+          publishCap.io,
+        )
+      ).exitCode,
+    ).toBe(0);
+
+    // The handoff provisions a real host session directory under the workspace.
+    const secondCap = capture();
+    expect((await runCli([...bridge, "sessions", "open", "keeper", "latest"], secondCap.io)).exitCode).toBe(0);
+    const second = JSON.parse(secondCap.out()) as OutputEnvelope<{ session_id: string; generation: number }>;
+    expect(second.data?.generation).toBe(2);
+    const { existsSync, readdirSync } = await import("node:fs");
+    const hostSessions = join(root, ".roledock", "host-sessions", "sessions");
+    expect(existsSync(hostSessions)).toBe(true);
+    expect(readdirSync(hostSessions).some((entry) => entry.startsWith("provision-"))).toBe(true);
+
+    // Owner diagnostics: empty inbox and at least the handoff/execute events.
+    const inboxCap = capture();
+    expect((await runCli(["--json", "--root", root, "admin", "inbox"], inboxCap.io)).exitCode).toBe(0);
+    const inbox = JSON.parse(inboxCap.out()) as OutputEnvelope<{ entries: unknown[] }>;
+    expect(inbox.data?.entries).toEqual([]);
+    const eventsCap = capture();
+    expect((await runCli(["--json", "--root", root, "admin", "events"], eventsCap.io)).exitCode).toBe(0);
+    const events = JSON.parse(eventsCap.out()) as OutputEnvelope<{ events: Array<{ kind: string }> }>;
+    expect(Array.isArray(events.data?.events)).toBe(true);
+  }, 30000);
+
+  it("adopts a request result through --adopt-artifact and flips the inbox to read", async () => {
+    const root = makeRoot();
+    const { ProcessBridgeAdapter } = await import("@roledock/adapter-process-bridge");
+    // Source-path imports keep Coordinator and coordinatorStore in the same
+    // module graph (the internal store registry is module-private).
+    const { Coordinator } = await import("../../../packages/core/src/index.js");
+    const { coordinatorStore } = await import("../../../packages/core/src/internal-store.js");
+    const { executeRequest } = await import("../../../packages/core/src/requests/executor.js");
+    const packDir = join(root, "src-pack");
+    writePack({
+      dir: packDir,
+      name: "adopt-pack",
+      roles: [{ id: "asker" }, { id: "owner", docs: [{ key: "state", visibility: "project" }] }],
+    });
+    const base = ["--json", "--root", root];
+    expect((await runCli([...base, "roles", "install", packDir], capture().io)).exitCode).toBe(0);
+    await grantTestPolicy(root, ["asker", "owner"]);
+    const ownerCap = capture();
+    await runCli([...base, "sessions", "open", "owner"], ownerCap.io);
+    const owner = JSON.parse(ownerCap.out()) as OutputEnvelope<{ session_id: string }>;
+    const askerCap = capture();
+    await runCli([...base, "sessions", "open", "asker"], askerCap.io);
+    const asker = JSON.parse(askerCap.out()) as OutputEnvelope<{ session_id: string }>;
+
+    // The owner publishes shared state; the asker reads it (a real receipt),
+    // which is the creation precondition for requests.
+    const stateFile = join(root, "state.md");
+    const { writeFileSync } = await import("node:fs");
+    writeFileSync(stateFile, "shared context", "utf8");
+    expect(
+      (
+        await runCli(
+          [...base, "--session", owner.data?.session_id ?? "", "documents", "publish", "state", stateFile, "0", "1"],
+          capture().io,
+        )
+      ).exitCode,
+    ).toBe(0);
+    expect(
+      (
+        await runCli(
+          [...base, "--session", asker.data?.session_id ?? "", "documents", "read", "owner", "state"],
+          capture().io,
+        )
+      ).exitCode,
+    ).toBe(0);
+
+    const questionFile = join(root, "q.md");
+    writeFileSync(questionFile, "what should state say?", "utf8");
+    const createCap = capture();
+    expect(
+      (await runCli([...base, "--session", asker.data?.session_id ?? "", "requests", "create", "owner", questionFile, "adopt-e2e"], createCap.io)).exitCode,
+    ).toBe(0);
+    const created = JSON.parse(createCap.out()) as OutputEnvelope<{ request_id: string }>;
+
+    // Execute through the bridge-backed engine (the outbox drain path).
+    const adapter = new ProcessBridgeAdapter({ stateDir: join(root, ".roledock", "host-sessions") });
+    const coordinator = Coordinator.open({ root, adapter });
+    const executed = await executeRequest(
+      coordinatorStore(coordinator),
+      adapter,
+      created.data?.request_id ?? "",
+    );
+    expect(executed.state).toBe("completed");
+    coordinator.close();
+
+    const inboxCap = capture();
+    await runCli([...base, "admin", "inbox", "owner"], inboxCap.io);
+    const inbox = JSON.parse(inboxCap.out()) as OutputEnvelope<{ entries: Array<{ state: string; artifact_id: string }> }>;
+    expect(inbox.data?.entries).toHaveLength(1);
+    expect(inbox.data?.entries[0]?.state).toBe("unread");
+    const artifactId = inbox.data?.entries[0]?.artifact_id ?? "";
+
+    // Adopt through the CLI flag as the owner's current primary session.
+    const bodyFile = join(root, "adopt-body.md");
+    writeFileSync(bodyFile, "unused — the artifact body wins", "utf8");
+    const adoptCap = capture();
+    const adopted = await runCli(
+      [...base, "--session", owner.data?.session_id ?? "", "documents", "publish", "state", bodyFile, "1", "1", "--adopt-artifact", artifactId],
+      adoptCap.io,
+    );
+    expect(adopted.exitCode).toBe(0);
+    const afterInboxCap = capture();
+    await runCli([...base, "admin", "inbox", "owner"], afterInboxCap.io);
+    const afterInbox = JSON.parse(afterInboxCap.out()) as OutputEnvelope<{ entries: Array<{ state: string }> }>;
+    expect(afterInbox.data?.entries[0]?.state).toBe("read");
+  }, 30000);
+});
+
+describe("cli B2 trusted-entry human event submission", () => {
+  it("stores the CLI-console event for a registered session and rejects mismatched identity", async () => {
+    const { Coordinator, ExternalSessionAuthority } = await import("@roledock/core");
+    const { MockHarnessAdapter } = await import("@roledock/adapter-mock");
+    const root = makeRoot();
+    const adapter = new MockHarnessAdapter();
+    // The CLI opens the workspace writer itself; setup must close before invoking it.
+    const setupCoordinator = Coordinator.open({ root, adapter });
+    let externalSessionId: string;
+    try {
+      await setupCoordinator.installRolePack({ source_path: DEMO_TEAM });
+      adapter.seedExternalSession("sess_cli-1", "chat");
+      const external = await new ExternalSessionAuthority(setupCoordinator, adapter).register({ host_session_id: "sess_cli-1", connection_subject: "chat", capability_ceiling: ["documents.read"] });
+      externalSessionId = external.external_session_id;
+    } finally { setupCoordinator.close(); }
+    const base = ["--json", "--root", root, "admin", "submit-human-event", externalSessionId, "sess_cli-1", "chat", "confirm-001", "human-user", "builder", "documents.read", "initialize", "2099-01-01T00:00:00Z"];
+    const first = capture();
+    expect((await runCli(base, first.io)).exitCode).toBe(0);
+    const envelope = JSON.parse(first.out()) as OutputEnvelope<{ entry: string; event_ref: string }>;
+    expect(envelope.ok).toBe(true);
+    expect(envelope.data?.entry).toBe("cli-console");
+    const replay = capture();
+    expect((await runCli(base, replay.io)).exitCode).toBe(0);
+    expect((JSON.parse(replay.out()) as OutputEnvelope<{ event_ref: string }>).data?.event_ref).toBe("confirm-001");
+    const mismatched = capture();
+    const mismatchResult = await runCli(["--json", "--root", root, "admin", "submit-human-event", externalSessionId, "sess_other", "chat", "confirm-003", "human-user", "builder", "documents.read", "initialize", "2099-01-01T00:00:00Z"], mismatched.io);
+    expect(mismatchResult.exitCode).toBe(1);
+    expect((JSON.parse(mismatched.err()) as ErrorEnvelope).ok).toBe(false);
+    const malformed = capture();
+    expect((await runCli(["--json", "--root", root, "admin", "submit-human-event", externalSessionId, "sess_cli-1", "chat", "confirm-004", "human-user", "builder", "documents.read", "initialize", "2099-01-01T00:00:00Z", "extra"], malformed.io)).exitCode).toBe(1);
   });
 });

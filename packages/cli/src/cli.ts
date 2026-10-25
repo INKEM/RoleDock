@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
-import { Coordinator, WorkspaceAdmin } from "@roledock/core";
+import { join } from "node:path";
+import { Coordinator, ExternalSessionAuthority, WorkspaceAdmin } from "@roledock/core";
+import type { HarnessAdapter } from "@roledock/core";
 import { MockHarnessAdapter } from "@roledock/adapter-mock";
+import { ProcessBridgeAdapter } from "@roledock/adapter-process-bridge";
 import { RoleDockError, toErrorEnvelope } from "@roledock/protocol";
 import type { Envelope } from "@roledock/protocol";
 
@@ -21,18 +24,32 @@ const USAGE = `roledock — RoleDock command line interface (protocol 0.1)
 Usage:
   roledock --version
   roledock --help
-  roledock [--json] [--root <dir>] <group> <operation> [args...]
+  roledock [--json] [--root <dir>] [--adapter mock|bridge] [--session <id>]
+           <group> <operation> [args...]
 
 Workspace selection: --root <dir> sets the workspace root (default: current
 directory). State lives under <root>/.roledock/.
 
-Available operations (P1/P2, backed by the local workspace):
+Host adapter (--adapter): "mock" (default) proves state mechanics in memory;
+"bridge" runs a real fixture-host subprocess per operation (process-bridge
+layer, docs/adapter-guide.md). Neither is a real model host.
+
+Workspace and roles:
   roles install <pack-dir>               install a local role pack
   roles list                             list installed roles and capability state
   roles resolve <role-id>                show one role (uninitialized roles are explicit)
   admin policy                           owner view: requested vs granted capabilities
   admin grant <role> <cap>               owner entry: grant a capability to a role
   admin revoke <role> <cap>              owner entry: revoke a capability
+  admin inbox [role]                     owner diagnostic: request inbox entries
+  admin events                           owner diagnostic: pending-delivery event log
+  admin submit-human-event <ext-session> <host-session> <subject> <event-ref>
+         <actor> <role> <caps.csv> <initialize|takeover> <expires-at>
+                                         owner trusted-entry write (ADR-0011): record
+                                         a verbatim human confirmation (entry
+                                         cli-console); storage alone grants nothing
+
+Documents and knowledge:
   documents list [role]                  documents visible to the calling session
   documents read <role> <key> [rev]      read a document revision (records a receipt)
   documents propose <role> <key> <file>  propose a candidate update from a file
@@ -42,23 +59,29 @@ Available operations (P1/P2, backed by the local workspace):
                                          export a knowledge bundle (owner-level)
   knowledge import <bundle-dir>          import a bundle as candidate updates
 
-Session identity: documents.* operations require a trusted session — pass
---session <id>. Sessions are created through the RoleDock SDK session flow
-(production surface lands in P3); the CLI does not mint sessions itself.
-
-  sessions open <role-id>                open a primary session (first initializes;
+Sessions, handoffs, requests:
+  sessions open <role-id> [latest]       open a primary session (first initializes;
                                          later opens run the handoff, inherit=latest)
   sessions resume <session-id>           resume via the adapter's native capability
   handoffs prepare [--session id]        freeze a bootstrap bundle (primary session)
   handoffs activate <bundle-id>          provision + CAS-activate a prepared bundle
+  requests create <target-role> <question-file> <idempotency-key> [deadline]
+  requests get <request-id>
+  requests reply <request-id> <reply-file>
+  requests cancel <request-id>
+  artifacts read <artifact-id>           read a request result artifact
+
+Session identity: session-bound operations require --session <id>. Sessions
+are created by sessions.open (or the test-only SDK fixture); the CLI itself
+does not mint them.
 
 Every SDK operation specified by protocol 0.1 is wired. Requests carry
 budgets (max_turns / max_output_bytes / deadline) and are executed by the
 coordinator's adapter as isolated consultation branches.
 
 Output is human-readable by default; pass --json for machine-readable
-envelopes ({ok:true,...} or {ok:false,error:{code,...}}).
-Exit codes: 0 success, 1 operational error, 2 usage error.`;
+envelopes ({ok:true,...} or {ok:false,error:{code,...}}) that another agent
+can parse verbatim. Exit codes: 0 success, 1 operational error, 2 usage error.`;
 
 interface ParsedArgs {
   json: boolean;
@@ -66,6 +89,8 @@ interface ParsedArgs {
   version: boolean;
   root?: string;
   session?: string;
+  adapter?: string;
+  adoptArtifact?: string;
   positional: string[];
 }
 
@@ -100,6 +125,20 @@ function parseArgs(argv: readonly string[]): ParsedArgs | undefined {
         i++;
         break;
       }
+      case "--adapter": {
+        const value = argv[i + 1];
+        if (value === undefined) return undefined;
+        parsed.adapter = value;
+        i++;
+        break;
+      }
+      case "--adopt-artifact": {
+        const value = argv[i + 1];
+        if (value === undefined) return undefined;
+        parsed.adoptArtifact = value;
+        i++;
+        break;
+      }
       default:
         if (arg.startsWith("--")) return undefined;
         parsed.positional.push(arg);
@@ -126,11 +165,12 @@ interface CommandSpec {
   readonly args?: readonly string[];
   /**
    * Maps parsed positional args to the operation input object. Session-bound
-   * commands receive the --session value (or throw) via the context.
+   * commands receive the --session value (or throw) via the context; the
+   * --adopt-artifact value rides along for documents.publish.
    */
   readonly buildInput: (
     positional: readonly string[],
-    context: { session?: string },
+    context: { session?: string; adoptArtifact?: string },
   ) => Record<string, unknown>;
 }
 
@@ -152,6 +192,18 @@ const COMMANDS: ReadonlyMap<string, CommandSpec> = new Map([
   ["admin policy", { buildInput: () => ({}) }],
   ["admin grant", { args: ["role_id", "capability"], buildInput: namedArgs(["role_id", "capability"]) }],
   ["admin revoke", { args: ["role_id", "capability"], buildInput: namedArgs(["role_id", "capability"]) }],
+  ["admin inbox", { buildInput: (p: readonly string[]) => (p.length > 0 ? { owner_role_id: p[0] } : {}) }],
+  ["admin events", { buildInput: () => ({}) }],
+  [
+    "admin submit-human-event",
+    {
+      buildInput: (p: readonly string[]) => {
+        if (p.length !== 9) throw new RoleDockError("VALIDATION_FAILED", "admin submit-human-event takes 9 arguments: <ext-session> <host-session> <subject> <event-ref> <actor> <role> <caps.csv> <initialize|takeover> <expires-at>.");
+        const caps = p[6]!.split(",").map(item => item.trim()).filter(item => item.length > 0);
+        return { external_session_id: p[0], host_session_id: p[1], connection_subject: p[2], event_ref: p[3], actor_id: p[4], role_id: p[5], capabilities: caps, inherit: p[7], expires_at: p[8], entry: "cli-console", recorded_at: new Date().toISOString() };
+      },
+    },
+  ],
   ["documents list", { buildInput: (p: readonly string[], ctx: { session?: string }) => (p.length > 0 ? { session_id: requireSession(ctx), role_id: p[0] } : { session_id: requireSession(ctx) }) }],
   [
     "documents read",
@@ -188,7 +240,7 @@ const COMMANDS: ReadonlyMap<string, CommandSpec> = new Map([
   [
     "documents publish",
     {
-      buildInput: (p: readonly string[], ctx: { session?: string }) => {
+      buildInput: (p: readonly string[], ctx: { session?: string; adoptArtifact?: string }) => {
         const input: Record<string, unknown> = {
           session_id: requireSession(ctx),
           document_key: requirePositional(p, 0, "document key"),
@@ -198,6 +250,15 @@ const COMMANDS: ReadonlyMap<string, CommandSpec> = new Map([
         };
         const candidateId = p[4];
         if (candidateId !== undefined) input.candidate_id = candidateId;
+        if (ctx.adoptArtifact !== undefined) {
+          if (candidateId !== undefined) {
+            throw new RoleDockError(
+              "VALIDATION_FAILED",
+              "Pass either a candidate-id positional or --adopt-artifact, not both.",
+            );
+          }
+          input.adopt_artifact_id = ctx.adoptArtifact;
+        }
         return input;
       },
     },
@@ -295,12 +356,20 @@ function namedArgs(names: readonly string[]) {
 interface OperationTarget {
   readonly method: string;
   readonly admin: boolean;
+  /** B2: runs on the ExternalSessionAuthority over an opened coordinator. */
+  readonly authority?: boolean;
 }
 
 const ADMIN_METHODS: ReadonlyMap<string, string> = new Map([
   ["admin policy", "showPolicy"],
   ["admin grant", "grant"],
   ["admin revoke", "revoke"],
+  ["admin inbox", "showInbox"],
+  ["admin events", "showEvents"],
+]);
+
+const AUTHORITY_METHODS: ReadonlyMap<string, string> = new Map([
+  ["admin submit-human-event", "submitHumanEvent"],
 ]);
 
 const SDK_METHODS: ReadonlyMap<string, string> = new Map([
@@ -327,6 +396,8 @@ const SDK_METHODS: ReadonlyMap<string, string> = new Map([
 function methodFor(command: string): OperationTarget | undefined {
   const adminMethod = ADMIN_METHODS.get(command);
   if (adminMethod !== undefined) return { method: adminMethod, admin: true };
+  const authorityMethod = AUTHORITY_METHODS.get(command);
+  if (authorityMethod !== undefined) return { method: authorityMethod, admin: true, authority: true };
   const sdkMethod = SDK_METHODS.get(command);
   if (sdkMethod !== undefined) return { method: sdkMethod, admin: false };
   return undefined;
@@ -371,16 +442,49 @@ export async function runCli(argv: readonly string[], io: CliIo): Promise<CliRes
 
   let input: Record<string, unknown>;
   try {
-    input = spec.buildInput(args.positional.slice(2), { session: args.session });
+    input = spec.buildInput(args.positional.slice(2), {
+      session: args.session,
+      adoptArtifact: args.adoptArtifact,
+    });
   } catch (error) {
     emit(io, args.json, toErrorEnvelope(error), true);
     return { exitCode: 1 };
   }
   const root = args.root ?? ".";
 
+  let adapter: HarnessAdapter | undefined;
+  if (args.adapter !== undefined && args.adapter !== "mock") {
+    if (args.adapter !== "bridge") {
+      emit(
+        io,
+        args.json,
+        {
+          ok: false,
+          error: {
+            code: "VALIDATION_FAILED",
+            message: `Unknown adapter "${args.adapter}"; --adapter accepts "mock" (default) or "bridge".`,
+          },
+        },
+        true,
+      );
+      return { exitCode: 2 };
+    }
+    adapter = new ProcessBridgeAdapter({ stateDir: join(root, ".roledock", "host-sessions") });
+  }
+
   try {
     let data: unknown;
-    if (target.admin) {
+    if (target.authority === true) {
+      // ADR-0011 trusted-entry face: the authority is constructed over the same
+      // coordinator/adapter pair; submit itself never touches the host.
+      const authorityAdapter = adapter ?? new MockHarnessAdapter();
+      const coordinator = Coordinator.open({ root, adapter: authorityAdapter });
+      try {
+        data = new ExternalSessionAuthority(coordinator, authorityAdapter).submitHumanEvent(input);
+      } finally {
+        coordinator.close();
+      }
+    } else if (target.admin) {
       const admin = WorkspaceAdmin.open({ root });
       try {
         const handler = (admin as unknown as Record<string, ((input: unknown) => unknown) | undefined>)[
@@ -403,7 +507,7 @@ export async function runCli(argv: readonly string[], io: CliIo): Promise<CliRes
         admin.close();
       }
     } else {
-      const coordinator = Coordinator.open({ root, adapter: new MockHarnessAdapter() });
+      const coordinator = Coordinator.open({ root, adapter: adapter ?? new MockHarnessAdapter() });
       try {
         const handler = (coordinator as unknown as Record<string, (input: unknown) => Promise<unknown>>)[
           target.method

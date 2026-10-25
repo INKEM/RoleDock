@@ -14,6 +14,20 @@ function bootstrap(overrides: Partial<{ bundle_id: string; payload: string }> = 
 }
 
 describe("MockHarnessAdapter", () => {
+  it("cannot reuse a stale handle after a new adapter reuses a numeric host id", async () => {
+    const old = new MockHarnessAdapter();
+    const stale = await old.createSession({ creation_key: "old-primary" });
+    const fresh = new MockHarnessAdapter();
+    const current = await fresh.createSession({ creation_key: "new-primary" });
+    expect(current.host_session_id).toBe(stale.host_session_id);
+    for (const action of [
+      () => fresh.nativeResume(stale), () => fresh.runTurn(stale, { message: "must not enter new history" }),
+      () => fresh.getResult(stale), () => fresh.cancel(stale), () => fresh.closeSession(stale),
+    ]) await expect(action()).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(fresh.peek(current.host_session_id)).toMatchObject({ transcript: [], closed: false });
+    await fresh.runTurn(current, { message: "normal current host turn" });
+    expect((await fresh.getResult(current)).turn_count).toBe(1);
+  });
   it("declares full capabilities by default", () => {
     const adapter = new MockHarnessAdapter();
     const capabilities = adapter.getCapabilities();
@@ -41,7 +55,8 @@ describe("MockHarnessAdapter", () => {
     const handle = await adapter.createSession({ creation_key: "k1", bootstrap: bootstrap() });
     await adapter.runTurn(handle, { message: "hello" });
     const result = await adapter.getResult(handle);
-    expect(result).toMatchObject({ host_session_id: handle.host_session_id, state: "running", turn_count: 1 });
+    expect(result).toMatchObject({ host_session_id: handle.host_session_id, state: "idle",
+      completed: true, turn_count: 1 });
     await adapter.closeSession(handle);
     expect((await adapter.getResult(handle)).state).toBe("closed");
     await expect(adapter.runTurn(handle, { message: "x" })).rejects.toSatisfy((error: unknown) => {
