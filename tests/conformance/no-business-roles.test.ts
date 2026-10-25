@@ -19,7 +19,7 @@ function listSourceFiles(dir: string): string[] {
 }
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
-const sourceFiles = ["protocol", "core", "cli"].flatMap((pkg) =>
+const sourceFiles = readdirSync(`${repoRoot}packages/`, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name).flatMap((pkg) =>
   listSourceFiles(`${repoRoot}packages/${pkg}/src/`),
 );
 

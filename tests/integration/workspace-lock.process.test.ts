@@ -4,11 +4,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { Coordinator, WorkspaceStore } from "@roledock/core";
+import { Coordinator } from "@roledock/core";
+import { WorkspaceStore } from "../../packages/core/src/testing.js";
 import { isRoleDockError } from "@roledock/protocol";
 
 const HELPER = new URL("./helpers/hold-workspace.mjs", import.meta.url);
 const CORE_DIST = fileURLToPath(new URL("../../packages/core/dist/index.js", import.meta.url));
+const TESTING_DIST = fileURLToPath(new URL("../../packages/core/dist/testing.js", import.meta.url));
 
 const TEMP_ROOTS: string[] = [];
 function makeRoot(): string {
@@ -34,9 +36,10 @@ describe("single-coordinator lock across real processes", () => {
 
     // First process takes the lock via the real store implementation and
     // holds it until killed — no timing dependency in this test.
-    const child = spawn(process.execPath, [HELPER.pathname, root], {
+    const child = spawn(process.execPath, ["--expose-gc", HELPER.pathname, root], {
       stdio: ["ignore", "pipe", "inherit"],
     });
+    try {
     const held = new Promise<void>((resolve, reject) => {
       child.stdout.on("data", (chunk: Buffer) => {
         if (chunk.toString().includes("held")) resolve();
@@ -52,7 +55,7 @@ describe("single-coordinator lock across real processes", () => {
         "--no-warnings",
         "-e",
         `
-        import { WorkspaceStore } from ${JSON.stringify(CORE_DIST)};
+        import { WorkspaceStore } from ${JSON.stringify(TESTING_DIST)};
         try {
           WorkspaceStore.open({ root: process.argv[1] });
           console.log("UNEXPECTED-OPEN");
@@ -64,6 +67,8 @@ describe("single-coordinator lock across real processes", () => {
       ],
       { encoding: "utf8", timeout: 20000 },
     );
+    expect(probe.error, probe.stderr).toBeUndefined();
+    expect(probe.status, probe.stderr).toBe(0);
     expect(probe.stdout).not.toContain("UNEXPECTED-OPEN");
     const reported = JSON.parse(probe.stdout.trim().split("\n").pop() ?? "{}") as {
       code: string | null;
@@ -87,5 +92,11 @@ describe("single-coordinator lock across real processes", () => {
     const coordinator = Coordinator.open({ root });
     expect(coordinator.workspaceId).toMatch(/^ws-[0-9a-f]{8}$/);
     coordinator.close();
+    } finally {
+      if (child.exitCode === null && child.signalCode === null) {
+        child.kill("SIGKILL");
+        await new Promise<void>((resolve) => child.once("exit", () => resolve()));
+      }
+    }
   }, 30000);
 });
