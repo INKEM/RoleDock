@@ -367,6 +367,19 @@ export const MIGRATIONS: readonly Migration[] = [
         ON human_authorization_events(workspace_id, host_session_id, event_ref)`,
     ],
   },
+  {
+    id: 8,
+    name: "observability-timestamps",
+    statements: [
+      // G4 (desktop-gui-contract §2.3): the owner binding/load read views need
+      // observation timestamps — when a material load was confirmed and when a
+      // binding entered its current state (release/revocation/expiry time).
+      // No backfill: rows written before this column keep NULL rather than a
+      // fabricated timestamp.
+      `ALTER TABLE anchor_loads ADD COLUMN confirmed_at TEXT`,
+      `ALTER TABLE session_bindings ADD COLUMN state_changed_at TEXT`,
+    ],
+  },
 ];
 
 function migrationChecksum(migration: Migration): string {

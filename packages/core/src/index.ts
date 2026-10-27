@@ -32,6 +32,7 @@ export type {
   BootstrapLoad,
   CreateSessionInput,
   HarnessAdapter,
+  HostSessionInfo,
   NativeForkRequest,
   TurnInput,
   TurnResult,

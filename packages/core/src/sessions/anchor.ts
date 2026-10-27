@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { RoleDockError, validate } from "@roledock/protocol";
-import type { AnchorAttempt, AnchorConfirmation, ExternalSession, RoleAuthorization, SessionBinding, SessionOperation, SchemaName } from "@roledock/protocol";
+import type { AnchorAttempt, AnchorConfirmation, AnchorAttemptView, AnchorAttemptsPage, AnchorLoadView, AnchorLoadsPage, AuthorizationConfirmationsPage, CollaborationRequestState, ConfirmationChainEntry, ConfirmationEventView, ExternalSession, HostSessionDiscovery, PendingHumanEventsPage, PendingHumanEventView, RevokePreview, RoleAuthorization, SessionBinding, SessionBindingView, SessionBindingsPage, SessionOperation, SchemaName } from "@roledock/protocol";
 import type { Coordinator } from "../coordinator.js";
 import { coordinatorStore } from "../internal-store.js";
 import type { WorkspaceStore } from "../store/workspace.js";
@@ -86,6 +86,251 @@ export class ExternalSessionAuthority {
       const active = live[0];
       return { session, active_authorization: active ? { authorization_id: active.authorization_id, role_id: active.role_id, expires_at: active.expires_at, source: active.source } : null };
     });
+  }
+  /**
+   * G3 (desktop-gui-contract §9, ADR-0014): owner read view of the
+   * confirmation progress chain per registered external session. Projection
+   * only — listing and paging never advance any state.
+   */
+  listConfirmations(input: unknown): AuthorizationConfirmationsPage {
+    const data = fields(input, [], ["cursor", "limit", "external_session_id"]);
+    const limit = data.limit === undefined ? 50 : data.limit;
+    if (!Number.isInteger(limit) || (limit as number) < 1 || (limit as number) > 200) throw new RoleDockError("VALIDATION_FAILED", "limit must be an integer between 1 and 200.");
+    if (data.external_session_id !== undefined && (typeof data.external_session_id !== "string" || !/^[a-z][a-z0-9-]{0,63}$/.test(data.external_session_id as string))) throw new RoleDockError("VALIDATION_FAILED", "Invalid external_session_id filter.");
+    let cursor: { created_at: string; external_session_id: string } | null = null;
+    if (data.cursor !== undefined && data.cursor !== null) {
+      if (typeof data.cursor !== "string") throw new RoleDockError("VALIDATION_FAILED", "cursor must be a string.");
+      try {
+        const raw = JSON.parse(Buffer.from(data.cursor, "base64url").toString("utf8")) as { created_at?: unknown; external_session_id?: unknown };
+        if (typeof raw.created_at !== "string" || typeof raw.external_session_id !== "string") throw new Error("bad cursor shape");
+        cursor = { created_at: raw.created_at, external_session_id: raw.external_session_id };
+      } catch { throw new RoleDockError("VALIDATION_FAILED", "cursor is not a valid confirmation page key."); }
+    }
+    sweepAuthorizations(this.#store);
+    let rows = this.#store.prepare("SELECT external_session_id, host_session_id, connection_subject, created_at FROM external_sessions ORDER BY created_at, external_session_id").all() as unknown as { external_session_id: string; host_session_id: string; connection_subject: string; created_at: string }[];
+    if (data.external_session_id !== undefined) rows = rows.filter(row => row.external_session_id === data.external_session_id);
+    if (cursor) rows = rows.filter(row => row.created_at > cursor!.created_at || (row.created_at === cursor!.created_at && row.external_session_id > cursor!.external_session_id));
+    const page = rows.slice(0, limit as number);
+    const items = page.map(row => this.confirmationChain(row));
+    const last = page.at(-1);
+    const next = last && rows.length > page.length ? Buffer.from(JSON.stringify({ created_at: last.created_at, external_session_id: last.external_session_id }), "utf8").toString("base64url") : null;
+    return { workspace_id: this.workspaceId, observed_at: new Date().toISOString(), items, next_cursor: next };
+  }
+  private confirmationChain(row: { external_session_id: string; host_session_id: string; connection_subject: string; created_at: string }): ConfirmationChainEntry {
+    const events = (this.#store.prepare("SELECT * FROM human_authorization_events WHERE external_session_id = ? ORDER BY recorded_at, event_ref").all(row.external_session_id) as unknown as EventRow[]).map(entry => {
+      const sourceKey = JSON.stringify([row.external_session_id, "human-event", entry.event_ref]);
+      const prior = this.#store.prepare("SELECT authorization_id, record_json, revoked_at FROM role_authorizations WHERE source_key = ?").get(sourceKey) as { authorization_id: string; record_json: string; revoked_at: string | null } | undefined;
+      const authorization = prior ? JSON.parse(prior.record_json) as RoleAuthorization : null;
+      return {
+        event_ref: entry.event_ref, actor_id: entry.actor_id, role_id: entry.role_id,
+        capabilities: JSON.parse(entry.capabilities_json) as string[], inherit: entry.inherit as ConfirmationEventView["inherit"],
+        expires_at: entry.expires_at, entry: entry.entry as ConfirmationEventView["entry"], recorded_at: entry.recorded_at,
+        authorization: authorization ? { authorization_id: prior!.authorization_id, created_at: authorization.created_at, revoked_at: prior!.revoked_at, expected_generation: authorization.expected_generation } : null,
+      };
+    });
+    const attemptRow = this.#store.prepare("SELECT * FROM anchor_attempts WHERE external_session_id = ? ORDER BY created_at DESC, attempt_id DESC LIMIT 1").get(row.external_session_id) as AttemptRow | undefined;
+    const anchor_attempt = attemptRow ? {
+      attempt_id: attemptRow.attempt_id, authorization_id: attemptRow.authorization_id, state: attemptRow.state, created_at: attemptRow.created_at,
+      error: attemptRow.error_json ? JSON.parse(attemptRow.error_json) as { code: string; message: string } : null,
+      load: attemptRow.confirmation_json ? JSON.parse(attemptRow.confirmation_json) as AnchorConfirmation : null,
+    } : null;
+    const bindingRow = this.#store.prepare("SELECT session_id, role_id, generation, state, created_at FROM session_bindings WHERE external_session_id = ?").get(row.external_session_id) as { session_id: string; role_id: string; generation: number; state: SessionBinding["state"]; created_at: string } | undefined;
+    return {
+      external_session_id: row.external_session_id, host_session_id: row.host_session_id, connection_subject: row.connection_subject, created_at: row.created_at,
+      events, anchor_attempt,
+      binding: bindingRow ? { session_id: bindingRow.session_id, role_id: bindingRow.role_id, generation: bindingRow.generation, state: bindingRow.state, created_at: bindingRow.created_at } : null,
+    };
+  }
+  /**
+   * G3 (ADR-0014 §9.3): trusted-face pending queue — stored human events with
+   * no live authorization yet, for THIS connection subject's registered
+   * sessions only. The subject comes from the trusted principal, never from
+   * RPC input; ordinary sessions and owner connections have no such view.
+   */
+  listPendingHumanEvents(subject: string): PendingHumanEventsPage {
+    sweepAuthorizations(this.#store);
+    const sessions = this.#store.prepare("SELECT external_session_id FROM external_sessions WHERE connection_subject = ? ORDER BY created_at, external_session_id").all(subject) as unknown as { external_session_id: string }[];
+    const items: PendingHumanEventView[] = [];
+    for (const session of sessions) {
+      const events = this.#store.prepare("SELECT external_session_id, host_session_id, event_ref, role_id, capabilities_json, inherit, expires_at, recorded_at FROM human_authorization_events WHERE external_session_id = ? ORDER BY recorded_at, event_ref").all(session.external_session_id) as unknown as { external_session_id: string; host_session_id: string; event_ref: string; role_id: string; capabilities_json: string; inherit: string; expires_at: string; recorded_at: string }[];
+      for (const entry of events) {
+        const sourceKey = JSON.stringify([session.external_session_id, "human-event", entry.event_ref]);
+        const prior = this.#store.prepare("SELECT record_json, revoked_at FROM role_authorizations WHERE source_key = ?").get(sourceKey) as { record_json: string; revoked_at: string | null } | undefined;
+        if (prior) {
+          const authorization = JSON.parse(prior.record_json) as RoleAuthorization;
+          if (prior.revoked_at === null && Date.parse(authorization.expires_at) > Date.now()) continue;
+        }
+        items.push({ external_session_id: session.external_session_id, host_session_id: entry.host_session_id, event_ref: entry.event_ref, role_id: entry.role_id, capabilities: JSON.parse(entry.capabilities_json) as string[], inherit: entry.inherit as PendingHumanEventView["inherit"], expires_at: entry.expires_at, recorded_at: entry.recorded_at });
+      }
+    }
+    return { workspace_id: this.workspaceId, observed_at: new Date().toISOString(), items };
+  }
+  /** G3 (ADR-0014 §9.1): read-only host session discovery; never creates or attaches. */
+  async discoverHostSessions(): Promise<HostSessionDiscovery> {
+    if (!this.#adapter.listHostSessions) throw new RoleDockError("ADAPTER_CAPABILITY_MISSING", "Adapter does not declare host session discovery.");
+    const adapterName = this.#adapter.getCapabilities().adapter;
+    const candidates = await this.#adapter.listHostSessions();
+    const items = candidates.map(candidate => {
+      const registered = this.#store.prepare("SELECT external_session_id FROM external_sessions WHERE adapter = ? AND host_session_id = ?").get(adapterName, candidate.host_session_id) as { external_session_id: string } | undefined;
+      return { ...candidate, registered_external_session_id: registered?.external_session_id ?? null };
+    });
+    return { workspace_id: this.workspaceId, observed_at: new Date().toISOString(), adapter: adapterName, items };
+  }
+  /** G4 (desktop-gui-contract §2.1/§2.3): shared validation for the owner
+   * list views — limit bounds, opaque `created_at|id` cursor, optional
+   * external-session filter. Cursors are decoded, never trusted. */
+  private listInput(input: unknown): { limit: number; cursor: { created_at: string; id: string } | null; externalSessionId: string | undefined } {
+    const data = fields(input, [], ["cursor", "limit", "external_session_id"]);
+    const limit = data.limit === undefined ? 50 : data.limit;
+    if (!Number.isInteger(limit) || (limit as number) < 1 || (limit as number) > 200) throw new RoleDockError("VALIDATION_FAILED", "limit must be an integer between 1 and 200.");
+    if (data.external_session_id !== undefined && (typeof data.external_session_id !== "string" || !/^[a-z][a-z0-9-]{0,63}$/.test(data.external_session_id as string))) throw new RoleDockError("VALIDATION_FAILED", "Invalid external_session_id filter.");
+    let cursor: { created_at: string; id: string } | null = null;
+    if (data.cursor !== undefined && data.cursor !== null) {
+      if (typeof data.cursor !== "string") throw new RoleDockError("VALIDATION_FAILED", "cursor must be a string.");
+      try {
+        const raw = JSON.parse(Buffer.from(data.cursor, "base64url").toString("utf8")) as { created_at?: unknown; id?: unknown };
+        if (typeof raw.created_at !== "string" || typeof raw.id !== "string") throw new Error("bad cursor shape");
+        cursor = { created_at: raw.created_at, id: raw.id };
+      } catch { throw new RoleDockError("VALIDATION_FAILED", "cursor is not a valid page key."); }
+    }
+    return { limit: limit as number, cursor, externalSessionId: data.external_session_id as string | undefined };
+  }
+  private pageKey(value: { created_at: string; id: string }): string {
+    return Buffer.from(JSON.stringify(value), "utf8").toString("base64url");
+  }
+  /** G4 owner read view of session bindings: generation, predecessor, source
+   * authorization, effective capabilities, checkpoint reference and state
+   * timestamps. Projection only — the superseded display comparison never
+   * writes; connection availability lives on the external session, never in
+   * this state. */
+  listBindings(input: unknown): SessionBindingsPage {
+    const { limit, cursor, externalSessionId } = this.listInput(input);
+    sweepAuthorizations(this.#store);
+    let rows = this.#store.prepare(`SELECT b.external_session_id, b.session_id, b.instance_id, b.role_id, b.generation,
+        b.authorization_id, b.state, b.created_at, b.state_changed_at, e.host_session_id, i.predecessor_instance_id
+      FROM session_bindings b JOIN external_sessions e ON e.external_session_id = b.external_session_id
+      JOIN agent_instances i ON i.id = b.instance_id
+      ORDER BY b.created_at, b.external_session_id`).all() as {
+      external_session_id: string; session_id: string; instance_id: string; role_id: string; generation: number;
+      authorization_id: string; state: SessionBinding["state"]; created_at: string; state_changed_at: string | null;
+      host_session_id: string; predecessor_instance_id: string | null;
+    }[];
+    if (externalSessionId !== undefined) rows = rows.filter(row => row.external_session_id === externalSessionId);
+    if (cursor) rows = rows.filter(row => row.created_at > cursor!.created_at || (row.created_at === cursor!.created_at && row.external_session_id > cursor!.id));
+    const page = rows.slice(0, limit);
+    const items = page.map(row => this.bindingView(row));
+    const last = page.at(-1);
+    return { workspace_id: this.workspaceId, observed_at: new Date().toISOString(), items, next_cursor: last && rows.length > page.length ? this.pageKey({ created_at: last.created_at, id: last.external_session_id }) : null };
+  }
+  private bindingView(row: {
+    external_session_id: string; session_id: string; instance_id: string; role_id: string; generation: number;
+    authorization_id: string; state: SessionBinding["state"]; created_at: string; state_changed_at: string | null;
+    host_session_id: string; predecessor_instance_id: string | null;
+  }): SessionBindingView {
+    const auth = authorizationRecord(this.#store, row.authorization_id);
+    const head = getHead(this.#store, row.role_id);
+    const effectiveState: SessionBinding["state"] = row.state === "active" && head?.current_instance_id !== row.instance_id ? "superseded" : row.state;
+    let capabilities: string[] = [];
+    let checkpointId: string | null = null;
+    if (["active", "superseded"].includes(row.state)) {
+      const loaded = this.#store.prepare("SELECT capability_scope_json, bootstrap_payload FROM sessions WHERE id = ?").get(row.session_id) as { capability_scope_json: string; bootstrap_payload: string | null } | undefined;
+      const scope = loaded ? JSON.parse(loaded.capability_scope_json) as string[] : [];
+      const allowed = this.#store.getConfig().policy.grants[row.role_id] ?? [];
+      capabilities = scope.filter(cap => allowed.includes(cap) && auth.capabilities.includes(cap));
+      try {
+        const material = loaded?.bootstrap_payload ? JSON.parse(loaded.bootstrap_payload) as { materials?: { checkpoint?: { checkpoint_id?: unknown } | null } } : null;
+        checkpointId = typeof material?.materials?.checkpoint?.checkpoint_id === "string" ? material!.materials!.checkpoint!.checkpoint_id as string : null;
+      } catch { checkpointId = null; }
+    }
+    const activating = this.#store.prepare("SELECT source_knowledge_revision FROM anchor_attempts WHERE authorization_id = ? AND state = 'active' ORDER BY created_at DESC LIMIT 1").get(row.authorization_id) as { source_knowledge_revision: number } | undefined;
+    return {
+      external_session_id: row.external_session_id, host_session_id: row.host_session_id, session_id: row.session_id,
+      instance_id: row.instance_id, predecessor_instance_id: row.predecessor_instance_id, role_id: row.role_id,
+      generation: row.generation, state: row.state, effective_state: effectiveState, capabilities,
+      authorization: { authorization_id: auth.authorization_id, revoked_at: auth.revoked_at, expires_at: auth.expires_at, source: auth.source, source_knowledge_revision: activating?.source_knowledge_revision ?? null },
+      checkpoint_id: checkpointId, created_at: row.created_at, state_changed_at: row.state_changed_at,
+    };
+  }
+  /** G4 owner read view of anchor attempts: state, the four load-confirmation
+   * judges, failure reason at the error-message layer. Projection only. */
+  listAttempts(input: unknown): AnchorAttemptsPage {
+    const { limit, cursor, externalSessionId } = this.listInput(input);
+    let rows = this.#store.prepare(`SELECT a.attempt_id, a.external_session_id, a.authorization_id, a.bundle_hash, a.load_key,
+        a.source_generation, a.source_knowledge_revision, a.state, a.confirmation_json, a.error_json, a.created_at, e.host_session_id
+      FROM anchor_attempts a JOIN external_sessions e ON e.external_session_id = a.external_session_id
+      ORDER BY a.created_at, a.attempt_id`).all() as {
+      attempt_id: string; external_session_id: string; authorization_id: string; bundle_hash: string; load_key: string;
+      source_generation: number; source_knowledge_revision: number; state: AnchorAttempt["state"];
+      confirmation_json: string | null; error_json: string | null; created_at: string; host_session_id: string;
+    }[];
+    if (externalSessionId !== undefined) rows = rows.filter(row => row.external_session_id === externalSessionId);
+    if (cursor) rows = rows.filter(row => row.created_at > cursor!.created_at || (row.created_at === cursor!.created_at && row.attempt_id > cursor!.id));
+    const page = rows.slice(0, limit);
+    const items: AnchorAttemptView[] = page.map(row => ({
+      attempt_id: row.attempt_id, external_session_id: row.external_session_id, host_session_id: row.host_session_id,
+      authorization_id: row.authorization_id, state: row.state, source_generation: row.source_generation,
+      source_knowledge_revision: row.source_knowledge_revision, bundle_hash: row.bundle_hash, load_key: row.load_key,
+      confirmation: row.confirmation_json ? JSON.parse(row.confirmation_json) as AnchorConfirmation : null,
+      error: row.error_json ? JSON.parse(row.error_json) as { code: string; message: string } : null,
+      created_at: row.created_at,
+    }));
+    const last = page.at(-1);
+    return { workspace_id: this.workspaceId, observed_at: new Date().toISOString(), items, next_cursor: last && rows.length > page.length ? this.pageKey({ created_at: last.created_at, id: last.attempt_id }) : null };
+  }
+  /** G4 owner read view of material loads: load_key, material version and
+   * confirmation time. Confirmation facts come from the stored host
+   * confirmation; confirmed_at stays null for rows written before the column
+   * existed. Projection only. */
+  listLoads(input: unknown): AnchorLoadsPage {
+    const { limit, cursor, externalSessionId } = this.listInput(input);
+    let rows = this.#store.prepare(`SELECT l.load_key, l.attempt_id, l.bundle_hash, l.prepared_at, l.confirmed_at, l.confirmation_json, a.external_session_id
+      FROM anchor_loads l JOIN anchor_attempts a ON a.attempt_id = l.attempt_id
+      ORDER BY l.prepared_at, l.load_key`).all() as {
+      load_key: string; attempt_id: string; bundle_hash: string; prepared_at: string;
+      confirmed_at: string | null; confirmation_json: string | null; external_session_id: string;
+    }[];
+    if (externalSessionId !== undefined) rows = rows.filter(row => row.external_session_id === externalSessionId);
+    if (cursor) rows = rows.filter(row => row.prepared_at > cursor!.created_at || (row.prepared_at === cursor!.created_at && row.load_key > cursor!.id));
+    const page = rows.slice(0, limit);
+    const items: AnchorLoadView[] = page.map(row => {
+      const confirmation = row.confirmation_json ? JSON.parse(row.confirmation_json) as AnchorConfirmation : null;
+      return {
+        load_key: row.load_key, attempt_id: row.attempt_id, external_session_id: row.external_session_id,
+        bundle_hash: row.bundle_hash, load_version: typeof confirmation?.load_version === "number" ? confirmation.load_version : null,
+        prepared_at: row.prepared_at, confirmed_at: row.confirmed_at,
+      };
+    });
+    const last = page.at(-1);
+    return { workspace_id: this.workspaceId, observed_at: new Date().toISOString(), items, next_cursor: last && rows.length > page.length ? this.pageKey({ created_at: last.prepared_at, id: last.load_key }) : null };
+  }
+  /** G4 read-only impact preview for revoke: what would stop working right
+   * now. The revoke stays the separate explicit owner write; the preview
+   * never mutates (the sweep keeps expiry honest, as in the other owner
+   * read views). Withdrawn-request semantics mirror invalidateBinding. */
+  revokePreview(input: unknown): RevokePreview {
+    const data = fields(input, ["authorization_id"]);
+    const auth = authorizationRecord(this.#store, str(data, "authorization_id"));
+    const external = this.externalSession(auth.external_session_id);
+    sweepAuthorizations(this.#store);
+    const bindings = (this.#store.prepare("SELECT external_session_id, session_id, role_id, generation, state FROM session_bindings WHERE authorization_id = ? AND state IN ('active','superseded')").all(auth.authorization_id) as {
+      external_session_id: string; session_id: string; role_id: string; generation: number; state: SessionBinding["state"];
+    }[]).map(row => ({ ...row }));
+    const requests = (this.#store.prepare(`SELECT request_id, state, execution_uncertain, cleanup_pending, target_role_id, question FROM requests
+      WHERE (initiating_authorization_id = ? OR target_authorization_id = ?) AND state NOT IN ('completed','failed','cancelled','expired')
+      ORDER BY created_at, request_id`).all(auth.authorization_id, auth.authorization_id) as {
+      request_id: string; state: CollaborationRequestState; execution_uncertain: number; cleanup_pending: number; target_role_id: string; question: string;
+    }[]).map(row => ({
+      request_id: row.request_id, state: row.state, execution_uncertain: row.execution_uncertain === 1,
+      cleanup_pending: row.cleanup_pending === 1, target_role_id: row.target_role_id, question: row.question,
+    }));
+    return {
+      workspace_id: this.workspaceId, observed_at: new Date().toISOString(),
+      authorization: {
+        authorization_id: auth.authorization_id, role_id: auth.role_id, external_session_id: auth.external_session_id,
+        host_session_id: external.host_session_id, created_at: auth.created_at, expires_at: auth.expires_at, revoked_at: auth.revoked_at,
+      },
+      bindings, requests,
+    };
   }
   externalSession(id: string): ExternalSession {
     const row = this.#store.prepare("SELECT * FROM external_sessions WHERE external_session_id = ?").get(id) as (Omit<ExternalSession, "capability_ceiling"> & { capability_ceiling_json: string }) | undefined;
@@ -227,17 +472,19 @@ export class ExternalSessionAuthority {
   }
   private binding(externalId: string): SessionBinding | null {
     sweepAuthorizations(this.#store);
-    const row = this.#store.prepare("SELECT * FROM session_bindings WHERE external_session_id = ?").get(externalId) as Omit<SessionBinding, "capabilities" | "source"> | undefined;
+    const row = this.#store.prepare("SELECT * FROM session_bindings WHERE external_session_id = ?").get(externalId) as (Omit<SessionBinding, "capabilities" | "source"> & { state_changed_at?: string | null }) | undefined;
     if (!row) return null;
     if (row.state === "active" && getHead(this.#store, row.role_id)?.current_instance_id !== row.instance_id) {
-      this.#store.prepare("UPDATE session_bindings SET state = 'superseded' WHERE external_session_id = ? AND state = 'active'").run(externalId);
+      this.#store.prepare("UPDATE session_bindings SET state = 'superseded', state_changed_at = ? WHERE external_session_id = ? AND state = 'active'").run(new Date().toISOString(), externalId);
       row.state = "superseded";
     }
+    // state_changed_at is owner-observability only (G4); the session-face DTO predates it.
+    const { state_changed_at: _stateChangedAt, ...wire } = row;
     const auth = authorizationRecord(this.#store, row.authorization_id);
     const loaded = this.#store.prepare("SELECT capability_scope_json FROM sessions WHERE id = ?").get(row.session_id) as { capability_scope_json: string };
     const scope = JSON.parse(loaded.capability_scope_json) as string[];
     const allowed = this.#store.getConfig().policy.grants[row.role_id] ?? [];
-    return checked("session-binding", { ...row, source: auth.source, capabilities: ["active", "superseded"].includes(row.state) ? scope.filter(cap => allowed.includes(cap) && auth.capabilities.includes(cap)) : [] });
+    return checked("session-binding", { ...wire, source: auth.source, capabilities: ["active", "superseded"].includes(row.state) ? scope.filter(cap => allowed.includes(cap) && auth.capabilities.includes(cap)) : [] });
   }
   private attempt(id: string, externalId: string): AnchorAttempt {
     const row = this.#store.prepare("SELECT * FROM anchor_attempts WHERE attempt_id = ? AND external_session_id = ?").get(id, externalId) as AttemptRow | undefined;
@@ -297,7 +544,7 @@ export class ExternalSessionAuthority {
         }
         if (this.attempt(id, externalId).state === "failed") return this.result(id, externalId);
         if (confirmation.host_session_id !== external.host_session_id || confirmation.load_key !== attempt.load_key || confirmation.content_hash !== attempt.bundle_hash || !Number.isInteger(confirmation.load_version) || confirmation.load_version < 1) throw new RoleDockError("VALIDATION_FAILED", "Host load confirmation does not match session, key, hash and version.");
-        this.#store.prepare("UPDATE anchor_loads SET confirmation_json = ? WHERE load_key = ?").run(JSON.stringify(confirmation), attempt.load_key);
+        this.#store.prepare("UPDATE anchor_loads SET confirmation_json = ?, confirmed_at = ? WHERE load_key = ?").run(JSON.stringify(confirmation), new Date().toISOString(), attempt.load_key);
         this.#store.prepare("UPDATE anchor_attempts SET confirmation_json = ? WHERE attempt_id = ?").run(JSON.stringify(confirmation), id);
         const head = getHead(this.#store, auth.role_id)!;
         this.applicableAuthorization(externalId, auth.authorization_id);
@@ -327,11 +574,11 @@ export class ExternalSessionAuthority {
           const sessionId = newId("sess"), instanceId = newId("inst"), now = new Date().toISOString(), generation = current.generation + 1;
           if (current.current_instance_id) {
             this.#store.prepare("UPDATE agent_instances SET state = 'superseded' WHERE id = ?").run(current.current_instance_id);
-            this.#store.prepare("UPDATE session_bindings SET state = 'superseded' WHERE instance_id = ? AND state = 'active'").run(current.current_instance_id);
+            this.#store.prepare("UPDATE session_bindings SET state = 'superseded', state_changed_at = ? WHERE instance_id = ? AND state = 'active'").run(now, current.current_instance_id);
           }
           this.#store.prepare("INSERT INTO agent_instances (id, role_id, generation, predecessor_instance_id, state, created_at) VALUES (?, ?, ?, ?, 'active', ?)").run(instanceId, auth.role_id, generation, current.current_instance_id, now);
           this.#store.prepare("INSERT INTO sessions (id, kind, adapter, state, role_id, instance_id, host_session_ref, created_at, capability_scope_json, bootstrap_payload) VALUES (?, 'primary', ?, 'active', ?, ?, ?, ?, ?, ?)").run(sessionId, external.adapter, auth.role_id, instanceId, external.host_session_id, now, JSON.stringify(scope), payload);
-          this.#store.prepare("INSERT INTO session_bindings (external_session_id, session_id, instance_id, role_id, generation, authorization_id, state, created_at) VALUES (?, ?, ?, ?, ?, ?, 'active', ?)").run(externalId, sessionId, instanceId, auth.role_id, generation, auth.authorization_id, now);
+          this.#store.prepare("INSERT INTO session_bindings (external_session_id, session_id, instance_id, role_id, generation, authorization_id, state, created_at, state_changed_at) VALUES (?, ?, ?, ?, ?, ?, 'active', ?, ?)").run(externalId, sessionId, instanceId, auth.role_id, generation, auth.authorization_id, now, now);
           const changed = this.#store.prepare("UPDATE role_heads SET current_instance_id = ?, generation = ?, updated_at = ? WHERE role_id = ? AND generation = ? AND knowledge_revision = ? AND current_instance_id IS ?").run(instanceId, generation, now, auth.role_id, current.generation, attempt.source_knowledge_revision, current.current_instance_id);
           if (changed.changes !== 1) throw new RoleDockError("GENERATION_CONFLICT", "Anchor CAS did not activate.");
           this.#store.prepare("UPDATE anchor_attempts SET state = 'active', error_json = NULL WHERE attempt_id = ?").run(id);

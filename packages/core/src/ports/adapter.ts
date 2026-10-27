@@ -93,6 +93,16 @@ export interface NativeForkRequest {
   target_role_id?: string;
 }
 
+/** G3 (ADR-0014 §9.1): read-only host session metadata for discovery.
+ * Metadata only — never chat content. */
+export interface HostSessionInfo {
+  host_session_id: string;
+  title: string | null;
+  status: string | null;
+  kind: string | null;
+  updated_at: string | null;
+}
+
 export interface HarnessAdapter {
   getCapabilities(): AdapterCapabilities;
   /**
@@ -115,6 +125,8 @@ export interface HarnessAdapter {
   readHumanAuthorization?(hostSessionId: string, eventRef: string): Promise<HumanAuthorizationEvent | null>;
   loadExternalMaterials?(input: ExternalMaterialLoad): Promise<AnchorConfirmation>;
   lookupExternalLoad?(hostSessionId: string, loadKey: string): Promise<ExternalLoadLookup>;
+  /** G3: read-only host session discovery; never creates or attaches. */
+  listHostSessions?(): Promise<HostSessionInfo[]>;
   /** B2: the trusted authority installs the workspace event store view on construction. */
   useHumanAuthorizationSource?(source: HumanAuthorizationSource): void;
 }

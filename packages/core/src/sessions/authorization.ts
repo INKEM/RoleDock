@@ -18,7 +18,7 @@ export function invalidateBinding(store: WorkspaceStore, externalId: string, sta
   const row = store.prepare("SELECT * FROM session_bindings WHERE external_session_id = ?").get(externalId) as { instance_id: string; session_id: string; authorization_id: string; role_id: string; state: string } | undefined;
   if (!row || !["active", "superseded"].includes(row.state)) return;
   const now = new Date().toISOString();
-  store.prepare("UPDATE session_bindings SET state = ? WHERE external_session_id = ?").run(state, externalId);
+  store.prepare("UPDATE session_bindings SET state = ?, state_changed_at = ? WHERE external_session_id = ?").run(state, now, externalId);
   store.prepare("UPDATE sessions SET state = ? WHERE id = ?").run(state, row.session_id);
   store.prepare("UPDATE agent_instances SET state = 'retired' WHERE id = ?").run(row.instance_id);
   store.prepare("UPDATE role_heads SET current_instance_id = NULL, updated_at = ? WHERE role_id = ? AND current_instance_id = ?").run(now, row.role_id, row.instance_id);

@@ -45,7 +45,7 @@ describe("workspace store", () => {
     const migrations = second.prepare("SELECT count(*) AS n FROM schema_migrations").get() as {
       n: number;
     };
-    expect(migrations.n).toBe(7); // migration 7: human-authorization-events (B2, ADR-0011)
+    expect(migrations.n).toBe(8); // migration 8: observability timestamps (G4); 7 = human-authorization-events (B2)
     second.close();
   });
 
