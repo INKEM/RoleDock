@@ -45,7 +45,7 @@ describe("workspace store", () => {
     const migrations = second.prepare("SELECT count(*) AS n FROM schema_migrations").get() as {
       n: number;
     };
-    expect(migrations.n).toBe(8); // migration 8: observability timestamps (G4); 7 = human-authorization-events (B2)
+    expect(migrations.n).toBe(9); // migration 9: request cleanup error (G6); 8 = observability timestamps (G4)
     second.close();
   });
 

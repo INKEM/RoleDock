@@ -45,7 +45,10 @@ export type {
   RequestBudget,
   RequestRow,
   ArtifactReadResult,
+  SessionInboxEntry,
+  OwnerCancelOutcome,
 } from "./requests/service.js";
+export { cancelByOwner, listSessionInbox } from "./requests/service.js";
 export type { ExecutionResult } from "./requests/executor.js";
 export type { HandoffPreparation, BundleRow, ActivationResult } from "./sessions/handoff.js";
 export type { OpenSessionInput, OpenSessionResult, ResumeSessionResult } from "./sessions/open.js";

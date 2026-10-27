@@ -6,7 +6,7 @@ import { dirname, isAbsolute } from "node:path";
 import { randomBytes } from "node:crypto";
 import { Coordinator, ExternalSessionAuthority, WorkspaceAdmin } from "@roledock/core";
 import type { HarnessAdapter, SessionConnection } from "@roledock/core";
-import type { WorkspaceServiceInfo, WorkspaceRuntimeStatus, RoleDetails, PolicyListPage, AuthorizationConfirmationsPage, PendingHumanEventsPage, HostSessionDiscovery, SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview, OwnerDocumentListPage, OwnerDocumentRead, OwnerDocumentRevisionsPage, OwnerCandidatesPage, OwnerCheckpointListPage, OwnerCheckpointDetail } from "@roledock/protocol";
+import type { WorkspaceServiceInfo, WorkspaceRuntimeStatus, RoleDetails, PolicyListPage, AuthorizationConfirmationsPage, PendingHumanEventsPage, HostSessionDiscovery, SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview, OwnerDocumentListPage, OwnerDocumentRead, OwnerDocumentRevisionsPage, OwnerCandidatesPage, OwnerCheckpointListPage, OwnerCheckpointDetail, OwnerRequestInboxPage, OwnerRequestDetail, OwnerArtifactRead, OwnerCleanupPage, OwnerCancelResult } from "@roledock/protocol";
 import { RoleDockError, toErrorEnvelope, validate } from "@roledock/protocol";
 import type { ErrorEnvelope } from "@roledock/protocol";
 
@@ -98,7 +98,7 @@ export class WorkspaceService {
   private async invoke(principal: Principal, operation: string, input: unknown): Promise<unknown> {
     if (principal.kind === "session") return principal.connection.call(operation, input);
     const data = object(input);
-    if (["connections.trust", "externalSessions.register", "externalSessions.list", "externalSessions.discover", "authorizations.recordHuman", "authorizations.recordOwner", "authorizations.revoke", "authorizations.revokePreview", "authorizations.submitHumanEvent", "authorizations.pendingEvents", "authorizations.confirmations", "sessions.listBindings", "sessions.listAttempts", "sessions.listLoads", "documents.list", "documents.read", "documents.listRevisions", "documents.listCandidates", "checkpoints.list", "checkpoints.get"].includes(operation)) {
+    if (["connections.trust", "externalSessions.register", "externalSessions.list", "externalSessions.discover", "authorizations.recordHuman", "authorizations.recordOwner", "authorizations.revoke", "authorizations.revokePreview", "authorizations.submitHumanEvent", "authorizations.pendingEvents", "authorizations.confirmations", "sessions.listBindings", "sessions.listAttempts", "sessions.listLoads", "documents.list", "documents.read", "documents.listRevisions", "documents.listCandidates", "checkpoints.list", "checkpoints.get", "requests.listInbox", "requests.get", "requests.cancelByOwner", "requests.listCleanup", "artifacts.read"].includes(operation)) {
       const result = validate("service-control-operation", { operation, input });
       if (!result.ok) throw new RoleDockError("VALIDATION_FAILED", "Invalid control operation input.", { details: { errors: result.errors } });
     }
@@ -215,6 +215,39 @@ export class WorkspaceService {
       const checked = validate<OwnerCheckpointDetail>("owner-checkpoint-detail", detail);
       if (!checked.ok) throw new RoleDockError("INTERNAL", "checkpoints.get projection failed schema validation.", { details: { errors: checked.errors } });
       return detail;
+    }
+    // G6 (desktop-gui-contract §2.3): owner request/artifact/cleanup views and
+    // the §6 management cancellation — independent owner principal, the
+    // adapter's cancel capability boundary is passed through, never bypassed.
+    if (operation === "requests.listInbox") {
+      const page = (this.#admin.requestInbox as (input: unknown) => OwnerRequestInboxPage)(data);
+      const checked = validate<OwnerRequestInboxPage>("owner-requests", page);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "requests.listInbox projection failed schema validation.", { details: { errors: checked.errors } });
+      return page;
+    }
+    if (operation === "requests.get") {
+      const detail = (this.#admin.requestGet as (input: unknown) => OwnerRequestDetail)(data);
+      const checked = validate<OwnerRequestDetail>("owner-request-detail", detail);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "requests.get projection failed schema validation.", { details: { errors: checked.errors } });
+      return detail;
+    }
+    if (operation === "requests.cancelByOwner") {
+      const result = (this.#admin.cancelRequestByOwner as (input: unknown, adapterCancelDeclared: boolean) => OwnerCancelResult)(data, this.#capabilities.optional.cancel === true);
+      const checked = validate<OwnerCancelResult>("owner-cancel-result", result);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "requests.cancelByOwner projection failed schema validation.", { details: { errors: checked.errors } });
+      return result;
+    }
+    if (operation === "requests.listCleanup") {
+      const page = (this.#admin.cleanupList as (input: unknown) => OwnerCleanupPage)(data);
+      const checked = validate<OwnerCleanupPage>("owner-cleanup", page);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "requests.listCleanup projection failed schema validation.", { details: { errors: checked.errors } });
+      return page;
+    }
+    if (operation === "artifacts.read") {
+      const read = (this.#admin.artifactRead as (input: unknown) => OwnerArtifactRead)(data);
+      const checked = validate<OwnerArtifactRead>("owner-artifact", read);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "artifacts.read projection failed schema validation.", { details: { errors: checked.errors } });
+      return read;
     }
     const adminMethods: Record<string, keyof WorkspaceAdmin> = { "policy.show": "showPolicy", "policy.grant": "grant", "policy.revoke": "revoke", "admin.inbox": "showInbox", "admin.events": "showEvents" };
     // G2 read models with Schema enforcement at the transport boundary.

@@ -69,4 +69,5 @@ export {
   expireIfOverdue,
 } from "./requests/service.js";
 export { executeRequest, rejectLateCompletion } from "./requests/executor.js";
+export { listSessionInbox } from "./requests/service.js";
 export { prepareHandoff, provisionHandoff, activateHandoff } from "./sessions/handoff.js";

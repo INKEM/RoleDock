@@ -38,6 +38,7 @@ describe("coordinator operation surface", () => {
       "installRolePack",
       "listDocuments",
       "listRoles",
+      "listSessionInbox",
       "openSession",
       "prepareHandoff",
       "proposeDocumentUpdate",
@@ -48,7 +49,7 @@ describe("coordinator operation surface", () => {
       "resolveRole",
       "resumeSession",
     ].sort());
-    expect(coordinatorOperations()).toHaveLength(18);
+    expect(coordinatorOperations()).toHaveLength(19);
     expect(IMPLEMENTED_OPERATIONS).toEqual([
       "activateHandoff",
       "cancelRequest",
@@ -59,6 +60,7 @@ describe("coordinator operation surface", () => {
       "installRolePack",
       "listDocuments",
       "listRoles",
+      "listSessionInbox",
       "openSession",
       "prepareHandoff",
       "proposeDocumentUpdate",

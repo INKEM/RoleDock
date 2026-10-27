@@ -24,7 +24,12 @@
         "documents.listRevisions",
         "documents.listCandidates",
         "checkpoints.list",
-        "checkpoints.get"
+        "checkpoints.get",
+        "requests.listInbox",
+        "requests.get",
+        "requests.cancelByOwner",
+        "requests.listCleanup",
+        "artifacts.read"
       ]
     },
     "input": {
@@ -656,6 +661,121 @@
               "checkpoint_id": { "type": "string", "minLength": 1 }
             },
             "required": ["checkpoint_id"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "requests.listInbox"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G6 owner face: paged request read view with state/role filters. Projection only.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "state": { "enum": ["accepted", "queued", "running", "awaiting_input", "completed", "failed", "cancelled", "expired"] },
+              "target_role_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "requests.get"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G6 owner face: one request's full detail (question, budget, reported usage). Projection only.",
+            "properties": {
+              "request_id": { "type": "string", "minLength": 1 }
+            },
+            "required": ["request_id"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "requests.cancelByOwner"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G6 owner management cancellation (§6 matrix): independent owner principal + audit; idempotency_key optional per §5. Never borrows the initiating session identity.",
+            "properties": {
+              "request_id": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 },
+              "idempotency_key": { "type": "string", "minLength": 1 }
+            },
+            "required": ["request_id", "reason"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "requests.listCleanup"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G6 owner face: reclamation view — terminal requests with cleanup_pending and cleanup_error (failure distinguishable, terminal state unchanged).",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "pending_only": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "artifacts.read"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G6 owner face: one artifact's raw bytes + content_hash. Reading grants no write/publish right.",
+            "properties": {
+              "artifact_id": { "type": "string", "minLength": 1 }
+            },
+            "required": ["artifact_id"],
             "additionalProperties": false
           }
         }

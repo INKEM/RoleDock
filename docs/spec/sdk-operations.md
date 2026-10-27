@@ -151,6 +151,13 @@ reply/cancel 也先提交已发生的到期，再拒绝相应动作；错误不�
 - 错误：`NOT_FOUND`、`PERMISSION_DENIED`
 - 原子性：只读
 
+### inbox.list
+- 输入:unread_only(可选布尔)
+- 输出:本会话绑定角色的收件条目(entry/artifact/状态 unread|read/请求状态),只读
+- 身份:会话面;固定为自身绑定角色,其他角色不可见
+- 错误:`PERMISSION_DENIED`(无 requests.read 能力或无绑定)
+- 原子性:只读;条目不注入主会话
+
 ## 7. knowledge
 
 ### knowledge.export

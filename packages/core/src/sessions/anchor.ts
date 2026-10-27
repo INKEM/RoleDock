@@ -649,6 +649,8 @@ export class ExternalSessionAuthority {
       "requests.reply": { method: "replyToRequest", required: ["request_id", "body"] },
       "requests.cancel": { method: "cancelRequest", required: ["request_id"] },
       "artifacts.read": { method: "readArtifact", required: ["artifact_id"] },
+      // G6: the session's own inbox — fixed to its binding role, read-only.
+      "inbox.list": { method: "listSessionInbox", required: [], optional: ["unread_only"] },
     };
     const entry = map[operation];
     if (!entry) throw new RoleDockError("PERMISSION_DENIED", "Operation is not available on ordinary session connections.");

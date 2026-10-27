@@ -788,3 +788,92 @@ export interface OwnerCheckpointDetail {
   created_by_instance_id: string;
   created_at: string;
 }
+
+/** G6 (desktop-gui-contract §2.3): owner request summary. Usage is what the
+ * host actually REPORTED — null means unknown (never rendered as 0). */
+export interface OwnerRequestSummary {
+  request_id: string;
+  initiating: { session_id: string; instance_id: string; role_id: string };
+  target_role_id: string;
+  state: CollaborationRequestState;
+  execution_uncertain: boolean;
+  cleanup_pending: boolean;
+  binding: { target_generation: number; knowledge_revision: number };
+  budget: { max_turns?: number; deadline?: string };
+  usage: { output_bytes: number | null; turns_reserved: number | null };
+  result: { artifact_id: string; content_hash: string; summary?: string } | null;
+  created_at: string;
+  updated_at: string;
+  terminal_at: string | null;
+  question_preview: string;
+}
+
+export interface OwnerRequestInboxPage {
+  workspace_id: string;
+  observed_at: string;
+  items: OwnerRequestSummary[];
+  next_cursor: string | null;
+}
+
+/** G6 owner read of one request: full question (including appended
+ * clarification turns), budget and reported usage. */
+export interface OwnerRequestDetail {
+  workspace_id: string;
+  observed_at: string;
+  request_id: string;
+  idempotency_key: string;
+  initiating: { session_id: string; instance_id: string; role_id: string };
+  target_role_id: string;
+  state: CollaborationRequestState;
+  execution_uncertain: boolean;
+  cleanup_pending: boolean;
+  binding: { target_generation: number; knowledge_revision: number };
+  budget: { max_turns?: number; deadline?: string };
+  usage: { output_bytes: number | null; turns_reserved: number | null };
+  question: string;
+  result: { artifact_id: string; content_hash: string; summary?: string } | null;
+  error: { code: string; message: string } | null;
+  created_at: string;
+  updated_at: string;
+  terminal_at: string | null;
+}
+
+/** G6 owner artifact read: the raw bytes the content_hash was computed over.
+ * Reading grants no write/publish right. */
+export interface OwnerArtifactRead {
+  workspace_id: string;
+  observed_at: string;
+  artifact_id: string;
+  request_id: string;
+  producing_role_id: string;
+  content_hash: string;
+  body: string;
+  created_at: string;
+}
+
+/** G6 cleanup (reclamation) view: terminal requests with their reclamation
+ * state. A cleanup FAILURE is distinguishable from completion via
+ * cleanup_error and never changes the terminal state. */
+export interface OwnerCleanupEntry {
+  request_id: string;
+  state: TerminalRequestState;
+  cleanup_pending: boolean;
+  cleanup_error: { code: string; message: string } | null;
+  terminal_at: string | null;
+}
+
+export interface OwnerCleanupPage {
+  workspace_id: string;
+  observed_at: string;
+  items: OwnerCleanupEntry[];
+  next_cursor: string | null;
+}
+
+/** G6 owner management cancellation result (§6 matrix). `idempotent_replay`
+ * marks a same-key replay returning the FIRST result. */
+export interface OwnerCancelResult {
+  request_id: string;
+  state: CollaborationRequestState;
+  idempotent_replay: boolean;
+  observed_at: string;
+}

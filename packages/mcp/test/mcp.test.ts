@@ -31,7 +31,7 @@ describe("official MCP SDK stdio and shared service", () => {
       }
       const [a, b] = clients;
       const tools = await a!.listTools();
-      expect(tools.tools.map(item => item.name)).toContain("sessions.anchor"); expect(tools.tools).toHaveLength(14);
+      expect(tools.tools.map(item => item.name)).toContain("sessions.anchor"); expect(tools.tools).toHaveLength(15);
       expect(tools.tools.map(item => item.name)).not.toContain("authorizations.record"); expect(tools.tools.every(item => !Object.keys(item.inputSchema.properties ?? {}).includes("session_id"))).toBe(true);
       const available = await a!.callTool({ name: "authorizations.get", arguments: {} }); expect(JSON.stringify(available)).toContain(grants[0]!.authorization_id); expect(JSON.stringify(available)).not.toContain(grants[1]!.authorization_id);
       const cross = await b!.callTool({ name: "sessions.anchor", arguments: { authorization_id: grants[0]!.authorization_id, idempotency_key: "cross" } }); expect(cross.isError).toBe(true); expect(JSON.stringify(cross)).toContain("PERMISSION_DENIED");

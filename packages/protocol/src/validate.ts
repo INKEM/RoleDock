@@ -39,6 +39,11 @@ export type SchemaName =
   | "owner-candidates"
   | "owner-checkpoints"
   | "owner-checkpoint-detail"
+  | "owner-requests"
+  | "owner-request-detail"
+  | "owner-artifact"
+  | "owner-cleanup"
+  | "owner-cancel-result"
   | "output-envelope"
   | "error-envelope";
 
@@ -76,6 +81,11 @@ export const SCHEMA_NAMES: readonly SchemaName[] = [
   "owner-candidates",
   "owner-checkpoints",
   "owner-checkpoint-detail",
+  "owner-requests",
+  "owner-request-detail",
+  "owner-artifact",
+  "owner-cleanup",
+  "owner-cancel-result",
   "output-envelope",
   "error-envelope",
   "anchor-material",

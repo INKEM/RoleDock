@@ -94,6 +94,9 @@ async function main(): Promise<void> {
     // E2E exercise the full product registration path (discover → register →
     // bridge recordHuman → MCP anchor) without a real host.
     mock.seedExternalSession("mock-desktop-original", "desktop-event-bridge");
+    // G6: a second bridge-subject fixture lets the shell E2E anchor both the
+    // initiating and the target role primaries without a real host.
+    mock.seedExternalSession("mock-desktop-second", "desktop-event-bridge");
     adapter = mock;
     shutdown = async () => undefined;
   } else if (args.length === 3 && args[0] === "--workspace-config") {

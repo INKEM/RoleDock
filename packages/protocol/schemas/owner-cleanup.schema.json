@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:owner-cleanup",
+  "title": "OwnerCleanupPage",
+  "description": "Owner reclamation view (desktop-gui-contract §2.3, G6): terminal requests with cleanup_pending and cleanup_error. A cleanup failure is distinguishable from completion and never changes the terminal state. Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "request_id": { "type": "string", "minLength": 1 },
+          "state": { "enum": ["completed", "failed", "cancelled", "expired"] },
+          "cleanup_pending": { "type": "boolean" },
+          "cleanup_error": {
+            "type": ["object", "null"],
+            "properties": {
+              "code": { "type": "string", "minLength": 1 },
+              "message": { "type": "string", "minLength": 1 }
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          },
+          "terminal_at": { "type": ["string", "null"] }
+        },
+        "required": ["request_id", "state", "cleanup_pending", "cleanup_error", "terminal_at"],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

@@ -53,11 +53,12 @@ export async function cleanupRequest(store: WorkspaceStore, adapter: HarnessAdap
   rmSync(join(requestTempDir(store, id), "tmp"), { recursive: true, force: true });
   const session = store.prepare("SELECT id, state, host_session_ref, creation_key, kind, role_id FROM sessions WHERE creation_key = ?").get(`request-${id}`) as { id: string; state: string; host_session_ref: string | null; creation_key: string; kind: string; role_id: string | null } | undefined;
   if (session && (session.kind !== "request" || session.role_id !== getRow(store, id).target_role_id)) {
-    store.prepare("UPDATE requests SET cleanup_pending = 1 WHERE request_id = ?").run(id);
+    store.prepare("UPDATE requests SET cleanup_pending = 1, cleanup_error_json = ? WHERE request_id = ?")
+      .run(JSON.stringify({ code: "INTERNAL", message: "Request branch session collides with another session; reclamation refused." }), id);
     return;
   }
   if (!session || session.state === "closed") {
-    store.prepare("UPDATE requests SET cleanup_pending = 0 WHERE request_id = ?").run(id);
+    store.prepare("UPDATE requests SET cleanup_pending = 0, cleanup_error_json = NULL WHERE request_id = ?").run(id);
     return;
   }
   store.prepare("UPDATE requests SET cleanup_pending = 1 WHERE request_id = ?").run(id);
@@ -72,10 +73,15 @@ export async function cleanupRequest(store: WorkspaceStore, adapter: HarnessAdap
     if (handle) await adapter.closeSession(handle);
     store.tx(() => {
       store.prepare("UPDATE sessions SET state = 'closed' WHERE id = ?").run(session.id);
-      store.prepare("UPDATE requests SET cleanup_pending = 0 WHERE request_id = ?").run(id);
+      store.prepare("UPDATE requests SET cleanup_pending = 0, cleanup_error_json = NULL WHERE request_id = ?").run(id);
     });
-  } catch {
-    // Durable cleanup_pending is retried by redelivery, including after restart.
+  } catch (error) {
+    // G6 (requests.listCleanup): a reclamation FAILURE is recorded and
+    // distinguishable from completion; the terminal state never changes and
+    // the durable cleanup_pending=1 is retried by redelivery, including
+    // after restart.
+    store.prepare("UPDATE requests SET cleanup_error_json = ? WHERE request_id = ?")
+      .run(JSON.stringify({ code: "INTERNAL", message: (error instanceof Error ? error.message : String(error)).slice(0, 300) }), id);
   }
 }
 async function secureSession(store: WorkspaceStore, adapter: HarnessAdapter, row: RequestRow): Promise<AdapterSessionHandle> {

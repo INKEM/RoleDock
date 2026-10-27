@@ -9,8 +9,15 @@ import type {
   OwnerCandidateEntry,
   OwnerCandidatesPage,
   OwnerCheckpointDetail,
+  OwnerArtifactRead,
+  OwnerCancelResult,
   OwnerCheckpointListPage,
   OwnerCheckpointSummary,
+  OwnerCleanupEntry,
+  OwnerCleanupPage,
+  OwnerRequestDetail,
+  OwnerRequestInboxPage,
+  OwnerRequestSummary,
   OwnerDocumentListPage,
   OwnerDocumentRead,
   OwnerDocumentRevisionEntry,
@@ -29,6 +36,17 @@ import { optionalString, requiredString, asRecord } from "./parse.js";
 import type { Coordinator } from "./coordinator.js";
 import { coordinatorStore } from "./internal-store.js";
 import { bodyHash, readObject } from "./store/objects.js";
+import { cancelByOwner } from "./requests/service.js";
+
+/** Raw requests table fields the G6 owner projections read. */
+interface RequestRowLite {
+  request_id: string; initiating_session_id: string; initiating_instance_id: string; initiating_role_id: string;
+  target_role_id: string; state: string; execution_uncertain: number; cleanup_pending: number; execution_phase: string;
+  output_bytes_used: number; turns_reserved: number; binding_generation: number; binding_knowledge_revision: number;
+  budget_json: string; result_artifact_id: string | null; result_content_hash: string | null;
+  error_json: string | null; idempotency_key: string;
+  created_at: string; updated_at: string; terminal_at: string | null; question: string;
+}
 
 /** Raw checkpoints table row (G5 owner read models). */
 interface CheckpointRow {
@@ -431,6 +449,121 @@ export class WorkspaceAdmin {
       user_decision_refs: checkpoint.user_decision_refs ?? [], todos: checkpoint.todos, sources: checkpoint.sources,
       created_by_instance_id: checkpoint.created_by_instance_id, created_at: checkpoint.created_at,
     };
+  }
+
+  // -- G6 owner request read models + management cancellation ----------------
+  // Projection only for reads; cancelByOwner is the §6-matrix owner write
+  // with an independent principal and audit trail (never the initiating
+  // session identity). Reported usage is null until the host actually
+  // started executing — unknown is never rendered as 0.
+
+  static #requestUsage(row: { state: string; execution_phase: string; output_bytes_used: number; turns_reserved: number }): OwnerRequestSummary["usage"] {
+    const started = !["accepted", "queued"].includes(row.state) || row.execution_phase !== "pending";
+    return started ? { output_bytes: row.output_bytes_used, turns_reserved: row.turns_reserved } : { output_bytes: null, turns_reserved: null };
+  }
+
+  #requestRow(requestId: string): RequestRowLite | undefined {
+    return this.store.prepare("SELECT * FROM requests WHERE request_id = ?").get(requestId) as RequestRowLite | undefined;
+  }
+
+  #requestSummary(row: RequestRowLite): OwnerRequestSummary {
+    return {
+      request_id: row.request_id,
+      initiating: { session_id: row.initiating_session_id, instance_id: row.initiating_instance_id, role_id: row.initiating_role_id },
+      target_role_id: row.target_role_id,
+      state: row.state as OwnerRequestSummary["state"],
+      execution_uncertain: row.execution_uncertain === 1,
+      cleanup_pending: row.cleanup_pending === 1,
+      binding: { target_generation: row.binding_generation, knowledge_revision: row.binding_knowledge_revision },
+      budget: JSON.parse(row.budget_json) as OwnerRequestSummary["budget"],
+      usage: WorkspaceAdmin.#requestUsage(row),
+      result: row.result_artifact_id ? { artifact_id: row.result_artifact_id, content_hash: row.result_content_hash ?? "" } : null,
+      created_at: row.created_at, updated_at: row.updated_at, terminal_at: row.terminal_at,
+      question_preview: row.question.length > 160 ? `${row.question.slice(0, 160)}…` : row.question,
+    };
+  }
+
+  /** Owner read: paged request view (state/role filters). */
+  requestInbox(input: unknown = {}): OwnerRequestInboxPage {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const { limit, offset } = this.#pageOffset(record);
+    const state = optionalString(record, "state");
+    const targetRole = optionalString(record, "target_role_id");
+    let rows = this.store.prepare("SELECT * FROM requests ORDER BY created_at, request_id").all() as unknown as RequestRowLite[];
+    if (state !== undefined) rows = rows.filter(row => row.state === state);
+    if (targetRole !== undefined) rows = rows.filter(row => row.target_role_id === targetRole);
+    const page = rows.slice(offset, offset + limit).map(row => this.#requestSummary(row));
+    return { workspace_id: this.store.workspaceId, observed_at: new Date().toISOString(), items: page, next_cursor: this.#cursorAt(offset, page.length, rows.length) };
+  }
+
+  /** Owner read: one request in full (question includes appended clarifications). */
+  requestGet(input: unknown): OwnerRequestDetail {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const requestId = requiredString(record, "request_id");
+    const row = this.#requestRow(requestId);
+    if (row === undefined) throw new RoleDockError("NOT_FOUND", `Request "${requestId}" does not exist.`);
+    const summary = this.#requestSummary(row);
+    return {
+      workspace_id: this.store.workspaceId, observed_at: new Date().toISOString(),
+      request_id: row.request_id, idempotency_key: row.idempotency_key,
+      initiating: summary.initiating, target_role_id: row.target_role_id, state: summary.state,
+      execution_uncertain: summary.execution_uncertain, cleanup_pending: summary.cleanup_pending,
+      binding: summary.binding, budget: summary.budget, usage: summary.usage, question: row.question,
+      result: summary.result,
+      error: row.error_json ? JSON.parse(row.error_json) as { code: string; message: string } : null,
+      created_at: row.created_at, updated_at: row.updated_at, terminal_at: row.terminal_at,
+    };
+  }
+
+  /** Owner read: one artifact's raw bytes. Reading grants no write/publish right. */
+  artifactRead(input: unknown): OwnerArtifactRead {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const artifactId = requiredString(record, "artifact_id");
+    const artifact = this.store.prepare("SELECT * FROM request_artifacts WHERE artifact_id = ?").get(artifactId) as
+      | { artifact_id: string; request_id: string; producing_role_id: string; content_hash: string; created_at: string }
+      | undefined;
+    if (artifact === undefined) throw new RoleDockError("NOT_FOUND", `Artifact "${artifactId}" does not exist.`);
+    const body = readObject(this.store, artifact.content_hash);
+    if (bodyHash(body) !== artifact.content_hash) throw new RoleDockError("INTERNAL", "Artifact body does not match its content hash.");
+    return {
+      workspace_id: this.store.workspaceId, observed_at: new Date().toISOString(),
+      artifact_id: artifact.artifact_id, request_id: artifact.request_id,
+      producing_role_id: artifact.producing_role_id, content_hash: artifact.content_hash, body, created_at: artifact.created_at,
+    };
+  }
+
+  /** Owner read: reclamation view — cleanup failures are distinguishable from
+   * completion and never change the terminal state. */
+  cleanupList(input: unknown = {}): OwnerCleanupPage {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const { limit, offset } = this.#pageOffset(record);
+    const pendingOnly = record.pending_only === true;
+    let rows = this.store.prepare("SELECT request_id, state, cleanup_pending, cleanup_error_json, terminal_at FROM requests WHERE state IN ('completed','failed','cancelled','expired') ORDER BY terminal_at, request_id")
+      .all() as Array<{ request_id: string; state: OwnerCleanupEntry["state"]; cleanup_pending: number; cleanup_error_json: string | null; terminal_at: string | null }>;
+    if (pendingOnly) rows = rows.filter(row => row.cleanup_pending === 1);
+    const page = rows.slice(offset, offset + limit).map(row => ({
+      request_id: row.request_id, state: row.state, cleanup_pending: row.cleanup_pending === 1,
+      cleanup_error: row.cleanup_error_json ? JSON.parse(row.cleanup_error_json) as { code: string; message: string } : null,
+      terminal_at: row.terminal_at,
+    }));
+    return { workspace_id: this.store.workspaceId, observed_at: new Date().toISOString(), items: page, next_cursor: this.#cursorAt(offset, page.length, rows.length) };
+  }
+
+  /** Owner management cancellation (§6 matrix, independent principal, audit
+   * event written by the core). adapterCancelDeclared comes from the
+   * service's adapter capabilities — the owner cannot bypass that boundary. */
+  cancelRequestByOwner(input: unknown, adapterCancelDeclared: boolean): OwnerCancelResult {
+    const record = asRecord(input);
+    checkWorkspaceId(this.store, optionalString(record, "workspace_id"));
+    const requestId = requiredString(record, "request_id");
+    const reason = requiredString(record, "reason");
+    const idempotencyKey = optionalString(record, "idempotency_key");
+    const outcome = cancelByOwner(this.store, adapterCancelDeclared, { request_id: requestId, reason, ...(idempotencyKey !== undefined ? { idempotency_key: idempotencyKey } : {}) });
+    return { request_id: outcome.request_id, state: outcome.state, idempotent_replay: outcome.idempotent_replay, observed_at: new Date().toISOString() };
   }
 
   /** Owner diagnostic: the collaboration-request inbox, optionally per role. */

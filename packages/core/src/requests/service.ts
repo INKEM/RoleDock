@@ -52,6 +52,7 @@ export interface RequestRow {
   result_artifact_id: string | null;
   result_content_hash: string | null;
   error_json: string | null;
+  cleanup_error_json: string | null;
   created_at: string;
   updated_at: string;
   terminal_at: string | null;
@@ -480,6 +481,120 @@ export function cancelRequest(
       .run(now, now, row.request_id);
     const updated = getRequestRow(store, row.request_id) ?? current;
     return toPublicRequest(updated);
+  });
+}
+
+// -- inbox.list (G6, session face) ---------------------------------------------
+
+export interface SessionInboxEntry {
+  entry_id: string;
+  owner_role_id: string;
+  request_id: string;
+  artifact_id: string;
+  content_hash: string;
+  summary: string | null;
+  state: "unread" | "read";
+  delivered_at: string;
+  read_at: string | null;
+  request_state: CollaborationRequest["state"] | null;
+}
+
+/**
+ * The calling session's OWN inbox (fixed to its binding role) — the merge
+ * point for delegated results. Read-only; entries never inject into any
+ * user-facing main conversation, and other roles' inboxes are invisible.
+ */
+export function listSessionInbox(
+  store: WorkspaceStore,
+  input: { session_id: string; unread_only?: boolean },
+): { entries: SessionInboxEntry[] } {
+  const identity = resolveSessionIdentity(store, input.session_id);
+  requireSessionCapability(store, identity, "requests.read");
+  const ownerRoleId = requireRoleIdentity(identity).roleId;
+  const rows = store.prepare("SELECT * FROM request_inbox WHERE owner_role_id = ? ORDER BY delivered_at, entry_id")
+    .all(ownerRoleId) as unknown as Array<{
+    entry_id: string; owner_role_id: string; request_id: string; artifact_id: string;
+    content_hash: string; summary: string | null; state: string; delivered_at: string; read_at: string | null;
+  }>;
+  const entries = rows
+    .filter(row => !input.unread_only || row.state === "unread")
+    .map(row => {
+      let requestState: CollaborationRequest["state"] | null = null;
+      const request = getRequestRow(store, row.request_id);
+      if (request) requestState = expireIfOverdue(store, request).state;
+      return { ...row, state: row.state as SessionInboxEntry["state"], request_state: requestState };
+    });
+  return { entries };
+}
+
+// -- requests.cancelByOwner (G6, desktop-gui-contract §6) ----------------------
+
+export interface OwnerCancelOutcome {
+  request_id: string;
+  state: CollaborationRequest["state"];
+  idempotent_replay: boolean;
+}
+
+/**
+ * Owner management cancellation: the §6 state matrix with an INDEPENDENT
+ * owner principal (never the initiating session identity) and an independent
+ * audit event. Idempotency per §5: a same-key replay returns the FIRST
+ * result (idempotent_replay) without a second state change; a same key with
+ * different input is IDEMPOTENCY_CONFLICT; a different key against a
+ * terminal request is refused — terminal states are never re-cancelled.
+ */
+export function cancelByOwner(
+  store: WorkspaceStore,
+  adapterCancelDeclared: boolean,
+  input: { request_id: string; reason: string; idempotency_key?: string },
+): OwnerCancelOutcome {
+  const inputHash = bodyHash(JSON.stringify({ request_id: input.request_id, reason: input.reason }));
+  const idemKey = input.idempotency_key;
+  return store.tx(() => {
+    if (idemKey !== undefined) {
+      const prior = store.prepare("SELECT content_hash, target_id FROM idempotency_keys WHERE workspace_id = ? AND idem_key = ?")
+        .get(store.workspaceId, idemKey) as { content_hash: string; target_id: string } | undefined;
+      if (prior) {
+        if (prior.content_hash !== inputHash || prior.target_id !== input.request_id) {
+          throw new RoleDockError("IDEMPOTENCY_CONFLICT", "Owner cancel key has different input.", { details: { idempotency_key: idemKey } });
+        }
+        const replayed = getRequestRow(store, prior.target_id);
+        if (replayed === undefined) throw new RoleDockError("INTERNAL", "Idempotent cancel key references a missing request.");
+        return { request_id: prior.target_id, state: expireIfOverdue(store, replayed).state, idempotent_replay: true };
+      }
+    }
+    const row = getRequestRow(store, input.request_id);
+    if (row === undefined) {
+      throw new RoleDockError("NOT_FOUND", `Request "${input.request_id}" does not exist.`, { details: { request_id: input.request_id } });
+    }
+    const current = expireIfOverdue(store, row);
+    if (current.state === "running") {
+      if (!adapterCancelDeclared) {
+        throw new RoleDockError(
+          "REQUEST_NOT_TERMINABLE",
+          "Request is running and the adapter did not declare the cancel capability; it keeps running.",
+          { details: { request_id: current.request_id, state: current.state } },
+        );
+      }
+    } else if (!CANCELLABLE_STATES.has(current.state)) {
+      throw new RoleDockError(
+        "REQUEST_NOT_TERMINABLE",
+        `Request is ${current.state}; a terminal request cannot be cancelled again (a new intent needs a new request).`,
+        { details: { request_id: current.request_id, state: current.state } },
+      );
+    }
+    const now = new Date().toISOString();
+    store
+      .prepare("UPDATE requests SET state = 'cancelled', terminal_at = ?, updated_at = ?, cleanup_pending = 1 WHERE request_id = ?")
+      .run(now, now, current.request_id);
+    if (idemKey !== undefined) {
+      store.prepare("INSERT INTO idempotency_keys (workspace_id, idem_key, content_hash, target_kind, target_id, created_at) VALUES (?, ?, ?, 'request.cancel', ?, ?)")
+        .run(store.workspaceId, idemKey, inputHash, current.request_id, now);
+    }
+    // Independent owner audit trail (visible via admin.events metadata view).
+    store.prepare("INSERT INTO outbox_events (id, workspace_id, kind, payload_json, state, created_at) VALUES (?, ?, 'owner.request.cancel', ?, 'done', ?)")
+      .run(`evt-owner-cancel-${randomBytes(4).toString("hex")}`, store.workspaceId, JSON.stringify({ request_id: current.request_id, reason: input.reason, actor: "owner" }), now);
+    return { request_id: current.request_id, state: "cancelled" as const, idempotent_replay: false };
   });
 }
 

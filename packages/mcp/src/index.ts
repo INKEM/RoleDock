@@ -25,6 +25,7 @@ export const SESSION_TOOLS: readonly Tool[] = [
   tool("requests.reply", "Reply to an awaiting consultation within its original budget.", { request_id: string, body: string }),
   tool("requests.cancel", "Cancel a permitted request; late completion cannot revive its state.", { request_id: string }),
   tool("artifacts.read", "Read a permitted completed answer body and its content hash.", { artifact_id: string }),
+  tool("inbox.list", "Read THIS binding role's own result inbox (unread/read dimensions; results are merged here, never injected into the primary conversation).", { unread_only: { type: "boolean" } }, []),
 ];
 /** The MCP process is only a client of the existing writer, with an issued session credential. */
 export function createSessionMcpServer(client: ServiceClient): Server {

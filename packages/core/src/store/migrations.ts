@@ -380,6 +380,17 @@ export const MIGRATIONS: readonly Migration[] = [
       `ALTER TABLE session_bindings ADD COLUMN state_changed_at TEXT`,
     ],
   },
+  {
+    id: 9,
+    name: "request-cleanup-error",
+    statements: [
+      // G6 (desktop-gui-contract §2.3 requests.listCleanup): a reclamation
+      // FAILURE must be distinguishable from completion without changing the
+      // terminal state. cleanupRequest records the last failure here and
+      // clears it on success; the durable cleanup_pending=1 retry continues.
+      `ALTER TABLE requests ADD COLUMN cleanup_error_json TEXT`,
+    ],
+  },
 ];
 
 function migrationChecksum(migration: Migration): string {

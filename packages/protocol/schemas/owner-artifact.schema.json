@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:owner-artifact",
+  "title": "OwnerArtifactRead",
+  "description": "Owner read of one request artifact (desktop-gui-contract §2.3, G6): the raw bytes the content_hash was computed over. Reading grants no write or publish right.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "artifact_id": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "producing_role_id": { "$ref": "#/$defs/id" },
+    "content_hash": { "$ref": "#/$defs/sha256" },
+    "body": { "type": "string" },
+    "created_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "required": ["workspace_id", "observed_at", "artifact_id", "request_id", "producing_role_id", "content_hash", "body", "created_at"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

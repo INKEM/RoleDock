@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:owner-cancel-result",
+  "title": "OwnerCancelResult",
+  "description": "Owner management cancellation result (desktop-gui-contract §6, G6): the request state after the operation. idempotent_replay marks a same-key replay returning the FIRST result; terminal states refuse new-key cancellations.",
+  "type": "object",
+  "properties": {
+    "request_id": { "type": "string", "minLength": 1 },
+    "state": { "enum": ["accepted", "queued", "running", "awaiting_input", "completed", "failed", "cancelled", "expired"] },
+    "idempotent_replay": { "type": "boolean" },
+    "observed_at": { "$ref": "#/$defs/timestamp" }
+  },
+  "required": ["request_id", "state", "idempotent_replay", "observed_at"],
+  "additionalProperties": false,
+  "$defs": {
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

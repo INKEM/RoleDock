@@ -29,6 +29,7 @@ import type { HarnessAdapter } from "./ports/adapter.js";
 import {
   cancelRequest,
   createRequest,
+  listSessionInbox,
   getRequest,
   readArtifact,
   replyToRequest,
@@ -37,6 +38,7 @@ import type {
   ArtifactReadResult,
   CreateRequestResult,
   RequestBudget,
+  SessionInboxEntry,
 } from "./requests/service.js";
 import { cancelRunningRequest, executeRequest, cleanupRequest } from "./requests/executor.js";
 import {
@@ -240,6 +242,19 @@ export class Coordinator {
     const roleId = optionalString(record, "role_id");
     if (roleId !== undefined) listInput.role_id = roleId;
     return listDocuments(this.#store, listInput);
+  }
+
+  async listSessionInbox(input: unknown): Promise<{ entries: SessionInboxEntry[] }> {
+    const record = asRecord(input);
+    checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
+    const inboxInput: { session_id: string; unread_only?: boolean } = {
+      session_id: requiredString(record, "session_id"),
+    };
+    if (record.unread_only !== undefined) {
+      if (typeof record.unread_only !== "boolean") throw new RoleDockError("VALIDATION_FAILED", 'Input field "unread_only" must be a boolean.');
+      inboxInput.unread_only = record.unread_only;
+    }
+    return listSessionInbox(this.#store, inboxInput);
   }
 
   async readDocument(input: unknown): Promise<DocumentReadResult> {
@@ -485,6 +500,7 @@ export const IMPLEMENTED_OPERATIONS: readonly string[] = [
   "replyToRequest",
   "cancelRequest",
   "readArtifact",
+  "listSessionInbox",
 ].sort();
 
 /** P1 additions, kept for tests that split delivery phases. */
