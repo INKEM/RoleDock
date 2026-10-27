@@ -12,8 +12,8 @@ async function start(root: string): Promise<{ child: ChildProcessWithoutNullStre
   let stderr = "";
   return new Promise((resolvePromise, reject) => {
     const timer = setTimeout(() => { child.kill("SIGKILL"); reject(new Error(`Service not ready: ${stderr}`)); }, 20000);
-    child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString(); if (stderr.includes("Mock RoleDock service:")) { clearTimeout(timer); resolvePromise({ child, credential: JSON.parse(readFileSync(join(root, ".roledock", "owner-connection.json"), "utf8")) }); } });
-    child.on("error", reject); child.once("exit", code => { clearTimeout(timer); if (!stderr.includes("Mock RoleDock service:")) reject(new Error(`Service startup exit ${code}: ${stderr}`)); });
+    child.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString(); if (stderr.includes("RoleDock service (")) { clearTimeout(timer); resolvePromise({ child, credential: JSON.parse(readFileSync(join(root, ".roledock", "owner-connection.json"), "utf8")) }); } });
+    child.on("error", reject); child.once("exit", code => { clearTimeout(timer); if (!stderr.includes("RoleDock service (")) reject(new Error(`Service startup exit ${code}: ${stderr}`)); });
   });
 }
 async function stop(child: ChildProcessWithoutNullStreams, signal: "SIGKILL" | "SIGTERM"): Promise<void> {
@@ -25,12 +25,19 @@ describe("shared service actual process restart", () => {
     const root = mkdtempSync(join(tmpdir(), "rd-svc-crash-")); let first: ChildProcessWithoutNullStreams | undefined, second: ChildProcessWithoutNullStreams | undefined;
     try {
       const a = await start(root); first = a.child; const clientA = new ServiceClient(a.credential);
-      const identity = await clientA.call<{ workspace_id: string }>("workspace.info");
+      const identity = await clientA.call<{ workspace_id: string; service: { pid: number; started_at: string } }>("workspace.info");
       await clientA.call("roles.install", { source_path: resolve("examples/custom-role") });
       await stop(first, "SIGKILL"); expect(existsSync(a.credential.socket_path)).toBe(true);
       const b = await start(root); second = b.child;
       expect(b.credential.token).not.toBe(a.credential.token); await expect(clientA.call("workspace.info")).rejects.toMatchObject({ code: "PERMISSION_DENIED" });
-      const clientB = new ServiceClient(b.credential); expect(await clientB.call("workspace.info")).toEqual(identity);
+      const clientB = new ServiceClient(b.credential);
+      // Workspace identity is stable across restarts; the runtime projection
+      // (service.pid/started_at) intentionally differs — it must identify the
+      // NEW process, proving the RPC answers from the live writer.
+      const fresh = await clientB.call<{ workspace_id: string; service: { pid: number; started_at: string } }>("workspace.info");
+      expect(fresh.workspace_id).toBe(identity.workspace_id);
+      expect(fresh.service.pid).toBe(second.pid);
+      expect(fresh.service.started_at).not.toBe(identity.service.started_at);
       expect((await clientB.call<{ roles: unknown[] }>("roles.list")).roles).toHaveLength(1);
       await stop(second, "SIGTERM"); expect(existsSync(b.credential.socket_path)).toBe(false); expect(existsSync(join(root, ".roledock", "owner-connection.json"))).toBe(false);
     } finally { if (first) await stop(first, "SIGKILL"); if (second) await stop(second, "SIGKILL"); rmSync(root, { recursive: true, force: true }); }
