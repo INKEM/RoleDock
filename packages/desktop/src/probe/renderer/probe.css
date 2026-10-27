@@ -1,0 +1,9 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; }
+main { max-width: 56rem; margin: 0 auto; padding: 1rem 1.5rem; }
+h1 { font-size: 1.3rem; } h2 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+section { border: 1px solid #ccc; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.8rem 0; }
+button { margin-right: 0.5rem; padding: 0.3rem 0.9rem; }
+pre { background: #f5f5f5; padding: 0.6rem; overflow-x: auto; font-size: 0.85rem; }
+.note { color: #555; font-size: 0.85rem; }
+ul { margin: 0.3rem 0; padding-left: 1.2rem; font-size: 0.85rem; }
+li { margin: 0.15rem 0; }

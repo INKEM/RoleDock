@@ -1,0 +1,30 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; color: #1a1a2e; }
+nav { display: flex; gap: 1rem; align-items: center; padding: .6rem 1.2rem; border-bottom: 1px solid #ddd; background: #f7f7fb; }
+.brand { font-weight: 700; margin-right: .8rem; }
+nav a { text-decoration: none; color: #454560; padding: .2rem .5rem; border-radius: 4px; }
+nav a.active { background: #e4e4f4; color: #1a1a2e; }
+main { max-width: 60rem; margin: 0 auto; padding: 1rem 1.4rem; }
+section { border: 1px solid #ccc; border-radius: 8px; padding: .8rem 1rem; margin: .8rem 0; }
+button { margin-right: .5rem; padding: .3rem .9rem; }
+table { border-collapse: collapse; width: 100%; margin-top: .6rem; }
+th, td { border: 1px solid #ddd; padding: .4rem .6rem; font-size: .85rem; text-align: left; vertical-align: top; }
+select, input { font-size: .85rem; }
+pre, .card { background: #f5f5f8; padding: .6rem; font-size: .85rem; overflow-x: auto; }
+.hidden { display: none; }
+#error-boundary { background: #fde8e8; color: #7a1020; border-bottom: 2px solid #d43c50; padding: .6rem 1.2rem; font-size: .85rem; white-space: pre-wrap; }
+.banner { background: #fff4e0; border: 1px solid #e0a040; padding: .5rem .8rem; border-radius: 6px; margin: .6rem 0; font-size: .85rem; }
+.note { color: #555; font-size: .82rem; }
+.auth { color: #1b7f4d; }
+.log { font-size: .8rem; white-space: pre-wrap; background: #f8f8fc; padding: .6rem; min-height: 1.5rem; margin-top: .5rem; }
+label { display: block; margin: .5rem 0 .2rem; font-size: .85rem; }
+.hint { color: #555; font-size: .8rem; margin: .3rem 0; }
+.warn { background: #fff4e0; border: 1px solid #e0a040; border-radius: 6px; padding: .4rem .7rem; font-size: .82rem; margin: .4rem 0; }
+.paste-row { display: flex; gap: .5rem; margin: .4rem 0; }
+.paste-row input { flex: 1; }
+.chains { font-size: .84rem; }
+.chain { border-left: 3px solid #6c63d2; padding: .3rem .7rem; margin: .5rem 0; background: #f8f8fc; }
+.chain .stage { color: #454560; font-weight: 600; }
+.chain ul { margin: .3rem 0 .1rem; }
+.diff { color: #555; font-size: .76rem; margin-top: .2rem; }

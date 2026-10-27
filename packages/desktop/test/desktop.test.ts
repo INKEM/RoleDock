@@ -46,7 +46,7 @@ describe("G-min desktop confirmation surface", () => {
     expect(result).toMatchObject({ ok: true, entry: CONFIRM_ENTRY });
     const submitted = calls.find(item => item.operation === "authorizations.submitHumanEvent")!.input as Record<string, unknown>;
     expect(submitted).toMatchObject({ external_session_id: "ext-demo", host_session_id: "sess_demo-1", connection_subject: "chat", entry: "gui-confirm", actor_id: "owner", inherit: "initialize", role_id: "builder" });
-    expect(String(submitted.event_ref)).toMatch(/^gui-\d+-[0-9a-f]+$/);
+    expect(String(submitted.event_ref)).toMatch(/^gui-[0-9a-f]{24}$/);
   });
   it("rejects double confirmation, unknown sessions and malformed confirmations without calling the write face", async () => {
     const calls: Array<{ operation: string; input: unknown }> = [];

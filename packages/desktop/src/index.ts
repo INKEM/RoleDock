@@ -1,7 +1,8 @@
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { randomBytes } from "node:crypto";
 import { RoleDockError, toErrorEnvelope } from "@roledock/protocol";
+import { CONFIRM_ENTRY, confirmInput, sessionViews } from "./gmin/confirm.js";
+import type { RoleView, SessionView } from "./gmin/confirm.js";
 
 /**
  * G-min desktop confirmation surface (ADR-0011; DESKTOP_GUI_PLAN §8).
@@ -13,45 +14,20 @@ import { RoleDockError, toErrorEnvelope } from "@roledock/protocol";
  * Technical baseline: Node's built-in http + a plain browser page bound to
  * 127.0.0.1; no desktop container and no new dependencies (P6-G proper
  * chooses the container).
+ *
+ * P6-G1 boundary note: this loopback entry is the G-min DIAGNOSTIC surface.
+ * It proxies exactly three operations (externalSessions.list / roles.list /
+ * authorizations.submitHumanEvent) — never a generic owner-RPC proxy. The
+ * desktop shell's production confirm page (src/shell) shares the same
+ * decision module (src/gmin/confirm.ts) over named IPC instead of http.
  */
 
 export interface RpcClient {
   call<T = unknown>(operation: string, input?: unknown): Promise<T>;
 }
 
-export const CONFIRM_ENTRY = "gui-confirm";
-const ID = /^[a-z][a-z0-9-]{0,63}$/;
-const CAP = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/;
-
-interface SessionView { session: { external_session_id: string; host_session_id: string; connection_subject: string; created_at: string }; active_authorization: { authorization_id: string; role_id: string; expires_at: string; source: { kind: string; event_ref: string } } | null }
-interface RoleView { role_id: string; title: string; initialized: boolean; requested_capabilities: string[] }
-
-function confirmInput(sessions: SessionView[], roles: RoleView[], body: Record<string, unknown>): Record<string, unknown> {
-  if (typeof body.external_session_id !== "string" || !ID.test(body.external_session_id)) throw new RoleDockError("VALIDATION_FAILED", "Invalid external_session_id.");
-  if (typeof body.role_id !== "string" || !ID.test(body.role_id)) throw new RoleDockError("VALIDATION_FAILED", "Invalid role_id.");
-  const view = sessions.find(item => item.session.external_session_id === body.external_session_id);
-  if (!view) throw new RoleDockError("NOT_FOUND", "External session is not registered; the Agent must register it first.");
-  if (view.active_authorization) throw new RoleDockError("INVALID_STATE_TRANSITION", "This session already has a live authorization; revoke it first or use a new conversation.");
-  const role = roles.find(item => item.role_id === body.role_id);
-  if (!role) throw new RoleDockError("NOT_FOUND", "Role is not installed.");
-  const capabilities = Array.isArray(body.capabilities) && body.capabilities.every(item => typeof item === "string" && CAP.test(item)) ? [...new Set(body.capabilities as string[])] : null;
-  if (!capabilities || capabilities.length === 0) throw new RoleDockError("VALIDATION_FAILED", "capabilities must be a non-empty array of dotted capability names.");
-  if (body.inherit !== "initialize" && body.inherit !== "takeover") throw new RoleDockError("VALIDATION_FAILED", "inherit must be initialize or takeover.");
-  if (!Number.isInteger(body.expires_hours) || (body.expires_hours as number) < 1 || (body.expires_hours as number) > 168) throw new RoleDockError("VALIDATION_FAILED", "expires_hours must be an integer between 1 and 168.");
-  return {
-    external_session_id: view.session.external_session_id,
-    host_session_id: view.session.host_session_id,
-    connection_subject: view.session.connection_subject,
-    event_ref: `gui-${Date.now()}-${randomBytes(3).toString("hex")}`,
-    actor_id: "owner",
-    role_id: body.role_id,
-    capabilities,
-    inherit: body.inherit,
-    expires_at: new Date(Date.now() + (body.expires_hours as number) * 3_600_000).toISOString(),
-    entry: CONFIRM_ENTRY,
-    recorded_at: new Date().toISOString(),
-  };
-}
+export { CONFIRM_ENTRY } from "./gmin/confirm.js";
+export type { SessionView, RoleView } from "./gmin/confirm.js";
 
 async function readJson(request: IncomingMessage): Promise<Record<string, unknown>> {
   let bytes = 0; const chunks: Buffer[] = [];
@@ -79,7 +55,7 @@ async function handle(request: IncomingMessage, response: ServerResponse, client
     if (request.method === "GET" && url.pathname === "/") { response.writeHead(200, { "content-type": "text/html; charset=utf-8" }); response.end(PAGE); return; }
     if (request.method === "GET" && url.pathname === "/api/sessions") {
       const listed = await client.call<SessionView[] | { external_sessions?: SessionView[] }>("externalSessions.list", {});
-      return json(200, { external_sessions: Array.isArray(listed) ? listed : listed.external_sessions ?? [] });
+      return json(200, { external_sessions: sessionViews(listed) });
     }
     if (request.method === "GET" && url.pathname === "/api/roles") return json(200, await client.call("roles.list", {}));
     if (request.method === "POST" && url.pathname === "/api/confirm") {
@@ -88,9 +64,9 @@ async function handle(request: IncomingMessage, response: ServerResponse, client
         client.call<{ external_sessions?: SessionView[] } | SessionView[]>("externalSessions.list", {}),
         client.call<{ roles?: RoleView[] }>("roles.list", {}),
       ]);
-      const sessionViews = Array.isArray(sessions) ? sessions : sessions.external_sessions ?? [];
-      const roleViews = (roles.roles ?? []).map((role: RoleView) => role);
-      const input = confirmInput(sessionViews, roleViews, body);
+      const views = sessionViews(sessions);
+      const roleViews = roles.roles ?? [];
+      const input = confirmInput(views, roleViews, body);
       const record = await client.call("authorizations.submitHumanEvent", input);
       return json(200, { ok: true, event_ref: (record as { event_ref: string }).event_ref, entry: CONFIRM_ENTRY, note: "Confirmation stored. The conversation's trusted channel completes recordHuman; the Agent anchors explicitly." });
     }

@@ -1,0 +1,31 @@
+# P6-G1 shell packaging (electron-builder 26.18.0). Separate from the frozen
+# G0 probe config; same runtime/vendor/schemas extraResources layout.
+appId: org.roledock.desktop
+productName: roledock-desktop
+directories:
+  output: dist-app-shell
+  buildResources: build
+files:
+  - dist-desktop/shell/**
+  - dist-desktop/vendor/**
+  - dist-desktop/schemas/**
+  - package.json
+asar: true
+# The workspace package.json "main" points at the frozen G0 probe entry; the
+# packaged shell overrides it here without touching the probe config.
+extraMetadata:
+  main: dist-desktop/shell/main.mjs
+extraResources:
+  - from: .cache/runtime/node-v22.23.2-linux-x64
+    to: runtime/node
+  - from: dist-desktop/vendor
+    to: runtime/vendor
+  - from: dist-desktop/schemas
+    to: runtime/schemas
+linux:
+  artifactName: "${name}-${version}-${arch}.${ext}"
+  target:
+    - dir
+  category: Development
+  executableName: roledock-desktop
+  maintainer: roledock developers

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:" />
+  <title>RoleDock 桌面</title>
+  <link rel="stylesheet" href="./shell.css" />
+</head>
+<body>
+  <div id="error-boundary" class="hidden" role="alert"></div>
+  <nav>
+    <span class="brand">RoleDock</span>
+    <a href="#/workspace" id="nav-workspace">工作空间</a>
+    <a href="#/confirm" id="nav-confirm">授权确认</a>
+    <a href="#/roles" id="nav-roles">角色库</a>
+    <a href="#/settings" id="nav-settings">设置</a>
+  </nav>
+  <main id="page"></main>
+  <script type="module" src="./renderer.js"></script>
+</body>
+</html>

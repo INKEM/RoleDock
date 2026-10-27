@@ -1,6 +1,34 @@
 {
-  "name": "@roledock/desktop", "version": "0.1.0-alpha.0", "private": true, "type": "module", "license": "Apache-2.0",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "bin": { "roledock-desktop-gmin": "./dist/bin.js" }, "files": ["dist"],
-  "dependencies": { "@roledock/service": "0.1.0-alpha.0", "@roledock/protocol": "0.1.0-alpha.0" }
+  "name": "@roledock/desktop",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "RoleDock desktop management shell (G-min confirmation surface; P6-G probe)",
+  "author": "roledock developers",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "dist-desktop/vendor/main.mjs",
+  "bin": {
+    "roledock-desktop-gmin": "./dist/bin.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@roledock/service": "0.1.0-alpha.0",
+    "@roledock/protocol": "0.1.0-alpha.0"
+  },
+  "devDependencies": {
+    "electron": "44.9.3",
+    "esbuild": "0.28.2",
+    "electron-builder": "26.18.0",
+    "@playwright/test": "1.64.1",
+    "@modelcontextprotocol/sdk": "1.32.1"
+  },
+  "homepage": "https://roledock.example"
 }

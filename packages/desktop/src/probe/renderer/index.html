@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:" />
+  <title>RoleDock P6-G0 技术探针</title>
+  <link rel="stylesheet" href="./probe.css" />
+</head>
+<body>
+  <main>
+    <h1>RoleDock P6-G0 技术探针</h1>
+    <p class="note">验证具名 IPC、Node 22.23.2 服务子进程、SQLite 单 writer、MCP 子进程与目录选择。渲染层无凭据、无任意 RPC（<code>window.roledock.probe.*</code> 为封闭清单）。</p>
+
+    <section id="status-section">
+      <h2>状态</h2>
+      <button id="refresh">刷新状态</button>
+      <button id="start">启动服务</button>
+      <button id="stop">停止服务</button>
+      <pre id="status">（尚未加载）</pre>
+    </section>
+
+    <section>
+      <h2>检查（临时 mock 工作空间）</h2>
+      <button id="run-checks">运行检查</button>
+      <ul id="checks"></ul>
+    </section>
+
+    <section>
+      <h2>目录选择</h2>
+      <button id="pick">选择目录…</button>
+      <span id="picked">（未选择）</span>
+    </section>
+
+    <section>
+      <h2>事件</h2>
+      <ul id="events"></ul>
+    </section>
+  </main>
+  <script type="module" src="./renderer.js"></script>
+</body>
+</html>
