@@ -14,7 +14,7 @@
  */
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, readlinkSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
@@ -65,7 +65,10 @@ const payloadDir = join(debRoot, "opt", "RoleDock");
 mkdirSync(join(debRoot, "usr", "bin"), { recursive: true });
 mkdirSync(join(debRoot, "usr", "share", "applications"), { recursive: true });
 cpSync(unpacked, payloadDir, { recursive: true });
-symlinkSync(join(payloadDir, "roledock-desktop"), join(debRoot, "usr", "bin", "roledock-desktop"));
+// G7-R1: the symlink target must be the INSTALLED absolute path (/opt), not
+// a build-machine path — a staging-relative or /home target would dangle
+// after installation and leak personal paths into the published artifact.
+symlinkSync("/opt/RoleDock/roledock-desktop", join(debRoot, "usr", "bin", "roledock-desktop"));
 writeFileSync(join(debRoot, "usr", "share", "applications", "roledock-desktop.desktop"), [
   "[Desktop Entry]",
   "Type=Application",
@@ -114,6 +117,11 @@ assert("deb control metadata", /roledock-desktop/.test(debControl) && /amd64/.te
 const debContents = execFileSync("dpkg-deb", ["-c", debPath], { encoding: "utf8" });
 assert("deb installs /opt payload + launcher + desktop entry",
   debContents.includes("./opt/RoleDock/roledock-desktop") && debContents.includes("./usr/bin/roledock-desktop") && debContents.includes("./usr/share/applications/roledock-desktop.desktop"));
+// G7-R1: no build-machine path may leak into the manifest, and the launcher
+// symlink must point at the installed /opt location.
+assert("deb symlink target is /opt-absolute", readlinkSync(join(debRoot, "usr", "bin", "roledock-desktop")) === "/opt/RoleDock/roledock-desktop");
+assert("deb manifest has no build-machine paths", !debContents.includes("/home/") && !debContents.includes(debRoot));
+assert("asar has no build-machine paths (exact)", !asarEntries.some(entry => entry.includes("/home/") || entry.includes("debroot")));
 
 const result = { kind: "pack-deb", deb: debPath, deb_size_bytes: statSync(debPath).size, deb_control: debControl.trim(), electron_binary_sha256: electronBinaryHash, assertions, ok: process.exitCode !== 1 };
 writeFileSync(outJson, JSON.stringify(result, null, 2) + "\n");

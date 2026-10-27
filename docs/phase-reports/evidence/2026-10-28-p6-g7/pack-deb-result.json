@@ -1,7 +1,7 @@
 {
   "kind": "pack-deb",
   "deb": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/roledock-desktop-0.1.0-alpha.0-amd64.deb",
-  "deb_size_bytes": 129498814,
+  "deb_size_bytes": 129498624,
   "deb_control": "Package: roledock-desktop\nArchitecture: amd64\nVersion: 0.1.0-alpha.0",
   "electron_binary_sha256": "7b7916ef94fa3380de130f8f1bff79fb339b9caafe134cd9dcb52d83b39ed299",
   "assertions": [
@@ -53,7 +53,7 @@
     {
       "name": "deb exists and bounded (<= 400 MiB)",
       "ok": true,
-      "detail": "129498814 bytes"
+      "detail": "129498624 bytes"
     },
     {
       "name": "deb control metadata",
@@ -62,6 +62,21 @@
     },
     {
       "name": "deb installs /opt payload + launcher + desktop entry",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "deb symlink target is /opt-absolute",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "deb manifest has no build-machine paths",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "asar has no build-machine paths (exact)",
       "ok": true,
       "detail": ""
     }

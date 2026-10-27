@@ -25,22 +25,22 @@
     {
       "name": "agent anchors via packaged MCP; active binding generation 1",
       "ok": true,
-      "detail": "{\"external_session_id\":\"ext-58ddc1c1-34e2-41a6-a7b8-3600f5386f23\",\"session_id\":\"sess-b3527152-7269-40f8-98f4-9a8621c49a62\",\"instance_id\":\"inst-72491544-a558-484e-9a00-e3a7acd239f3\",\"role_id\":\"builder\",\"generation\":1,\"authorization_id\":\"auth-69963786-87ed-4b9a-a841-d64cc304cd18\",\"state\":\"active\",\"created_at\":\"2026-10-27T20:55:47.476Z\",\"source\":{\"kind\":\"human-event\",\"event_ref\":\"gui-8b375cce1c63c77e2f61cc3f\",\"actor_id\":\"owner\"},\"capabilities\":[\"documents.read\"]}"
+      "detail": "{\"external_session_id\":\"ext-9f3e9635-fc3c-4710-a21e-7170fed26af5\",\"session_id\":\"sess-8adf4593-5f2f-4437-86b7-0e785a76313f\",\"instance_id\":\"inst-07eb50fb-2775-4d47-9a32-679246d29c60\",\"role_id\":\"builder\",\"generation\":1,\"authorization_id\":\"auth-9f6d5d5d-8824-473e-8900-f4da0aeb662c\",\"state\":\"active\",\"created_at\":\"2026-10-27T21:39:11.662Z\",\"source\":{\"kind\":\"human-event\",\"event_ref\":\"gui-de9c5c1035a40fe3dfefc734\",\"actor_id\":\"owner\"},\"capabilities\":[\"documents.read\"]}"
     }
   ],
   "screenshot": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/packaged-g7-evidence.png",
   "binding": {
-    "external_session_id": "ext-58ddc1c1-34e2-41a6-a7b8-3600f5386f23",
-    "session_id": "sess-b3527152-7269-40f8-98f4-9a8621c49a62",
-    "instance_id": "inst-72491544-a558-484e-9a00-e3a7acd239f3",
+    "external_session_id": "ext-9f3e9635-fc3c-4710-a21e-7170fed26af5",
+    "session_id": "sess-8adf4593-5f2f-4437-86b7-0e785a76313f",
+    "instance_id": "inst-07eb50fb-2775-4d47-9a32-679246d29c60",
     "role_id": "builder",
     "generation": 1,
-    "authorization_id": "auth-69963786-87ed-4b9a-a841-d64cc304cd18",
+    "authorization_id": "auth-9f6d5d5d-8824-473e-8900-f4da0aeb662c",
     "state": "active",
-    "created_at": "2026-10-27T20:55:47.476Z",
+    "created_at": "2026-10-27T21:39:11.662Z",
     "source": {
       "kind": "human-event",
-      "event_ref": "gui-8b375cce1c63c77e2f61cc3f",
+      "event_ref": "gui-de9c5c1035a40fe3dfefc734",
       "actor_id": "owner"
     },
     "capabilities": [
