@@ -22,3 +22,13 @@ Thumbs.db
 
 # Agent workspace-local state
 .zcode/
+
+# P6-G0 probe build outputs (not shipped; rebuilt from source)
+packages/desktop/dist-desktop/
+packages/desktop/.cache/
+packages/desktop/dist-app/
+packages/desktop/dist-app-shell/
+
+# Playwright local run artifacts (re-run to regenerate)
+packages/desktop/test-results/
+packages/desktop/playwright-report/
