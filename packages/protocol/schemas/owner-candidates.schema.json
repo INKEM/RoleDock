@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:owner-candidates",
+  "title": "OwnerCandidatesPage",
+  "description": "Owner read view of candidate updates (desktop-gui-contract §2.3, G5). Candidate bodies are explicitly submitted for review and ride along in full; the BASELINE body follows the §3.2 private/role rule and never rides along. baseline_conflicted marks a stale baseline for display — never auto-merged. Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "candidate_id": { "type": "string", "minLength": 1 },
+          "target_role_id": { "$ref": "#/$defs/id" },
+          "document_key": { "$ref": "#/$defs/id" },
+          "state": { "enum": ["open", "adopted", "superseded", "rejected"] },
+          "source": { "enum": ["documents.propose", "knowledge.import", "request.result"] },
+          "note": { "type": ["string", "null"] },
+          "proposed_by_role_id": { "$ref": "#/$defs/id" },
+          "baseline_revision": { "type": "integer", "minimum": 0 },
+          "latest_revision": { "type": "integer", "minimum": 0 },
+          "baseline_conflicted": { "type": "boolean" },
+          "proposed_body_hash": { "$ref": "#/$defs/sha256" },
+          "body_included": { "type": "boolean" },
+          "body": { "type": ["string", "null"] },
+          "created_at": { "$ref": "#/$defs/timestamp" },
+          "resolved_at": { "type": ["string", "null"] }
+        },
+        "required": [
+          "candidate_id", "target_role_id", "document_key", "state", "source", "note",
+          "proposed_by_role_id", "baseline_revision", "latest_revision", "baseline_conflicted",
+          "proposed_body_hash", "body_included", "body", "created_at", "resolved_at"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

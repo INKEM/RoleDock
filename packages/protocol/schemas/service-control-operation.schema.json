@@ -18,7 +18,13 @@
         "sessions.listBindings",
         "sessions.listAttempts",
         "sessions.listLoads",
-        "authorizations.revokePreview"
+        "authorizations.revokePreview",
+        "documents.list",
+        "documents.read",
+        "documents.listRevisions",
+        "documents.listCandidates",
+        "checkpoints.list",
+        "checkpoints.get"
       ]
     },
     "input": {
@@ -488,6 +494,168 @@
               }
             },
             "required": ["authorization_id"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "documents.list"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G5 owner face: paged knowledge directory read view (desktop-gui-contract §2.3); metadata only, bodies come from documents.read. Projection only.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "role_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "documents.read"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G5 owner face: one revision's content per the §3.2 visibility matrix — private/role bodies stay metadata+hash with body_included:false.",
+            "properties": {
+              "role_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "document_key": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "revision": { "type": "integer", "minimum": 1 }
+            },
+            "required": ["role_id", "document_key"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "documents.listRevisions"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G5 owner face: immutable revision history (metadata only) for one document.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "role_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "document_key": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "required": ["role_id", "document_key"],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "documents.listCandidates"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G5 owner face: paged candidate read view with full candidate bodies; baseline bodies follow the visibility matrix.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "role_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              },
+              "source": { "enum": ["documents.propose", "knowledge.import", "request.result"] }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "checkpoints.list"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G5 owner face: paged checkpoint summaries — handoff summary metadata and todo overview; full body behind checkpoints.get.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "role_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "checkpoints.get"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G5 owner face: one checkpoint's full handoff summary body, todos, sources and decision references.",
+            "properties": {
+              "checkpoint_id": { "type": "string", "minLength": 1 }
+            },
+            "required": ["checkpoint_id"],
             "additionalProperties": false
           }
         }

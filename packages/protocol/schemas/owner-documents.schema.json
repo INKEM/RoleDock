@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:owner-documents",
+  "title": "OwnerDocumentListPage",
+  "description": "Owner read view of the role knowledge directory (desktop-gui-contract §2.3, G5): declared documents with their published latest revision metadata. Bodies never appear here. Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role_id": { "$ref": "#/$defs/id" },
+          "document_key": { "$ref": "#/$defs/id" },
+          "latest_revision": { "type": "integer", "minimum": 0 },
+          "visibility": {
+            "type": ["string", "null"],
+            "enum": ["private", "role", "project", "public", null]
+          },
+          "updated_at": { "type": ["string", "null"] },
+          "content_hash": {
+            "type": ["string", "null"],
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "null when the declared document has no published revision yet."
+          }
+        },
+        "required": ["role_id", "document_key", "latest_revision", "visibility", "updated_at", "content_hash"],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

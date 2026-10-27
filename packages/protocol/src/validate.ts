@@ -33,6 +33,12 @@ export type SchemaName =
   | "anchor-attempts"
   | "anchor-loads"
   | "revoke-preview"
+  | "owner-documents"
+  | "owner-document"
+  | "owner-document-revisions"
+  | "owner-candidates"
+  | "owner-checkpoints"
+  | "owner-checkpoint-detail"
   | "output-envelope"
   | "error-envelope";
 
@@ -64,6 +70,12 @@ export const SCHEMA_NAMES: readonly SchemaName[] = [
   "anchor-attempts",
   "anchor-loads",
   "revoke-preview",
+  "owner-documents",
+  "owner-document",
+  "owner-document-revisions",
+  "owner-candidates",
+  "owner-checkpoints",
+  "owner-checkpoint-detail",
   "output-envelope",
   "error-envelope",
   "anchor-material",

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:owner-checkpoints",
+  "title": "OwnerCheckpointListPage",
+  "description": "Owner read view of checkpoint summaries (desktop-gui-contract §2.3, G5): handoff summary METADATA (format + content_hash, no body), todo overview and document snapshot references. The full handoff body lives behind checkpoints.get. Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "checkpoint_id": { "type": "string", "minLength": 1 },
+          "role_id": { "$ref": "#/$defs/id" },
+          "generation": { "type": "integer", "minimum": 1 },
+          "knowledge_revision": { "type": "integer", "minimum": 0 },
+          "document_snapshots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "document_key": { "$ref": "#/$defs/id" },
+                "revision": { "type": "integer", "minimum": 1 },
+                "content_hash": { "$ref": "#/$defs/sha256" }
+              },
+              "required": ["document_key", "revision", "content_hash"],
+              "additionalProperties": false
+            }
+          },
+          "handoff_summary": {
+            "type": "object",
+            "properties": {
+              "format": { "enum": ["markdown"] },
+              "content_hash": { "$ref": "#/$defs/sha256" }
+            },
+            "required": ["format", "content_hash"],
+            "additionalProperties": false
+          },
+          "todos_total": { "type": "integer", "minimum": 0 },
+          "todos_done": { "type": "integer", "minimum": 0 },
+          "todos_open": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": { "description": { "type": "string", "minLength": 1 } },
+              "required": ["description"],
+              "additionalProperties": false
+            }
+          },
+          "created_by_instance_id": { "type": "string", "minLength": 1 },
+          "created_at": { "$ref": "#/$defs/timestamp" }
+        },
+        "required": [
+          "checkpoint_id", "role_id", "generation", "knowledge_revision", "document_snapshots",
+          "handoff_summary", "todos_total", "todos_done", "todos_open", "created_by_instance_id", "created_at"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:owner-document-revisions",
+  "title": "OwnerDocumentRevisionsPage",
+  "description": "Owner read of one document's revision history (desktop-gui-contract §2.3, G5). Revisions are immutable; the list is metadata only — bodies come from documents.read per revision. Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "role_id": { "$ref": "#/$defs/id" },
+    "document_key": { "$ref": "#/$defs/id" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "revision": { "type": "integer", "minimum": 1 },
+          "content_hash": { "$ref": "#/$defs/sha256" },
+          "visibility": { "enum": ["private", "role", "project", "public"] },
+          "created_by_instance_id": { "type": ["string", "null"] },
+          "created_at": { "$ref": "#/$defs/timestamp" }
+        },
+        "required": ["revision", "content_hash", "visibility", "created_by_instance_id", "created_at"],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "role_id", "document_key", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}

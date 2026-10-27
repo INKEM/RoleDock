@@ -663,3 +663,128 @@ export interface RevokePreview {
     question: string;
   }>;
 }
+
+/** G5 (desktop-gui-contract §2.3): one document-directory entry for the owner
+ * knowledge page. Bodies never appear here — the directory is metadata only. */
+export interface OwnerDocumentEntry {
+  role_id: string;
+  document_key: string;
+  /** 0 when the declared document has no published revision yet. */
+  latest_revision: number;
+  visibility: DocumentVisibility | null;
+  updated_at: string | null;
+  content_hash: string | null;
+}
+
+export interface OwnerDocumentListPage {
+  workspace_id: string;
+  observed_at: string;
+  items: OwnerDocumentEntry[];
+  next_cursor: string | null;
+}
+
+/** G5 owner read of one document revision. `body_included: false` marks the
+ * private/role ladder per the §3.2 matrix — metadata + hash only, the body
+ * never crosses the boundary; `body` is the raw published bytes the
+ * content_hash was computed over. */
+export interface OwnerDocumentRead {
+  workspace_id: string;
+  observed_at: string;
+  role_id: string;
+  document_key: string;
+  revision: number;
+  visibility: DocumentVisibility;
+  content_hash: string;
+  created_at: string;
+  created_by_instance_id: string | null;
+  body_included: boolean;
+  body: string | null;
+}
+
+export interface OwnerDocumentRevisionEntry {
+  revision: number;
+  content_hash: string;
+  visibility: DocumentVisibility;
+  created_by_instance_id: string | null;
+  created_at: string;
+}
+
+export interface OwnerDocumentRevisionsPage {
+  workspace_id: string;
+  observed_at: string;
+  role_id: string;
+  document_key: string;
+  items: OwnerDocumentRevisionEntry[];
+  next_cursor: string | null;
+}
+
+/** G5 owner read of one candidate. The candidate BODY is always included
+ * (§3.2: candidates are explicitly submitted for review); the BASELINE body
+ * follows the private/role rule and never rides along. `baseline_conflicted`
+ * is display-level: the candidate's baseline is older than the current latest
+ * revision — shown, never auto-merged. */
+export interface OwnerCandidateEntry {
+  candidate_id: string;
+  target_role_id: string;
+  document_key: string;
+  state: CandidateUpdateState;
+  source: CandidateUpdateSource | "request.result";
+  note: string | null;
+  proposed_by_role_id: string;
+  baseline_revision: number;
+  latest_revision: number;
+  baseline_conflicted: boolean;
+  proposed_body_hash: string;
+  body_included: boolean;
+  body: string | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
+export interface OwnerCandidatesPage {
+  workspace_id: string;
+  observed_at: string;
+  items: OwnerCandidateEntry[];
+  next_cursor: string | null;
+}
+
+/** G5 checkpoint summary: handoff summary METADATA (format + hash, no body)
+ * and the todo overview; the full body lives behind checkpoints.get. */
+export interface OwnerCheckpointSummary {
+  checkpoint_id: string;
+  role_id: string;
+  generation: number;
+  knowledge_revision: number;
+  document_snapshots: DocumentSnapshot[];
+  handoff_summary: { format: "markdown"; content_hash: string };
+  todos_total: number;
+  todos_done: number;
+  todos_open: Array<{ description: string }>;
+  created_by_instance_id: string;
+  created_at: string;
+}
+
+export interface OwnerCheckpointListPage {
+  workspace_id: string;
+  observed_at: string;
+  items: OwnerCheckpointSummary[];
+  next_cursor: string | null;
+}
+
+/** G5 checkpoint detail: the full handoff summary body (explicitly written
+ * handoff product, §3.2 full text for the owner) plus todos/sources/refs. */
+export interface OwnerCheckpointDetail {
+  workspace_id: string;
+  observed_at: string;
+  checkpoint_id: string;
+  role_id: string;
+  generation: number;
+  knowledge_revision: number;
+  document_snapshots: DocumentSnapshot[];
+  handoff_summary: { format: "markdown"; body: string; content_hash: string };
+  user_decision_refs: UserDecisionRef[];
+  todos: CheckpointTodo[];
+  sources: CheckpointSource[];
+  created_by_instance_id: string;
+  created_at: string;
+}
