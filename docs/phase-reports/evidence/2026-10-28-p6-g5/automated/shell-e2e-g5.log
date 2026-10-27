@@ -31,3 +31,62 @@ Running 14 tests using 1 worker
   ✓  14 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:301:1 › G1-R03: relaunching after closing all windows restores the shell UI, same writer (2.6s)
 
   14 passed (1.1m)
+(node:580219) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 14 tests using 1 worker
+
+(node:580231) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:63:3 › P6-G2 workspaces, preflight, roles and policy › install custom role, inspect details, edit policy with read-back; recent list removable; no session entry (2.1s)
+  ✓   2 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:119:3 › P6-G2 workspaces, preflight, roles and policy › real ZCode launcher branch (gated on local CLI) or honest restricted display (4.5s)
+  ✓   3 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:195:1 › G2-R01: a directory whose endpoint belongs to another workspace is a conflict, no writes (2.2s)
+  ✓   4 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:235:1 › G2-R01(re): after a normal stop, a planted foreign endpoint is refused via the persisted identity (2.8s)
+  ✘   5 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:281:1 › G2-R02(re): a broken persisted launcher config fails loudly, never silently mocks (12.2s)
+(node:580986) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:581145) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   6 packages/desktop/test/e2e-shell/g3.e2e.spec.ts:70:3 › P6-G3 original session authorization and explicit anchoring › GUI click → event → trusted advance → Agent anchor → active binding, no duplicate under double actions (8.0s)
+(node:581311) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:581355) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:581363) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   7 packages/desktop/test/e2e-shell/g4.e2e.spec.ts:66:3 › P6-G4 session observability, revoke surface and restart restoration › anchor → GUI timeline → double authorization → restart keeps generation → revoke preview → revoked display (13.0s)
+(node:581510) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   8 packages/desktop/test/e2e-shell/g5.e2e.spec.ts:64:3 › P6-G5 role knowledge page › anchor → publish → GUI directory/body → candidate visible → export/import create candidates only (7.6s)
+  ✓   9 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:69:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › empty workspace start; two windows one writer; window close keeps service; quit reaps owned (2.3s)
+  ✓  10 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:154:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › external service is attached, never killed; UI restart attaches to the same workspace (2.7s)
+  ✓  11 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:200:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › foreign or broken owner endpoints refused without overwrite; owned crash recovers (3.3s)
+  ✓  12 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:251:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › G1-R02: concurrent first opens of one directory share a single ready result (1.3s)
+  ✓  13 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:278:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › unauthorized IPC is rejected and the bridge stays closed (635ms)
+  ✓  14 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:301:1 › G1-R03: relaunching after closing all windows restores the shell UI, same writer (2.6s)
+
+
+  1) packages/desktop/test/e2e-shell/g2.e2e.spec.ts:281:1 › G2-R02(re): a broken persisted launcher config fails loudly, never silently mocks 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+    Call Log:
+    - Timeout 10000ms exceeded while waiting on the predicate
+
+      319 |     expect(readFileSync(target, "utf8")).toBe("SYNTHETIC_SENTINEL");
+      320 |     expect(lstatSync(join(ws, ".roledock", "launcher-config.json")).isSymbolicLink()).toBe(true);
+    > 321 |     await expect.poll(() => existsSync(join(ws, ".roledock", "service.sock")), { timeout: 10000 }).toBe(false);
+          |                                                                                                    ^
+      322 |   } finally {
+      323 |     await app.close().catch(() => undefined);
+      324 |     rmSync(ws, { recursive: true, force: true });
+        at /home/inkem/Personal/RoleDock/packages/desktop/test/e2e-shell/g2.e2e.spec.ts:321:100
+
+    Error Context: packages/desktop/test-results/g2.e2e-G2-R02-re-a-broken--2519a-loudly-never-silently-mocks/error-context.md
+
+  1 failed
+    packages/desktop/test/e2e-shell/g2.e2e.spec.ts:281:1 › G2-R02(re): a broken persisted launcher config fails loudly, never silently mocks 
+  13 passed (1.1m)

@@ -76,6 +76,10 @@
 3. checkpoint 列表在长历史工作空间按 created_at 倒序分页(offset 游标),与 policy.list 先例一致;超大历史(>200)需翻页,GUI 当前单页 limit=50/100,条目规模为 checkpoint 数量级。
 4. 比较为并排显示+哈希对照,非逐字 diff(计划允许"轻量";未做富文本)。
 
+## 8a. 复审返工 R1(2026-10-28 补记)
+
+首次独立验收结论 REWORK(`P6-G5-review.md`,唯一返工项 R1):IPC redact 的自由文本掩盖误伤哈希配对正文。修复与复验见 `P6-G5-rework.md`(redact 双桥加 `body` 逐字节保真例外 + 契约 v8 §4 补记 + 回归测试;`npm run check` 545/545、shell E2E 14/14 全绿)。验收观察 O-A(真机证据随 G7 收口)、O-C(分页翻页控件)、O-D(并排比较非逐字 diff)不阻塞。
+
 ## 9. 停止点
 
 本阶段完成即停止:不进入 G6、不推送远程。按既有批次风格提交本阶段变更(不推送),交独立验收 Agent 按 `prompts/REVIEW.md` 形成 `P6-G5-review.md`。

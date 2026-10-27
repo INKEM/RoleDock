@@ -16,6 +16,18 @@
 
 const SECRET_FIELD = /(^|_)(token|secret|password|bearer|api[_-]?key|private[_-]?key|access[_-]?key)(s)?$/i;
 const FREE_TEXT_FIELD = /(^|_)(message|body|detail|error|note|reason|description|summary|output|text|log)(s)?$/i;
+/**
+ * Hash-paired payload bytes (G5 owner knowledge DTOs): a "body" string is
+ * content-addressed — paired with content_hash / proposed_body_hash / the
+ * handoff summary hash — so it must arrive VERBATIM. Scrubbing it would
+ * silently rewrite the bytes and break the hash correspondence, violating
+ * desktop-gui-contract §3.1 layer 4 (scrubbed display text must never be
+ * presented as the bytes a content_hash was computed over). Free-text
+ * DISPLAY fields that need scrubbing use other names (message/detail/note/
+ * reason/question/…). R1 (P6-G5 review): keeping this bypass identical in
+ * the probe bridge (G0-R01 parity).
+ */
+const BYTE_FAITHFUL_FIELD = new Set(["body"]);
 const BEARER_SCHEME = /(bearer\s+)([A-Za-z0-9._~+/=-]{12,})/gi;
 const KEY_VALUE_SECRET = /((?:authorization|token|api[_-]?key|secret|password)\s*[:=]\s*)([A-Za-z0-9._~+/=-]{12,})/gi;
 const MASK = "[masked]";
@@ -34,7 +46,7 @@ export function redact<T>(value: T, options: { freeText?: boolean } = {}): T {
     const out: Record<string, unknown> = {};
     for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
       if (SECRET_FIELD.test(key)) continue;
-      out[key] = typeof item === "string" && FREE_TEXT_FIELD.test(key) ? scrubDisplayText(item) : redact(item);
+      out[key] = typeof item === "string" && !BYTE_FAITHFUL_FIELD.has(key) && FREE_TEXT_FIELD.test(key) ? scrubDisplayText(item) : redact(item);
     }
     return out as unknown as T;
   }

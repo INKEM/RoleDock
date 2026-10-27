@@ -1,5 +1,6 @@
 import { expect, test, _electron } from "@playwright/test";
 import type { ElectronApplication, Page } from "@playwright/test";
+import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
@@ -105,7 +106,10 @@ test.describe("P6-G5 role knowledge page", () => {
         expect(authorizationId).toBeTruthy();
         const anchor = await agent.call("sessions.anchor", { authorization_id: authorizationId, idempotency_key: "g5-shell-e2e" });
         expect(anchor.payload?.binding).toMatchObject({ state: "active", generation: 1 });
-        const published = await agent.call("documents.publish", { document_key: "state", body: "状态文档 v1 正文（G5 E2E）", expected_revision: 0, expected_generation: 1 });
+        // R1 regression: the body carries labeled-secret shapes; it must reach
+        // the renderer byte-faithful (sha256(body) === content_hash) through
+        // the shell IPC redact layer.
+        const published = await agent.call("documents.publish", { document_key: "state", body: "状态文档 v1 正文（G5 E2E）\nAuthorization: Bearer SYNTHETIC_SENTINEL_G5_E2E_123456 expired\ntoken: Z0mB1eG5E2eSentinel789", expected_revision: 0, expected_generation: 1 });
         expect(published.isError).toBe(false);
         expect(published.payload?.revision).toBe(1);
         const proposed = await agent.call("documents.propose", { target_role_id: "builder", document_key: "state", body: "候选正文：v2 草案（待审）", note: "G5 E2E candidate" });
@@ -126,6 +130,11 @@ test.describe("P6-G5 role knowledge page", () => {
       await stateRow.locator("button[data-open]").click();
       await expect(win.locator("#body")).toContainText("状态文档 v1 正文（G5 E2E）", { timeout: 15000 });
       await expect(win.locator("#body")).toContainText("内容哈希");
+      // R1: the IPC reply's body is byte-faithful — its sha256 equals content_hash.
+      const read = await callIpc<{ body: string | null; content_hash: string; body_included: boolean }>(win, "knowledge", "readDocument", { role_id: "builder", document_key: "state" });
+      expect(read.body_included).toBe(true);
+      expect(read.body).toContain("Bearer SYNTHETIC_SENTINEL_G5_E2E_123456 expired");
+      expect(createHash("sha256").update(read.body ?? "").digest("hex")).toBe(read.content_hash);
 
       // 4. Candidates: full proposed body visible; baseline not conflicted yet.
       const candidateBlock = win.locator("#candidates .chain", { hasText: "候选正文：v2 草案（待审）" });

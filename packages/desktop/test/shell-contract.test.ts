@@ -78,6 +78,19 @@ describe("shell redaction (identical layered rules to the probe)", () => {
     expect(JSON.stringify(dto)).not.toContain("[masked]");
   });
 
+  it("R1 (P6-G5 review): hash-paired bodies pass through byte-faithful even with labeled-secret shapes", () => {
+    const body = `状态 v2\nAuthorization: Bearer SYNTHETIC_SENTINEL_NOT_A_CREDENTIAL expired\ntoken: Z0mB1eR1B0dySentinel123\n普通散文保持不变`;
+    const dto = redact({
+      body,
+      content_hash: SHA256,
+      message: "Authorization: Bearer SYNTHETIC_SENTINEL_NOT_A_CREDENTIAL rejected",
+    });
+    // The body is content-addressed bytes: verbatim, hash still corresponds.
+    expect((dto as { body: string }).body).toBe(body);
+    // Free-text DISPLAY fields keep their layer-3 scrubbing.
+    expect((dto as { message: string }).message).toBe("Authorization: Bearer [masked] rejected");
+  });
+
   it("masks labeled secrets in free-text fields only; unlabeled blobs are untouched", () => {
     const masked = redact({
       message: "Authorization: Bearer SYNTHETIC_SENTINEL_NOT_A_CREDENTIAL rejected",

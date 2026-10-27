@@ -67,6 +67,13 @@ describe("R01 redaction: secret fields vs public business identifiers", () => {
     expect((masked as { detail: string }).detail).toBe("handoff note: bearer [masked] expired");
   });
 
+  it("R1 (P6-G5 review): hash-paired bodies are byte-faithful in BOTH bridges (G0-R01 parity)", () => {
+    const body = "状态 v2\nAuthorization: Bearer SYNTHETIC_SENTINEL_NOT_A_CREDENTIAL expired\ntoken: Z0mB1eR1B0dySentinel123";
+    const masked = redact({ body, content_hash: SHA256 });
+    expect((masked as { body: string }).body).toBe(body);
+    expect(JSON.stringify(masked)).not.toContain("[masked]");
+  });
+
   it("documented boundary: unlabeled blobs and bare hashes in free text are NOT masked", () => {
     // Contract §3.1 layer 3 (v3): scrubbing covers LABELED secret patterns
     // only. Unlabeled values are the DTO projection layer's responsibility —

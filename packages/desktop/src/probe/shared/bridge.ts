@@ -21,7 +21,14 @@
  *    `key: value`) are masked. UNLABELED blobs are not masked and must not
  *    exist as structured DTO fields (layer 1's job); scrubbed text must
  *    never be presented as the bytes a content_hash was computed over.
+ * 4. Byte-faithful exception (R1, P6-G5 review; identical in the shell
+ *    redact): a "body" string is hash-paired payload bytes (content_hash /
+ *    proposed_body_hash / handoff summary hash), so it passes through
+ *    VERBATIM — scrubbing it would break the hash correspondence (§3.1
+ *    layer 4). Free-text display fields use other names.
  */
+
+const BYTE_FAITHFUL_FIELD = new Set(["body"]);
 
 export const PROBE_CHANNEL_PREFIX = "roledock:probe:";
 
@@ -73,7 +80,7 @@ export function redact<T>(value: T, options: { freeText?: boolean } = {}): T {
     const out: Record<string, unknown> = {};
     for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
       if (SECRET_FIELD.test(key)) continue;
-      out[key] = typeof item === "string" && FREE_TEXT_FIELD.test(key) ? scrubDisplayText(item) : redact(item);
+      out[key] = typeof item === "string" && !BYTE_FAITHFUL_FIELD.has(key) && FREE_TEXT_FIELD.test(key) ? scrubDisplayText(item) : redact(item);
     }
     return out as unknown as T;
   }
