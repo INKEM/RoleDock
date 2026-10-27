@@ -13,7 +13,7 @@ import { EventProgressBridge } from "./event-bridge.js";
 import type { BridgeStatus } from "./event-bridge.js";
 import { connectZCodeConnector } from "@roledock/adapter-zcode";
 import type { ServiceClient } from "@roledock/service";
-import type { AuthorizationConfirmationsPage, SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview, OwnerDocumentListPage, OwnerDocumentRead, OwnerDocumentRevisionsPage, OwnerCandidatesPage, OwnerCheckpointListPage, OwnerCheckpointDetail } from "@roledock/protocol";
+import type { AuthorizationConfirmationsPage, SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview, OwnerDocumentListPage, OwnerDocumentRead, OwnerDocumentRevisionsPage, OwnerCandidatesPage, OwnerCheckpointListPage, OwnerCheckpointDetail, OwnerRequestInboxPage, OwnerRequestDetail, OwnerArtifactRead, OwnerCleanupPage, OwnerCancelResult } from "@roledock/protocol";
 
 export interface RolesInstallResult { roles: Array<{ id: string; title: string; initialized: boolean }>; reinstalled: boolean }
 
@@ -233,6 +233,29 @@ export class WorkspaceController {
 
   knowledgeGetCheckpoint(input: { checkpoint_id: string }): Promise<OwnerCheckpointDetail> {
     return this.#ownerClient().call<OwnerCheckpointDetail>("checkpoints.get", input, { timeoutMs: 5000 });
+  }
+
+  /** G6 (desktop-gui-contract §2.3): owner request inbox views and the §6
+   * management cancellation. Pure proxies; the adapter's cancel capability
+   * boundary lives in the service. */
+  inboxListRequests(input: { cursor?: string; limit?: number; state?: string; target_role_id?: string } = {}): Promise<OwnerRequestInboxPage> {
+    return this.#ownerClient().call<OwnerRequestInboxPage>("requests.listInbox", input, { timeoutMs: 5000 });
+  }
+
+  inboxGetRequest(input: { request_id: string }): Promise<OwnerRequestDetail> {
+    return this.#ownerClient().call<OwnerRequestDetail>("requests.get", input, { timeoutMs: 5000 });
+  }
+
+  inboxReadArtifact(input: { artifact_id: string }): Promise<OwnerArtifactRead> {
+    return this.#ownerClient().call<OwnerArtifactRead>("artifacts.read", input, { timeoutMs: 5000 });
+  }
+
+  inboxListCleanup(input: { cursor?: string; limit?: number; pending_only?: boolean } = {}): Promise<OwnerCleanupPage> {
+    return this.#ownerClient().call<OwnerCleanupPage>("requests.listCleanup", input, { timeoutMs: 5000 });
+  }
+
+  inboxCancelRequest(input: { request_id: string; reason: string; idempotency_key?: string }): Promise<OwnerCancelResult> {
+    return this.#ownerClient().call<OwnerCancelResult>("requests.cancelByOwner", input, { timeoutMs: 10000 });
   }
 
   /** G5 knowledge export: `knowledge.export` writes the bundle under the

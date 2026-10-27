@@ -229,6 +229,52 @@ export function registerShellIpc(options: { rendererDir: string; controller: Wor
       return options.controller.knowledgeExport(input);
     },
     "knowledge:import": noPayload(() => options.controller.knowledgeImport()),
+    // G6 (desktop-gui-contract §2.3/§6): owner request inbox. cancelRequest
+    // requires an explicit reason (+ optional idempotency key); the §6 state
+    // matrix and the adapter cancel capability live in the service.
+    "inbox:listRequests": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input = pagedListInput(payload);
+      const record = payload as Record<string, unknown> | null;
+      const state = record && typeof record === "object" && !Array.isArray(record) && record.state !== undefined && record.state !== null ? record.state : undefined;
+      if (state !== undefined && !["accepted", "queued", "running", "awaiting_input", "completed", "failed", "cancelled", "expired"].includes(state as string)) throw new Error("state 必须是协议请求状态。");
+      const roleId = record && typeof record === "object" && !Array.isArray(record) && record.target_role_id !== undefined && record.target_role_id !== null ? stringField(payload, "target_role_id") : undefined;
+      return options.controller.inboxListRequests({
+        ...input,
+        ...(state !== undefined ? { state: state as string } : {}),
+        ...(roleId !== undefined ? { target_role_id: roleId } : {}),
+      });
+    },
+    "inbox:getRequest": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      return options.controller.inboxGetRequest({ request_id: stringField(payload, "request_id") });
+    },
+    "inbox:readArtifact": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      return options.controller.inboxReadArtifact({ artifact_id: stringField(payload, "artifact_id") });
+    },
+    "inbox:listCleanup": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input = pagedListInput(payload);
+      const record = payload as Record<string, unknown> | null;
+      const pendingOnly = record && typeof record === "object" && !Array.isArray(record) && record.pending_only !== undefined ? record.pending_only : undefined;
+      if (pendingOnly !== undefined && typeof pendingOnly !== "boolean") throw new Error("pending_only 必须是布尔值。");
+      return options.controller.inboxListCleanup({ ...input, ...(pendingOnly !== undefined ? { pending_only: pendingOnly as boolean } : {}) });
+    },
+    "inbox:cancelRequest": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new Error("取消需要 JSON 对象。");
+      const record = payload as Record<string, unknown>;
+      const input: { request_id: string; reason: string; idempotency_key?: string } = {
+        request_id: stringField(payload, "request_id"),
+        reason: stringField(payload, "reason"),
+      };
+      if (record.idempotency_key !== undefined && record.idempotency_key !== null) {
+        if (typeof record.idempotency_key !== "string" || !record.idempotency_key.trim()) throw new Error("idempotency_key 必须是非空字符串。");
+        input.idempotency_key = record.idempotency_key;
+      }
+      return options.controller.inboxCancelRequest(input);
+    },
     "settings:get": noPayload(() => loadSettingsFile(settingsFile)),
     "settings:set": (payload, event) => {
       assertTrusted(event, urlPrefix);

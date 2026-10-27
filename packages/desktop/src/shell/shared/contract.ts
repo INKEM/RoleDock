@@ -35,6 +35,8 @@ export type { AuthorizationConfirmationsPage, ConfirmationChainEntry } from "@ro
 export type { SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview } from "@roledock/protocol";
 /** G5 role knowledge (owner projections; protocol-typed). */
 export type { OwnerDocumentListPage, OwnerDocumentRead, OwnerDocumentRevisionsPage, OwnerCandidatesPage, OwnerCheckpointListPage, OwnerCheckpointDetail } from "@roledock/protocol";
+/** G6 requests/artifacts/cleanup (owner projections; protocol-typed). */
+export type { OwnerRequestInboxPage, OwnerRequestDetail, OwnerArtifactRead, OwnerCleanupPage, OwnerCancelResult } from "@roledock/protocol";
 
 export interface ShellSettings { defaultWorkspaceDir: string | null; exitStopsOwnedServices: boolean }
 
@@ -51,6 +53,10 @@ export const SHELL_NAMESPACES = {
   // explicit role/document keys; export/import resolve files through native
   // dialogs in the trusted main process — the renderer never touches paths.
   knowledge: ["listDocuments", "readDocument", "listRevisions", "listCandidates", "listCheckpoints", "getCheckpoint", "export", "import"] as const,
+  // G6 (desktop-gui-contract §2.3/§6): owner request inbox. cancelRequest is
+  // the §6 management cancellation with reason (+ optional idempotency key);
+  // replies and adoption stay with the sessions — no GUI chat, no publish.
+  inbox: ["listRequests", "getRequest", "readArtifact", "listCleanup", "cancelRequest"] as const,
   roles: ["install", "list", "get", "grant", "revoke"] as const,
   settings: ["get", "set"] as const,
   app: ["quit", "version"] as const,

@@ -39,6 +39,15 @@ describe("shell named-IPC contract", () => {
     expect(SHELL_NAMESPACES.sessions).not.toContain("release");
   });
 
+  it("G6: inbox vocabulary is the owner request views plus the reason-carrying cancel — no GUI reply/publish", () => {
+    expect([...SHELL_NAMESPACES.inbox].sort()).toEqual(["cancelRequest", "getRequest", "listCleanup", "listRequests", "readArtifact"]);
+    // Clarifications go back through the initiating session; adoption happens
+    // in the target role's original session — the GUI has no chat/publish.
+    expect(SHELL_NAMESPACES.inbox).not.toContain("reply");
+    expect(SHELL_NAMESPACES.inbox).not.toContain("publish");
+    expect(SHELL_NAMESPACES.inbox).not.toContain("adopt");
+  });
+
   it("G5: knowledge vocabulary is exactly the six owner read views plus export/import — no owner publish/proposal", () => {
     expect([...SHELL_NAMESPACES.knowledge].sort()).toEqual(["export", "getCheckpoint", "import", "listCandidates", "listCheckpoints", "listDocuments", "listRevisions", "readDocument"]);
     // proposals.submit is contract G5/G6 and NOT implemented this phase; there
