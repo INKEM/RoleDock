@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:revoke-preview",
+  "title": "RevokePreview",
+  "description": "Read-only impact preview for authorizations.revoke (desktop-gui-contract §2.3, G4): the authorization, the live bindings that would be invalidated, and the non-terminal delegated requests that would be withdrawn under the existing revocation rules. The preview never revokes.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "authorization": {
+      "type": "object",
+      "properties": {
+        "authorization_id": { "type": "string", "minLength": 1 },
+        "role_id": { "$ref": "#/$defs/id" },
+        "external_session_id": { "$ref": "#/$defs/id" },
+        "host_session_id": { "type": "string", "minLength": 1 },
+        "created_at": { "$ref": "#/$defs/timestamp" },
+        "expires_at": { "$ref": "#/$defs/timestamp" },
+        "revoked_at": { "type": ["string", "null"] }
+      },
+      "required": ["authorization_id", "role_id", "external_session_id", "host_session_id", "created_at", "expires_at", "revoked_at"],
+      "additionalProperties": false
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "external_session_id": { "$ref": "#/$defs/id" },
+          "session_id": { "type": "string", "minLength": 1 },
+          "role_id": { "$ref": "#/$defs/id" },
+          "generation": { "type": "integer", "minimum": 1 },
+          "state": { "enum": ["active", "superseded", "released", "revoked", "expired"] }
+        },
+        "required": ["external_session_id", "session_id", "role_id", "generation", "state"],
+        "additionalProperties": false
+      }
+    },
+    "requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "request_id": { "type": "string", "minLength": 1 },
+          "state": { "enum": ["accepted", "queued", "running", "awaiting_input", "completed", "failed", "cancelled", "expired"] },
+          "execution_uncertain": { "type": "boolean" },
+          "cleanup_pending": { "type": "boolean" },
+          "target_role_id": { "$ref": "#/$defs/id" },
+          "question": { "type": "string", "minLength": 1 }
+        },
+        "required": ["request_id", "state", "execution_uncertain", "cleanup_pending", "target_role_id", "question"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["workspace_id", "observed_at", "authorization", "bindings", "requests"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:anchor-loads",
+  "title": "AnchorLoadsPage",
+  "description": "Owner read view of material load records: load_key, material version and confirmation time (desktop-gui-contract §2.3, G4). `load_version`/`confirmed_at` stay null until the host confirmed the load. Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "load_key": { "type": "string", "minLength": 1 },
+          "attempt_id": { "type": "string", "minLength": 1 },
+          "external_session_id": { "$ref": "#/$defs/id" },
+          "bundle_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "load_version": { "type": ["integer", "null"], "minimum": 1 },
+          "prepared_at": { "$ref": "#/$defs/timestamp" },
+          "confirmed_at": { "type": ["string", "null"] }
+        },
+        "required": ["load_key", "attempt_id", "external_session_id", "bundle_hash", "load_version", "prepared_at", "confirmed_at"],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

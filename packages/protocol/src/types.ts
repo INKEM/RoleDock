@@ -388,3 +388,278 @@ export interface SessionBinding {
   capabilities: string[]; source: AuthorizationSource; created_at: string;
 }
 export type SessionOperation = "sessions.anchor" | "sessions.binding" | "sessions.reconcile" | "sessions.release" | "authorizations.get";
+
+/** Owner-facing service runtime projection (desktop-gui-contract §2.3, G1). */
+export interface WorkspaceServiceInfo {
+  workspace_id: string;
+  service: {
+    /** Service package version line (non-sensitive; no argv, no paths). */
+    version: string;
+    /** Process id of the service holding the workspace writer. */
+    pid: number;
+    started_at: string;
+    /** Adapter identifier the coordinator was opened with (e.g. "mock"). */
+    adapter: string;
+    /** Node runtime of the service process (expected v22.23.2). */
+    runtime: string;
+  };
+}
+
+/** Role detail projection for the owner role library (desktop-gui-contract §2.3, G2). */
+export interface RoleDocumentTemplate {
+  key: string;
+  title?: string;
+  visibility: string;
+  description?: string;
+  /** Template BODY resolved from the installed, hash-pinned pack copy. */
+  template: string;
+}
+
+export interface RoleOutputSchemaSummary {
+  key: string;
+  schema: string;
+}
+
+export interface RoleDetails {
+  workspace_id: string;
+  role_id: string;
+  title: string;
+  /** Responsibility text declared by the role pack (pack data, not core logic). */
+  instructions: string;
+  description?: string;
+  pack: { name: string; version: string; content_hash: string };
+  initialized: boolean;
+  generation: number;
+  knowledge_revision: number;
+  /** Actual primary pointer; null when the role has no initialized generation. */
+  current_instance_id: string | null;
+  requested_capabilities: string[];
+  granted_capabilities: string[];
+  documents: RoleDocumentTemplate[];
+  output_schemas: RoleOutputSchemaSummary[];
+}
+
+/** One page of the owner policy table (desktop-gui-contract §2.3, G2). */
+export interface PolicyEntry {
+  role_id: string;
+  title: string;
+  requested: string[];
+  granted: string[];
+}
+
+export interface PolicyListPage {
+  workspace_id: string;
+  observed_at: string;
+  items: PolicyEntry[];
+  next_cursor: string | null;
+}
+
+/** Service-side adapter capability projection (desktop-gui-contract §2.3, G2).
+ * Desktop-side preflight (runner/egress/connection test) is reported separately. */
+export interface WorkspaceRuntimeStatus {
+  workspace_id: string;
+  observed_at: string;
+  runtime: {
+    adapter: string;
+    level: "full" | "restricted";
+    isolation: { context: boolean; temp_writes: boolean; results: boolean; capability_scope: boolean };
+  };
+}
+
+/** G3 (desktop-gui-contract §2.3): one stored human event with the
+ * authorization it produced (if any). Projection only — reading never
+ * advances the chain. */
+export interface ConfirmationEventView {
+  event_ref: string;
+  actor_id: string;
+  role_id: string;
+  capabilities: string[];
+  inherit: "initialize" | "takeover";
+  expires_at: string;
+  entry: HumanAuthorizationEntry;
+  recorded_at: string;
+  authorization: { authorization_id: string; created_at: string; revoked_at: string | null; expected_generation: number } | null;
+}
+
+/** G3 owner read view of the confirmation progress chain for one registered
+ * external session: stored human events → authorizations → latest anchor
+ * attempt → binding. The GUI displays the stages separately; "event stored"
+ * never means "bound". */
+export interface ConfirmationChainEntry {
+  external_session_id: string;
+  host_session_id: string;
+  connection_subject: string;
+  created_at: string;
+  events: ConfirmationEventView[];
+  anchor_attempt: {
+    attempt_id: string;
+    authorization_id: string;
+    state: AnchorAttempt["state"];
+    created_at: string;
+    error: { code: string; message: string } | null;
+    load: AnchorConfirmation | null;
+  } | null;
+  binding: { session_id: string; role_id: string; generation: number; state: SessionBinding["state"]; created_at: string } | null;
+}
+
+export interface AuthorizationConfirmationsPage {
+  workspace_id: string;
+  observed_at: string;
+  items: ConfirmationChainEntry[];
+  next_cursor: string | null;
+}
+
+/** G3 trusted-face read view: human events stored for THIS connection
+ * subject's registered sessions that have no live authorization yet. The
+ * subject comes from the trusted principal, never from RPC input. */
+export interface PendingHumanEventView {
+  external_session_id: string;
+  host_session_id: string;
+  event_ref: string;
+  role_id: string;
+  capabilities: string[];
+  inherit: "initialize" | "takeover";
+  expires_at: string;
+  recorded_at: string;
+}
+
+export interface PendingHumanEventsPage {
+  workspace_id: string;
+  observed_at: string;
+  items: PendingHumanEventView[];
+}
+
+/** G3 (desktop-gui-contract §9): read-only discovery candidate from the
+ * host. `registered_external_session_id` marks sessions already registered
+ * in this workspace; discovery never creates or attaches anything. */
+export interface HostSessionCandidate {
+  host_session_id: string;
+  title: string | null;
+  status: string | null;
+  kind: string | null;
+  updated_at: string | null;
+  registered_external_session_id: string | null;
+}
+
+export interface HostSessionDiscovery {
+  workspace_id: string;
+  observed_at: string;
+  adapter: string;
+  items: HostSessionCandidate[];
+}
+
+/** G4 (desktop-gui-contract §2.3): owner read view of one session binding.
+ * `state` is the stored state; `effective_state` is display-level validity —
+ * an `active` row whose role head has moved displays `superseded` without the
+ * projection writing anything. Connection availability is reported on the
+ * external session, never folded into this state. */
+export interface SessionBindingView {
+  external_session_id: string;
+  host_session_id: string;
+  session_id: string;
+  instance_id: string;
+  /** Predecessor primary instance this generation took over from. */
+  predecessor_instance_id: string | null;
+  role_id: string;
+  generation: number;
+  state: SessionBinding["state"];
+  effective_state: SessionBinding["state"];
+  /** Effective capabilities (scope ∩ policy grants ∩ authorization) for
+   * active/superseded; empty for withdrawn states. */
+  capabilities: string[];
+  authorization: {
+    authorization_id: string;
+    revoked_at: string | null;
+    expires_at: string;
+    source: AuthorizationSource;
+    /** The attempt that activated this binding carries the load facts. */
+    source_knowledge_revision: number | null;
+  } | null;
+  /** Checkpoint the binding's materials were built on, if any. */
+  checkpoint_id: string | null;
+  created_at: string;
+  /** When the binding entered its current state (creation, or the release/
+   * revocation/expiry transition); null for rows written before the column
+   * existed. Never fabricated. */
+  state_changed_at: string | null;
+}
+
+export interface SessionBindingsPage {
+  workspace_id: string;
+  observed_at: string;
+  items: SessionBindingView[];
+  next_cursor: string | null;
+}
+
+/** G4 owner read view of one anchor attempt. `error` stays at the
+ * error-message layer (desktop-gui-contract §3.1); `confirmation` carries
+ * the four load-confirmation judges when the host confirmed the load. */
+export interface AnchorAttemptView {
+  attempt_id: string;
+  external_session_id: string;
+  host_session_id: string;
+  authorization_id: string;
+  state: AnchorAttempt["state"];
+  source_generation: number;
+  source_knowledge_revision: number;
+  bundle_hash: string;
+  load_key: string;
+  confirmation: AnchorConfirmation | null;
+  error: { code: string; message: string } | null;
+  created_at: string;
+}
+
+export interface AnchorAttemptsPage {
+  workspace_id: string;
+  observed_at: string;
+  items: AnchorAttemptView[];
+  next_cursor: string | null;
+}
+
+/** G4 owner read view of one material load record. `load_version`/`confirmed_at`
+ * stay null until the host confirmed the load. */
+export interface AnchorLoadView {
+  load_key: string;
+  attempt_id: string;
+  external_session_id: string;
+  bundle_hash: string;
+  load_version: number | null;
+  prepared_at: string;
+  confirmed_at: string | null;
+}
+
+export interface AnchorLoadsPage {
+  workspace_id: string;
+  observed_at: string;
+  items: AnchorLoadView[];
+  next_cursor: string | null;
+}
+
+/** G4 read-only impact preview for `authorizations.revoke`: what would stop
+ * working if this authorization were revoked right now. Revoking is a
+ * separate explicit write; the preview never revokes. */
+export interface RevokePreview {
+  workspace_id: string;
+  observed_at: string;
+  authorization: {
+    authorization_id: string;
+    role_id: string;
+    external_session_id: string;
+    host_session_id: string;
+    created_at: string;
+    expires_at: string;
+    revoked_at: string | null;
+  };
+  /** Live (active/superseded) bindings that would be invalidated. */
+  bindings: Array<{ external_session_id: string; session_id: string; role_id: string; generation: number; state: SessionBinding["state"] }>;
+  /** Non-terminal delegated requests that would be withdrawn under the
+   * existing revocation rules (binding withdrawn → task authorization gone). */
+  requests: Array<{
+    request_id: string;
+    state: CollaborationRequestState;
+    execution_uncertain: boolean;
+    cleanup_pending: boolean;
+    target_role_id: string;
+    question: string;
+  }>;
+}

@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:authorization-confirmations",
+  "title": "AuthorizationConfirmationsPage",
+  "description": "Owner read view of the confirmation progress chain per registered external session: stored human events, the authorizations they produced, the latest anchor attempt and the binding (desktop-gui-contract §2.3, G3). Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "external_session_id": { "$ref": "#/$defs/id" },
+          "host_session_id": { "type": "string", "minLength": 1 },
+          "connection_subject": { "type": "string", "minLength": 1 },
+          "created_at": { "$ref": "#/$defs/timestamp" },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "event_ref": { "type": "string", "minLength": 1 },
+                "actor_id": { "type": "string", "minLength": 1 },
+                "role_id": { "$ref": "#/$defs/id" },
+                "capabilities": { "type": "array", "items": { "$ref": "#/$defs/capability" } },
+                "inherit": { "enum": ["initialize", "takeover"] },
+                "expires_at": { "$ref": "#/$defs/timestamp" },
+                "entry": { "enum": ["cli-console", "gui-confirm"] },
+                "recorded_at": { "$ref": "#/$defs/timestamp" },
+                "authorization": {
+                  "type": ["object", "null"],
+                  "properties": {
+                    "authorization_id": { "type": "string", "minLength": 1 },
+                    "created_at": { "$ref": "#/$defs/timestamp" },
+                    "revoked_at": { "type": ["string", "null"] },
+                    "expected_generation": { "type": "integer", "minimum": 0 }
+                  },
+                  "required": ["authorization_id", "created_at", "revoked_at", "expected_generation"],
+                  "additionalProperties": false
+                }
+              },
+              "required": ["event_ref", "actor_id", "role_id", "capabilities", "inherit", "expires_at", "entry", "recorded_at", "authorization"],
+              "additionalProperties": false
+            }
+          },
+          "anchor_attempt": {
+            "type": ["object", "null"],
+            "properties": {
+              "attempt_id": { "type": "string", "minLength": 1 },
+              "authorization_id": { "type": "string", "minLength": 1 },
+              "state": { "enum": ["prepared", "loading", "uncertain", "active", "failed"] },
+              "created_at": { "$ref": "#/$defs/timestamp" },
+              "error": {
+                "type": ["object", "null"],
+                "properties": {
+                  "code": { "type": "string", "minLength": 1 },
+                  "message": { "type": "string", "minLength": 1 }
+                },
+                "required": ["code", "message"],
+                "additionalProperties": false
+              },
+              "load": {
+                "type": ["object", "null"],
+                "properties": {
+                  "host_session_id": { "type": "string", "minLength": 1 },
+                  "load_key": { "type": "string", "minLength": 1 },
+                  "content_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+                  "load_version": { "type": "integer", "minimum": 1 }
+                },
+                "required": ["host_session_id", "load_key", "content_hash", "load_version"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["attempt_id", "authorization_id", "state", "created_at", "error", "load"],
+            "additionalProperties": false
+          },
+          "binding": {
+            "type": ["object", "null"],
+            "properties": {
+              "session_id": { "type": "string", "minLength": 1 },
+              "role_id": { "$ref": "#/$defs/id" },
+              "generation": { "type": "integer", "minimum": 1 },
+              "state": { "enum": ["active", "superseded", "released", "revoked", "expired"] },
+              "created_at": { "$ref": "#/$defs/timestamp" }
+            },
+            "required": ["session_id", "role_id", "generation", "state", "created_at"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["external_session_id", "host_session_id", "connection_subject", "created_at", "events", "anchor_attempt", "binding"],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "capability": { "type": "string", "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$" }
+  }
+}

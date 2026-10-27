@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:role-details",
+  "title": "RoleDetails",
+  "description": "Owner-facing role detail projection: pack data and coordination state; no credentials.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "role_id": { "$ref": "#/$defs/id" },
+    "title": { "type": "string", "minLength": 1 },
+    "instructions": { "type": "string" },
+    "description": { "type": "string" },
+    "pack": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/id" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "content_hash": { "$ref": "#/$defs/sha256" }
+      },
+      "required": ["name", "version", "content_hash"],
+      "additionalProperties": false
+    },
+    "initialized": { "type": "boolean" },
+    "generation": { "type": "integer", "minimum": 0 },
+    "knowledge_revision": { "type": "integer", "minimum": 0 },
+    "current_instance_id": { "type": ["string", "null"] },
+    "requested_capabilities": { "type": "array", "items": { "type": "string" } },
+    "granted_capabilities": { "type": "array", "items": { "type": "string" } },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": { "$ref": "#/$defs/id" },
+          "title": { "type": "string" },
+          "visibility": { "type": "string", "enum": ["public", "project", "role", "private"] },
+          "description": { "type": "string" },
+          "template": { "type": "string" }
+        },
+        "required": ["key", "visibility", "template"],
+        "additionalProperties": false
+      }
+    },
+    "output_schemas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": { "$ref": "#/$defs/id" },
+          "schema": { "type": "string" }
+        },
+        "required": ["key", "schema"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["workspace_id", "role_id", "title", "instructions", "pack", "initialized", "generation", "knowledge_revision", "current_instance_id", "requested_capabilities", "granted_capabilities", "documents", "output_schemas"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

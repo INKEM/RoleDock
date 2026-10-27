@@ -22,6 +22,17 @@ export type SchemaName =
   | "collaboration-request"
   | "candidate-update"
   | "knowledge-export"
+  | "workspace-service-info"
+  | "role-details"
+  | "policy-list"
+  | "workspace-runtime-status"
+  | "authorization-confirmations"
+  | "pending-human-events"
+  | "host-session-discovery"
+  | "session-bindings"
+  | "anchor-attempts"
+  | "anchor-loads"
+  | "revoke-preview"
   | "output-envelope"
   | "error-envelope";
 
@@ -42,6 +53,17 @@ export const SCHEMA_NAMES: readonly SchemaName[] = [
   "collaboration-request",
   "candidate-update",
   "knowledge-export",
+  "workspace-service-info",
+  "role-details",
+  "policy-list",
+  "workspace-runtime-status",
+  "authorization-confirmations",
+  "pending-human-events",
+  "host-session-discovery",
+  "session-bindings",
+  "anchor-attempts",
+  "anchor-loads",
+  "revoke-preview",
   "output-envelope",
   "error-envelope",
   "anchor-material",

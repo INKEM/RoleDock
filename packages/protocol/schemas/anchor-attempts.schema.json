@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:anchor-attempts",
+  "title": "AnchorAttemptsPage",
+  "description": "Owner read view of anchor attempts: state, the four load-confirmation judges, and failure reasons at the error-message layer (desktop-gui-contract §2.3/§3, G4). Projection only.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "attempt_id": { "type": "string", "minLength": 1 },
+          "external_session_id": { "$ref": "#/$defs/id" },
+          "host_session_id": { "type": "string", "minLength": 1 },
+          "authorization_id": { "type": "string", "minLength": 1 },
+          "state": { "enum": ["prepared", "loading", "uncertain", "active", "failed"] },
+          "source_generation": { "type": "integer", "minimum": 0 },
+          "source_knowledge_revision": { "type": "integer", "minimum": 0 },
+          "bundle_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "load_key": { "type": "string", "minLength": 1 },
+          "confirmation": {
+            "type": ["object", "null"],
+            "properties": {
+              "host_session_id": { "type": "string", "minLength": 1 },
+              "load_key": { "type": "string", "minLength": 1 },
+              "content_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "load_version": { "type": "integer", "minimum": 1 }
+            },
+            "required": ["host_session_id", "load_key", "content_hash", "load_version"],
+            "additionalProperties": false
+          },
+          "error": {
+            "type": ["object", "null"],
+            "properties": {
+              "code": { "type": "string", "minLength": 1 },
+              "message": { "type": "string", "minLength": 1 }
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          },
+          "created_at": { "$ref": "#/$defs/timestamp" }
+        },
+        "required": [
+          "attempt_id", "external_session_id", "host_session_id", "authorization_id", "state",
+          "source_generation", "source_knowledge_revision", "bundle_hash", "load_key",
+          "confirmation", "error", "created_at"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

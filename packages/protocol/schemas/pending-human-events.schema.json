@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:pending-human-events",
+  "title": "PendingHumanEventsPage",
+  "description": "Trusted-face read view: human events stored for this connection subject's registered sessions that have no live authorization yet (desktop-gui-contract §9, G3). Subject comes from the trusted principal, never from input.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "external_session_id": { "$ref": "#/$defs/id" },
+          "host_session_id": { "type": "string", "minLength": 1 },
+          "event_ref": { "type": "string", "minLength": 1 },
+          "role_id": { "$ref": "#/$defs/id" },
+          "capabilities": { "type": "array", "items": { "$ref": "#/$defs/capability" } },
+          "inherit": { "enum": ["initialize", "takeover"] },
+          "expires_at": { "$ref": "#/$defs/timestamp" },
+          "recorded_at": { "$ref": "#/$defs/timestamp" }
+        },
+        "required": ["external_session_id", "host_session_id", "event_ref", "role_id", "capabilities", "inherit", "expires_at", "recorded_at"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["workspace_id", "observed_at", "items"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "capability": { "type": "string", "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$" }
+  }
+}

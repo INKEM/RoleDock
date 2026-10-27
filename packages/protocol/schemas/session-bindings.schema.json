@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:session-bindings",
+  "title": "SessionBindingsPage",
+  "description": "Owner read view of session bindings with generation, predecessor, source authorization, effective capabilities, checkpoint reference and state timestamps (desktop-gui-contract §2.3, G4). Projection only; `state` is stored state, `effective_state` is display-level validity and never written by listing; `state_changed_at` is when the binding entered its current state (null for rows written before the column existed).",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "external_session_id": { "$ref": "#/$defs/id" },
+          "host_session_id": { "type": "string", "minLength": 1 },
+          "session_id": { "type": "string", "minLength": 1 },
+          "instance_id": { "type": "string", "minLength": 1 },
+          "predecessor_instance_id": { "type": ["string", "null"], "minLength": 1 },
+          "role_id": { "$ref": "#/$defs/id" },
+          "generation": { "type": "integer", "minimum": 1 },
+          "state": { "enum": ["active", "superseded", "released", "revoked", "expired"] },
+          "effective_state": { "enum": ["active", "superseded", "released", "revoked", "expired"] },
+          "capabilities": { "type": "array", "items": { "$ref": "#/$defs/capability" } },
+          "authorization": {
+            "type": ["object", "null"],
+            "properties": {
+              "authorization_id": { "type": "string", "minLength": 1 },
+              "revoked_at": { "type": ["string", "null"] },
+              "expires_at": { "$ref": "#/$defs/timestamp" },
+              "source": {
+                "type": "object",
+                "properties": {
+                  "kind": { "enum": ["human-event", "owner-selection"] },
+                  "event_ref": { "type": "string", "minLength": 1 },
+                  "actor_id": { "type": "string", "minLength": 1 }
+                },
+                "required": ["kind", "event_ref", "actor_id"],
+                "additionalProperties": false
+              },
+              "source_knowledge_revision": { "type": ["integer", "null"], "minimum": 0 }
+            },
+            "required": ["authorization_id", "revoked_at", "expires_at", "source", "source_knowledge_revision"],
+            "additionalProperties": false
+          },
+          "checkpoint_id": { "type": ["string", "null"], "minLength": 1 },
+          "created_at": { "$ref": "#/$defs/timestamp" },
+          "state_changed_at": { "type": ["string", "null"] }
+        },
+        "required": [
+          "external_session_id", "host_session_id", "session_id", "instance_id", "predecessor_instance_id",
+          "role_id", "generation", "state", "effective_state", "capabilities", "authorization",
+          "checkpoint_id", "created_at", "state_changed_at"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "next_cursor": { "type": ["string", "null"] }
+  },
+  "required": ["workspace_id", "observed_at", "items", "next_cursor"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "capability": { "type": "string", "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)+$" }
+  }
+}

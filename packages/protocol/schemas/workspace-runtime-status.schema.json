@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:roledock:protocol:0.1:workspace-runtime-status",
+  "title": "WorkspaceRuntimeStatus",
+  "description": "Service-side adapter capability projection (managed declaration and basis). Desktop-side preflight (runner, egress, connection test) is reported separately.",
+  "type": "object",
+  "properties": {
+    "workspace_id": { "$ref": "#/$defs/id" },
+    "observed_at": { "$ref": "#/$defs/timestamp" },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "adapter": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+        "level": { "enum": ["full", "restricted"] },
+        "isolation": {
+          "type": "object",
+          "properties": {
+            "context": { "type": "boolean" },
+            "temp_writes": { "type": "boolean" },
+            "results": { "type": "boolean" },
+            "capability_scope": { "type": "boolean" }
+          },
+          "required": ["context", "temp_writes", "results", "capability_scope"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["adapter", "level", "isolation"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["workspace_id", "observed_at", "runtime"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "timestamp": { "type": "string", "format": "date-time" }
+  }
+}

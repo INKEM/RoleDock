@@ -11,7 +11,14 @@
         "authorizations.recordHuman",
         "authorizations.recordOwner",
         "authorizations.revoke",
-        "authorizations.submitHumanEvent"
+        "authorizations.submitHumanEvent",
+        "authorizations.confirmations",
+        "authorizations.pendingEvents",
+        "externalSessions.discover",
+        "sessions.listBindings",
+        "sessions.listAttempts",
+        "sessions.listLoads",
+        "authorizations.revokePreview"
       ]
     },
     "input": {
@@ -311,6 +318,176 @@
               "entry",
               "recorded_at"
             ],
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "authorizations.confirmations"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "properties": {
+              "cursor": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 200
+              },
+              "external_session_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "authorizations.pendingEvents"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G3 trusted face: subject comes from the trusted principal; input must be empty.",
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "externalSessions.discover"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G3 trusted face: read-only host session discovery; input must be empty.",
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "sessions.listBindings"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G4 owner face: paged binding read view (desktop-gui-contract §2.3). Projection only.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "external_session_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "sessions.listAttempts"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G4 owner face: paged anchor-attempt read view (desktop-gui-contract §2.3). Projection only.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "external_session_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "sessions.listLoads"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G4 owner face: paged material-load read view (desktop-gui-contract §2.3). Projection only.",
+            "properties": {
+              "cursor": { "type": "string" },
+              "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+              "external_session_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "authorizations.revokePreview"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "input": {
+            "type": "object",
+            "description": "G4 owner face: read-only revoke impact preview (desktop-gui-contract §2.3); revoking is a separate explicit write.",
+            "properties": {
+              "authorization_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,63}$"
+              }
+            },
+            "required": ["authorization_id"],
             "additionalProperties": false
           }
         }
