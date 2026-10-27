@@ -1,0 +1,15 @@
+(node:2208157) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 5 tests using 1 worker
+
+(node:2208380) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2208380) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+  ✓  1 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:69:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › empty workspace start; two windows one writer; window close keeps service; quit reaps owned (7.4s)
+  ✓  2 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:154:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › external service is attached, never killed; UI restart attaches to the same workspace (6.6s)
+  ✓  3 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:200:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › foreign or broken owner endpoints refused without overwrite; owned crash recovers (20.1s)
+  ✓  4 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:248:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › unauthorized IPC is rejected and the bridge stays closed (422ms)
+  ✓  5 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:271:1 › G1-R03: relaunching after closing all windows restores the shell UI, same writer (6.3s)
+
+  5 passed (41.9s)

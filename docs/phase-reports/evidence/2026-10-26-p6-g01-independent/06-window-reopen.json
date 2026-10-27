@@ -1,0 +1,16 @@
+{
+  "prefs": {
+    "nodeIntegration": false,
+    "contextIsolation": true,
+    "sandbox": true
+  },
+  "ownedPid": 2165189,
+  "serviceAliveAfterClose": true,
+  "windowsBeforeClose": 1,
+  "windowsAfterClose": 0,
+  "relaunch": {
+    "exit": 0,
+    "stdout": "{\"kind\":\"shell-single-instance-refused\"}"
+  },
+  "windowsAfterRelaunch": 0
+}

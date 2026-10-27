@@ -1,0 +1,30 @@
+
+> roledock@0.1.0-alpha.0 desktop:package
+> npm run desktop:build && npm run desktop:runtime && cd packages/desktop && npx electron-builder --publish never
+
+
+> roledock@0.1.0-alpha.0 desktop:build
+> npm run build && node packages/desktop/scripts/build.mjs
+
+
+> roledock@0.1.0-alpha.0 build
+> tsc -b
+
+probe build ok -> /home/inkem/Personal/RoleDock/packages/desktop/dist-desktop
+
+> roledock@0.1.0-alpha.0 desktop:runtime
+> node packages/desktop/scripts/fetch-runtime.mjs
+
+runtime cache ok: /home/inkem/Personal/RoleDock/packages/desktop/.cache/runtime/node-v22.23.2-linux-x64/node
+  • electron-builder  version=26.18.0 os=6.8.0-147-generic
+  • loaded configuration  file=/home/inkem/Personal/RoleDock/packages/desktop/electron-builder.yml
+  • packageManager not detected by file, falling back to environment detection  resolvedPackageManager=npm detected=/home/inkem/Personal/RoleDock/packages/desktop
+  • detected workspace root for project using lock file  pm=npm config=undefined resolved=/home/inkem/Personal/RoleDock projectDir=/home/inkem/Personal/RoleDock/packages/desktop
+  • executing @electron/rebuild  electronVersion=44.9.3 arch=x64 buildFromSource=false workspaceRoot=/home/inkem/Personal/RoleDock projectDir=./ appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=linux arch=x64 electron=44.9.3 appOutDir=dist-app/linux-unpacked
+  • downloaded      label=electron progress=100%
+  • downloaded electron zip extracted successfully  output=/home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked
+  • searching for node modules  pm=npm searchDir=/home/inkem/Personal/RoleDock/packages/desktop
+  • duplicate dependency references  dependencies=["ajv@8.20.0","@roledock/core@0.1.0-alpha.0","@roledock/protocol@0.1.0-alpha.0","@roledock/protocol@0.1.0-alpha.0","@roledock/protocol@0.1.0-alpha.0"]

@@ -1,0 +1,31 @@
+{
+  "projection": {
+    "workspace_id": "ws-cc1df186",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2367020,
+      "started_at": "2026-10-26T12:12:56.898Z",
+      "adapter": "mock",
+      "runtime": "v22.23.2"
+    }
+  },
+  "actualRuntime": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/linux-unpacked/resources/runtime/node/node",
+  "expectedRuntime": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/linux-unpacked/resources/runtime/node/node",
+  "prefs": {
+    "nodeIntegration": false,
+    "contextIsolation": true,
+    "sandbox": true
+  },
+  "renderer": {
+    "noProcess": true,
+    "noRequire": true
+  },
+  "schemaValid": true,
+  "checks": {
+    "schemaValid": true,
+    "lockedNode": true,
+    "packagedRuntimeUsed": true,
+    "rendererIsolated": true
+  },
+  "ownedServiceGone": true
+}

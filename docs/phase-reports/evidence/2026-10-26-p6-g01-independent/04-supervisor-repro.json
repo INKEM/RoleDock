@@ -1,0 +1,60 @@
+{
+  "attach": {
+    "attached": {
+      "foregroundDir": "/tmp/rd-g1-review-R1g3Uy/ext-ONTQqZ",
+      "workspaceId": "ws-82ee2756",
+      "state": "running",
+      "owned": false,
+      "pid": null,
+      "socketPath": "/tmp/rd-g1-review-R1g3Uy/ext-ONTQqZ/.roledock/service.sock",
+      "lastRefreshAt": null,
+      "error": null,
+      "detail": "附着的外部服务（退出应用不会停止它）"
+    },
+    "ownerClientPresent": false,
+    "diagnostics": {
+      "ok": false,
+      "error": "当前工作空间没有可用的 owner 连接。"
+    },
+    "roles": {
+      "ok": false,
+      "error": "当前工作空间没有可用的 owner 连接。"
+    },
+    "afterExternalExit": {
+      "foregroundDir": "/tmp/rd-g1-review-R1g3Uy/ext-ONTQqZ",
+      "workspaceId": "ws-82ee2756",
+      "state": "running",
+      "owned": false,
+      "pid": null,
+      "socketPath": "/tmp/rd-g1-review-R1g3Uy/ext-ONTQqZ/.roledock/service.sock",
+      "lastRefreshAt": null,
+      "error": null,
+      "detail": "附着的外部服务（退出应用不会停止它）"
+    }
+  },
+  "reopen": {
+    "first": {
+      "dir": "/tmp/rd-g1-review-R1g3Uy/owned-oKc4BE",
+      "owned": true,
+      "state": "running",
+      "pid": 2163826,
+      "socketPath": "/tmp/rd-g1-review-R1g3Uy/owned-oKc4BE/.roledock/service.sock",
+      "workspaceId": "ws-8603b3c9",
+      "lastRefreshAt": "2026-10-26T04:36:37.445Z",
+      "error": null
+    },
+    "second": {
+      "dir": "/tmp/rd-g1-review-R1g3Uy/owned-oKc4BE",
+      "owned": false,
+      "state": "running",
+      "pid": null,
+      "socketPath": "/tmp/rd-g1-review-R1g3Uy/owned-oKc4BE/.roledock/service.sock",
+      "workspaceId": "ws-8603b3c9",
+      "lastRefreshAt": "2026-10-26T04:36:37.445Z",
+      "error": null
+    },
+    "reaped": [],
+    "originalProcessSurvivesQuit": true,
+    "writerStillAnswers": true
+  }
+}

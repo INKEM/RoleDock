@@ -1,0 +1,248 @@
+{
+  "runtimeSchema": {
+    "valid": true,
+    "extraSecretRejected": true,
+    "invalidPidRejected": true
+  },
+  "attach": {
+    "attached": {
+      "foregroundDir": "/tmp/rd-g01-rr-zuv4c0/ext-stzXhN",
+      "workspaceId": "ws-9ca8676c",
+      "state": "running",
+      "owned": false,
+      "pid": 2363895,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/ext-stzXhN/.roledock/service.sock",
+      "lastRefreshAt": "2026-10-26T12:10:27.089Z",
+      "error": null,
+      "detail": "附着的外部服务（退出应用不会停止它）"
+    },
+    "diagnostics": {
+      "workspace_id": "ws-9ca8676c",
+      "service": {
+        "version": "0.1.0-alpha.0",
+        "pid": 2363895,
+        "started_at": "2026-10-26T12:10:26.750Z",
+        "adapter": "mock",
+        "runtime": "v22.23.2"
+      },
+      "events": []
+    },
+    "roles": {
+      "roles": []
+    },
+    "sessions": {
+      "external_sessions": []
+    },
+    "afterExit": {
+      "foregroundDir": "/tmp/rd-g01-rr-zuv4c0/ext-stzXhN",
+      "workspaceId": "ws-9ca8676c",
+      "state": "disconnected",
+      "owned": false,
+      "pid": 2363895,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/ext-stzXhN/.roledock/service.sock",
+      "lastRefreshAt": "2026-10-26T12:10:27.143Z",
+      "error": "健康检查失败：connect ENOENT /tmp/rd-g01-rr-zuv4c0/ext-stzXhN/.roledock/service.sock",
+      "detail": "附着的外部服务（退出应用不会停止它）"
+    }
+  },
+  "ownedReopen": {
+    "first": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/a-fpW49B",
+      "owned": true,
+      "state": "running",
+      "pid": 2363966,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/a-fpW49B/.roledock/service.sock",
+      "workspaceId": "ws-928ff611",
+      "lastRefreshAt": "2026-10-26T12:10:28.185Z",
+      "error": null
+    },
+    "again": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/a-fpW49B",
+      "owned": true,
+      "state": "running",
+      "pid": 2363966,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/a-fpW49B/.roledock/service.sock",
+      "workspaceId": "ws-928ff611",
+      "lastRefreshAt": "2026-10-26T12:10:28.185Z",
+      "error": null
+    },
+    "other": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/b-gThrDB",
+      "owned": true,
+      "state": "running",
+      "pid": 2364050,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/b-gThrDB/.roledock/service.sock",
+      "workspaceId": "ws-11845d59",
+      "lastRefreshAt": "2026-10-26T12:10:29.331Z",
+      "error": null
+    },
+    "back": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/a-fpW49B",
+      "owned": true,
+      "state": "running",
+      "pid": 2363966,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/a-fpW49B/.roledock/service.sock",
+      "workspaceId": "ws-928ff611",
+      "lastRefreshAt": "2026-10-26T12:10:28.185Z",
+      "error": null
+    },
+    "handleCount": 2,
+    "reaped": [
+      {
+        "dir": "/tmp/rd-g01-rr-zuv4c0/a-fpW49B",
+        "forced": false
+      },
+      {
+        "dir": "/tmp/rd-g01-rr-zuv4c0/b-gThrDB",
+        "forced": false
+      }
+    ],
+    "allOwnedPidsGone": true
+  },
+  "concurrentOpen": {
+    "samePromise": true,
+    "second": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/concurrent-18g7ZZ",
+      "owned": true,
+      "state": "running",
+      "pid": 2364148,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/concurrent-18g7ZZ/.roledock/service.sock",
+      "workspaceId": "ws-93bb5dce",
+      "lastRefreshAt": "2026-10-26T12:10:30.529Z",
+      "error": null
+    },
+    "secondMs": 1048,
+    "clientAtSecondReturn": true,
+    "firstReady": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/concurrent-18g7ZZ",
+      "owned": true,
+      "state": "running",
+      "pid": 2364148,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/concurrent-18g7ZZ/.roledock/service.sock",
+      "workspaceId": "ws-93bb5dce",
+      "lastRefreshAt": "2026-10-26T12:10:30.529Z",
+      "error": null
+    },
+    "firstReadyMs": 1049,
+    "handles": 1
+  },
+  "crashReopen": {
+    "original": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/crash-O541gL",
+      "owned": true,
+      "state": "running",
+      "pid": 2364235,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/crash-O541gL/.roledock/service.sock",
+      "workspaceId": "ws-191554d2",
+      "lastRefreshAt": "2026-10-26T12:10:31.596Z",
+      "error": null
+    },
+    "afterCrash": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/crash-O541gL",
+      "owned": true,
+      "state": "disconnected",
+      "pid": null,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/crash-O541gL/.roledock/service.sock",
+      "workspaceId": "ws-191554d2",
+      "lastRefreshAt": "2026-10-26T12:10:31.596Z",
+      "error": "服务进程退出（code=null signal=SIGKILL）"
+    },
+    "afterOpen": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/crash-O541gL",
+      "owned": true,
+      "state": "running",
+      "pid": 2364310,
+      "socketPath": "/tmp/rd-g01-rr-zuv4c0/crash-O541gL/.roledock/service.sock",
+      "workspaceId": "ws-191554d2",
+      "lastRefreshAt": "2026-10-26T12:10:32.395Z",
+      "error": null
+    },
+    "rpcAnswers": true
+  },
+  "concurrentFailure": {
+    "samePromise": true,
+    "first": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/fail-znX8QF",
+      "owned": true,
+      "state": "disconnected",
+      "pid": null,
+      "socketPath": null,
+      "workspaceId": null,
+      "lastRefreshAt": null,
+      "error": "服务启动失败：(node:2364380) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nSocket path contains a foreign endpoint or non-socket file."
+    },
+    "second": {
+      "dir": "/tmp/rd-g01-rr-zuv4c0/fail-znX8QF",
+      "owned": true,
+      "state": "disconnected",
+      "pid": null,
+      "socketPath": null,
+      "workspaceId": null,
+      "lastRefreshAt": null,
+      "error": "服务启动失败：(node:2364380) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nSocket path contains a foreign endpoint or non-socket file."
+    },
+    "sentinelPreserved": true
+  },
+  "deadCleanup": [
+    {
+      "method": "stop",
+      "elapsedMs": 1,
+      "removed": true,
+      "value": {
+        "dir": "/tmp/rd-g01-rr-zuv4c0/dead-iFHIeb",
+        "owned": true,
+        "state": "disconnected",
+        "pid": null,
+        "socketPath": "/tmp/rd-g01-rr-zuv4c0/dead-iFHIeb/.roledock/service.sock",
+        "workspaceId": "ws-6fe1c234",
+        "lastRefreshAt": "2026-10-26T12:10:34.444Z",
+        "error": "服务进程退出（code=null signal=SIGKILL）"
+      }
+    },
+    {
+      "method": "reapOwned",
+      "elapsedMs": 0,
+      "removed": true,
+      "value": []
+    }
+  ],
+  "checks": {
+    "attachQueryWorks": true,
+    "attachedDeathDetected": true,
+    "ownedPidPreserved": true,
+    "ownedReaped": true,
+    "concurrentPromiseShared": true,
+    "concurrentReady": true,
+    "crashRecovered": true,
+    "failedOpenShared": true,
+    "deadCleanupPrompt": true,
+    "schemaChecks": true
+  },
+  "protocol": {
+    "schemaNames": [
+      "external-registration",
+      "service-control-operation",
+      "external-session",
+      "role-authorization",
+      "anchor-attempt",
+      "session-binding",
+      "session-operation",
+      "human-authorization-event",
+      "rolepack",
+      "role-head",
+      "document-revision",
+      "checkpoint",
+      "bootstrap-bundle",
+      "collaboration-request",
+      "candidate-update",
+      "knowledge-export",
+      "workspace-service-info",
+      "output-envelope",
+      "error-envelope",
+      "anchor-material"
+    ],
+    "workspaceInfoSchemas": [
+      "workspace-service-info"
+    ]
+  }
+}

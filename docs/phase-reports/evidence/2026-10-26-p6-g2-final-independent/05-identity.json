@@ -1,0 +1,185 @@
+{
+  "expectedAId": "ws-b3f9b0f9",
+  "bId": "ws-348c5c9a",
+  "identityFileAfterStop": true,
+  "opened": {
+    "foregroundDir": "/tmp/rd-g2-id-Dxhpjj/a",
+    "workspaceId": "ws-348c5c9a",
+    "state": "conflict",
+    "owned": false,
+    "mode": null,
+    "pid": null,
+    "socketPath": "/tmp/rd-g2-id-Dxhpjj/b/.roledock/service.sock",
+    "lastRefreshAt": null,
+    "error": "目录身份不匹配：目录记录 ws-b3f9b0f9，端点实际 ws-348c5c9a；已拒绝附着，不执行任何写操作",
+    "detail": "附着的外部服务（退出应用不会停止它）"
+  },
+  "installThroughA": {
+    "ok": false,
+    "message": "当前工作空间没有可用的 owner 连接。"
+  },
+  "rolesInB": [],
+  "variants": [
+    {
+      "kind": "missing",
+      "state": "conflict",
+      "error": "目录缺少身份记录（workspace-id），无法证明端点归属；已拒绝附着与写操作。新工作空间请以服务模式启动以建立身份",
+      "writeRefused": true,
+      "bRoles": []
+    },
+    {
+      "kind": "malformed",
+      "state": "conflict",
+      "error": "目录身份文件损坏（内容不是有效 workspace_id），无法证明端点归属；已拒绝附着与写操作",
+      "writeRefused": true,
+      "bRoles": []
+    },
+    {
+      "kind": "symlink",
+      "state": "conflict",
+      "error": "目录身份文件损坏（非常规文件），无法证明端点归属；已拒绝附着与写操作",
+      "writeRefused": true,
+      "bRoles": []
+    }
+  ],
+  "recoveredA": {
+    "foregroundDir": "/tmp/rd-g2-id-Dxhpjj/a",
+    "workspaceId": "ws-b3f9b0f9",
+    "state": "running",
+    "owned": true,
+    "mode": "mock",
+    "pid": 2513201,
+    "socketPath": "/tmp/rd-g2-id-Dxhpjj/a/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T15:49:47.988Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "correctB": {
+    "foregroundDir": "/tmp/rd-g2-id-Dxhpjj/b",
+    "workspaceId": "ws-348c5c9a",
+    "state": "running",
+    "owned": false,
+    "mode": "mock",
+    "pid": 2513160,
+    "socketPath": "/tmp/rd-g2-id-Dxhpjj/b/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T15:49:48.344Z",
+    "error": null,
+    "detail": "附着的外部服务（退出应用不会停止它）"
+  },
+  "returnA": {
+    "foregroundDir": "/tmp/rd-g2-id-Dxhpjj/a",
+    "workspaceId": "ws-b3f9b0f9",
+    "state": "running",
+    "owned": true,
+    "mode": "mock",
+    "pid": 2513201,
+    "socketPath": "/tmp/rd-g2-id-Dxhpjj/a/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T15:49:47.988Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "rolesA": [
+    {
+      "role_id": "archivist",
+      "title": "Archivist",
+      "pack": {
+        "name": "solo-archivist",
+        "version": "0.1.0",
+        "content_hash": "7b9d4b76afce867c825e8bbc8c0d34fb62e8cd198513190e36cf6394028e2880"
+      },
+      "initialized": false,
+      "generation": 0,
+      "knowledge_revision": 0,
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose"
+      ],
+      "granted_capabilities": []
+    }
+  ],
+  "rolesB": [
+    {
+      "role_id": "builder",
+      "title": "Builder",
+      "pack": {
+        "name": "demo-team",
+        "version": "0.1.0",
+        "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+      },
+      "initialized": false,
+      "generation": 0,
+      "knowledge_revision": 0,
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose",
+        "documents.publish",
+        "requests.create"
+      ],
+      "granted_capabilities": []
+    },
+    {
+      "role_id": "explainer",
+      "title": "Explainer",
+      "pack": {
+        "name": "demo-team",
+        "version": "0.1.0",
+        "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+      },
+      "initialized": false,
+      "generation": 0,
+      "knowledge_revision": 0,
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose"
+      ],
+      "granted_capabilities": []
+    },
+    {
+      "role_id": "reviewer",
+      "title": "Reviewer",
+      "pack": {
+        "name": "demo-team",
+        "version": "0.1.0",
+        "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+      },
+      "initialized": false,
+      "generation": 0,
+      "knowledge_revision": 0,
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose",
+        "requests.create"
+      ],
+      "granted_capabilities": []
+    }
+  ],
+  "afterSwitchA": [
+    {
+      "role_id": "archivist",
+      "title": "Archivist",
+      "pack": {
+        "name": "solo-archivist",
+        "version": "0.1.0",
+        "content_hash": "7b9d4b76afce867c825e8bbc8c0d34fb62e8cd198513190e36cf6394028e2880"
+      },
+      "initialized": false,
+      "generation": 0,
+      "knowledge_revision": 0,
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose"
+      ],
+      "granted_capabilities": []
+    }
+  ],
+  "checks": {
+    "identitySurvivesStop": true,
+    "foreignEndpointRejected": true,
+    "bUnchanged": true,
+    "variantsRejected": true,
+    "recoverOriginalA": true,
+    "correctBAttached": true,
+    "returnAKeepsIdentity": true,
+    "roleSeparation": true
+  }
+}

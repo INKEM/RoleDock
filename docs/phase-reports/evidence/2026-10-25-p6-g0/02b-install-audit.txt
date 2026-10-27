@@ -1,0 +1,10 @@
+== npm audit（安装 desktop 新依赖后）==
+body-parser high (GHSA-27r3-jxmh-p828, electron-builder 传递依赖)
+fast-uri moderate (GHSA-w74x-v6f9-j3xg 等4项)
+== npm audit fix 后 ==
+found 0 vulnerabilities
+== 直接依赖锁定确认 ==
+
+== Electron 二进制下载（代理说明）==
+本机 http_proxy=127.0.0.1:17891；@electron/get 5.1.0 的 Node fetch 默认不走代理env，直连 github.com 超时。
+以 ELECTRON_GET_USE_PROXY=1（undici EnvHttpProxyAgent，官方支持）完成下载；./node_modules/.bin/electron --version → v44.9.3。

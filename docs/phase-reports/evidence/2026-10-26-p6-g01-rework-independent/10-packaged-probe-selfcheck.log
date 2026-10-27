@@ -1,0 +1,3 @@
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+{"kind":"desktop-probe-selfcheck","mode":"packaged","runtimeNode":"/home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/node/node","runtimeVersion":null,"pass":false,"checks":[{"name":"workspace_info","pass":false,"detail":"Timed out after 20000ms."}]}

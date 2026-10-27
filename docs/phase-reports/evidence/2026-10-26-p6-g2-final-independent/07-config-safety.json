@@ -1,0 +1,23 @@
+{
+  "normal": {
+    "firstKind": "zcode",
+    "updatedProvider": "fixture",
+    "mode": "600"
+  },
+  "fileLink": {
+    "refused": true,
+    "contentPreserved": true,
+    "modePreserved": true,
+    "inodePreserved": true,
+    "linkPreserved": true
+  },
+  "directoryLink": {
+    "refused": true,
+    "targetEmpty": true
+  },
+  "checks": {
+    "normalFirstAndUpdate": true,
+    "fileLink": true,
+    "directoryLink": true
+  }
+}

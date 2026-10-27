@@ -1,0 +1,16 @@
+
+Running 11 tests using 1 worker
+
+  ✓   1 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:63:3 › P6-G2 workspaces, preflight, roles and policy › install custom role, inspect details, edit policy with read-back; recent list removable; no session entry (4.9s)
+  ✓   2 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:119:3 › P6-G2 workspaces, preflight, roles and policy › real ZCode launcher branch (gated on local CLI) or honest restricted display (11.5s)
+  ✓   3 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:195:1 › G2-R01: a directory whose endpoint belongs to another workspace is a conflict, no writes (5.3s)
+  ✓   4 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:235:1 › G2-R01(re): after a normal stop, a planted foreign endpoint is refused via the persisted identity (5.6s)
+  ✓   5 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:281:1 › G2-R02(re): a broken persisted launcher config fails loudly, never silently mocks (5.8s)
+  ✓   6 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:69:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › empty workspace start; two windows one writer; window close keeps service; quit reaps owned (5.6s)
+  ✓   7 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:154:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › external service is attached, never killed; UI restart attaches to the same workspace (5.7s)
+  ✓   8 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:200:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › foreign or broken owner endpoints refused without overwrite; owned crash recovers (7.8s)
+  ✓   9 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:251:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › G1-R02: concurrent first opens of one directory share a single ready result (3.1s)
+  ✓  10 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:278:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › unauthorized IPC is rejected and the bridge stays closed (717ms)
+  ✓  11 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:301:1 › G1-R03: relaunching after closing all windows restores the shell UI, same writer (5.7s)
+
+  11 passed (1.1m)

@@ -1,0 +1,70 @@
+{
+  "mode": "packaged",
+  "runtimeNode": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/node/node",
+  "runtimeVersion": "v22.23.2",
+  "service": {
+    "state": "stopped",
+    "pid": null,
+    "workspaceRoot": "/tmp/rd-g0-package-gNNh9H/workspace",
+    "socketPath": "/tmp/rd-g0-package-gNNh9H/workspace/.roledock/service.sock",
+    "workspaceId": "ws-027d5ccc",
+    "error": null
+  },
+  "events": [
+    {
+      "at": "2026-10-26T05:48:34.551Z",
+      "event": "runtime-resolved",
+      "detail": "packaged: /home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/node/node"
+    },
+    {
+      "at": "2026-10-26T05:48:34.553Z",
+      "event": "service-starting",
+      "detail": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/vendor/service-bundle.mjs"
+    },
+    {
+      "at": "2026-10-26T05:48:36.706Z",
+      "event": "service-running",
+      "detail": "pid=2215540 workspace=ws-027d5ccc"
+    },
+    {
+      "at": "2026-10-26T05:48:36.707Z",
+      "event": "service-started",
+      "detail": "workspace=ws-027d5ccc"
+    },
+    {
+      "at": "2026-10-26T05:48:36.835Z",
+      "event": "mcp-spawning",
+      "detail": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/vendor/mcp-bundle.mjs"
+    },
+    {
+      "at": "2026-10-26T05:48:37.244Z",
+      "event": "mcp-handshake-ok",
+      "detail": "tools=14"
+    },
+    {
+      "at": "2026-10-26T05:48:37.255Z",
+      "event": "checks-finished",
+      "detail": "runtime_version:pass workspace_info:pass sqlite_single_writer:pass mcp_subprocess:pass"
+    },
+    {
+      "at": "2026-10-26T05:48:37.257Z",
+      "event": "service-stopping",
+      "detail": "pid=2215540"
+    },
+    {
+      "at": "2026-10-26T05:48:37.272Z",
+      "event": "service-exit",
+      "detail": "code=0 signal=null"
+    },
+    {
+      "at": "2026-10-26T05:48:37.273Z",
+      "event": "service-stopped",
+      "detail": "exitCode=0 socketRemoved=true"
+    },
+    {
+      "at": "2026-10-26T05:48:37.273Z",
+      "event": "service-stop-verified",
+      "detail": "exitCode=0 socketRemoved=true"
+    }
+  ]
+}

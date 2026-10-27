@@ -1,0 +1,181 @@
+{
+  "attach": {
+    "attached": {
+      "foregroundDir": "/tmp/rd-g01-rr-6h23Ep/ext-K3MdZ5",
+      "workspaceId": "ws-9dc37d49",
+      "state": "running",
+      "owned": false,
+      "pid": 2210810,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/ext-K3MdZ5/.roledock/service.sock",
+      "lastRefreshAt": "2026-10-26T05:43:55.764Z",
+      "error": null,
+      "detail": "附着的外部服务（退出应用不会停止它）"
+    },
+    "diagnostics": {
+      "workspace_id": "ws-9dc37d49",
+      "service": {
+        "version": "0.1.0-alpha.0",
+        "pid": 2210810,
+        "started_at": "2026-10-26T05:43:54.520Z",
+        "adapter": "mock",
+        "runtime": "v22.23.2"
+      },
+      "events": []
+    },
+    "roles": {
+      "roles": []
+    },
+    "sessions": {
+      "external_sessions": []
+    },
+    "afterExit": {
+      "foregroundDir": "/tmp/rd-g01-rr-6h23Ep/ext-K3MdZ5",
+      "workspaceId": "ws-9dc37d49",
+      "state": "disconnected",
+      "owned": false,
+      "pid": 2210810,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/ext-K3MdZ5/.roledock/service.sock",
+      "lastRefreshAt": "2026-10-26T05:43:55.790Z",
+      "error": "健康检查失败：connect ENOENT /tmp/rd-g01-rr-6h23Ep/ext-K3MdZ5/.roledock/service.sock",
+      "detail": "附着的外部服务（退出应用不会停止它）"
+    }
+  },
+  "ownedReopen": {
+    "first": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/a-1pliJU",
+      "owned": true,
+      "state": "running",
+      "pid": 2210883,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/a-1pliJU/.roledock/service.sock",
+      "workspaceId": "ws-a40554f8",
+      "lastRefreshAt": "2026-10-26T05:43:58.311Z",
+      "error": null
+    },
+    "again": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/a-1pliJU",
+      "owned": true,
+      "state": "running",
+      "pid": 2210883,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/a-1pliJU/.roledock/service.sock",
+      "workspaceId": "ws-a40554f8",
+      "lastRefreshAt": "2026-10-26T05:43:58.311Z",
+      "error": null
+    },
+    "other": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/b-T24PQA",
+      "owned": true,
+      "state": "running",
+      "pid": 2211006,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/b-T24PQA/.roledock/service.sock",
+      "workspaceId": "ws-a5c84b0f",
+      "lastRefreshAt": "2026-10-26T05:44:01.533Z",
+      "error": null
+    },
+    "back": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/a-1pliJU",
+      "owned": true,
+      "state": "running",
+      "pid": 2210883,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/a-1pliJU/.roledock/service.sock",
+      "workspaceId": "ws-a40554f8",
+      "lastRefreshAt": "2026-10-26T05:43:58.311Z",
+      "error": null
+    },
+    "handleCount": 2,
+    "reaped": [
+      {
+        "dir": "/tmp/rd-g01-rr-6h23Ep/a-1pliJU",
+        "forced": false
+      },
+      {
+        "dir": "/tmp/rd-g01-rr-6h23Ep/b-T24PQA",
+        "forced": false
+      }
+    ],
+    "allOwnedPidsGone": true
+  },
+  "concurrentOpen": {
+    "samePromise": false,
+    "second": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/concurrent-Sq7J6e",
+      "owned": true,
+      "state": "starting",
+      "pid": 2211059,
+      "socketPath": null,
+      "workspaceId": null,
+      "lastRefreshAt": null,
+      "error": null
+    },
+    "secondMs": 2,
+    "clientAtSecondReturn": false,
+    "firstReady": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/concurrent-Sq7J6e",
+      "owned": true,
+      "state": "running",
+      "pid": 2211059,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/concurrent-Sq7J6e/.roledock/service.sock",
+      "workspaceId": "ws-e49e5624",
+      "lastRefreshAt": "2026-10-26T05:44:04.857Z",
+      "error": null
+    },
+    "firstReadyMs": 3118,
+    "handles": 1
+  },
+  "crashReopen": {
+    "original": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/crash-7O6VBd",
+      "owned": true,
+      "state": "running",
+      "pid": 2211091,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/crash-7O6VBd/.roledock/service.sock",
+      "workspaceId": "ws-d375ed42",
+      "lastRefreshAt": "2026-10-26T05:44:08.043Z",
+      "error": null
+    },
+    "afterCrash": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/crash-7O6VBd",
+      "owned": true,
+      "state": "disconnected",
+      "pid": null,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/crash-7O6VBd/.roledock/service.sock",
+      "workspaceId": "ws-d375ed42",
+      "lastRefreshAt": "2026-10-26T05:44:08.043Z",
+      "error": "服务进程退出（code=null signal=SIGKILL）"
+    },
+    "afterOpen": {
+      "dir": "/tmp/rd-g01-rr-6h23Ep/crash-7O6VBd",
+      "owned": true,
+      "state": "disconnected",
+      "pid": null,
+      "socketPath": "/tmp/rd-g01-rr-6h23Ep/crash-7O6VBd/.roledock/service.sock",
+      "workspaceId": "ws-d375ed42",
+      "lastRefreshAt": "2026-10-26T05:44:08.043Z",
+      "error": "服务进程退出（code=null signal=SIGKILL）"
+    },
+    "rpcAnswers": false
+  },
+  "protocol": {
+    "schemaNames": [
+      "external-registration",
+      "service-control-operation",
+      "external-session",
+      "role-authorization",
+      "anchor-attempt",
+      "session-binding",
+      "session-operation",
+      "human-authorization-event",
+      "rolepack",
+      "role-head",
+      "document-revision",
+      "checkpoint",
+      "bootstrap-bundle",
+      "collaboration-request",
+      "candidate-update",
+      "knowledge-export",
+      "output-envelope",
+      "error-envelope",
+      "anchor-material"
+    ],
+    "workspaceInfoSchemas": []
+  }
+}

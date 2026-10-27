@@ -1,0 +1,237 @@
+{
+  "mock": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": "ws-404641f5",
+    "state": "running",
+    "owned": true,
+    "mode": "mock",
+    "pid": 2475267,
+    "socketPath": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:52:31.252Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "standardMaterials": {
+    "instructionsExact": true,
+    "templateExact": true,
+    "schemaExact": true
+  },
+  "preflight": [
+    {
+      "name": "node_runtime",
+      "state": "ok",
+      "detail": "锁定运行时 v22.23.2"
+    },
+    {
+      "name": "zcode_cli",
+      "state": "ok",
+      "detail": "CLI 版本：0.17.0"
+    },
+    {
+      "name": "connector_bundle",
+      "state": "ok",
+      "detail": "连接器可由锁定 Node 加载（--check 通过）"
+    },
+    {
+      "name": "sandbox_runner",
+      "state": "ok",
+      "detail": "bubblewrap bubblewrap 0.6.1（namespace 干跑通过）"
+    },
+    {
+      "name": "userns",
+      "state": "ok",
+      "detail": "unprivileged_userns_clone=1，max_user_namespaces=124252"
+    },
+    {
+      "name": "workspace_dir",
+      "state": "degraded",
+      "detail": "尚未选择工作空间目录"
+    },
+    {
+      "name": "egress_list",
+      "state": "degraded",
+      "detail": "未配置受管出口（将以非受管 restricted 模式声明）"
+    }
+  ],
+  "connectionTest": {
+    "server": {
+      "name": "roledock-zcode-reference",
+      "version": "0.5.0"
+    },
+    "toolCount": 9
+  },
+  "zcode": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": "ws-404641f5",
+    "state": "running",
+    "owned": true,
+    "mode": "zcode",
+    "pid": 2475370,
+    "socketPath": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:52:34.780Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "before": {
+    "workspace_id": "ws-404641f5",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2475370,
+      "started_at": "2026-10-26T14:52:34.739Z",
+      "adapter": "zcode",
+      "runtime": "v22.23.2"
+    },
+    "events": []
+  },
+  "connectorPath": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/linux-unpacked/resources/runtime/vendor/zcode-connector.mjs",
+  "restart": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": "ws-404641f5",
+    "state": "running",
+    "owned": true,
+    "mode": "zcode",
+    "pid": 2475385,
+    "socketPath": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:52:35.545Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "after": {
+    "workspace_id": "ws-404641f5",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2475385,
+      "started_at": "2026-10-26T14:52:35.456Z",
+      "adapter": "zcode",
+      "runtime": "v22.23.2"
+    },
+    "events": []
+  },
+  "reopenWithoutLauncher": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": "ws-404641f5",
+    "state": "running",
+    "owned": true,
+    "mode": "zcode",
+    "pid": 2475400,
+    "socketPath": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:52:36.319Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "reopenDiagnostics": {
+    "workspace_id": "ws-404641f5",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2475400,
+      "started_at": "2026-10-26T14:52:36.286Z",
+      "adapter": "zcode",
+      "runtime": "v22.23.2"
+    },
+    "events": []
+  },
+  "recent": {
+    "after": [],
+    "disk": [],
+    "workspaceExists": true,
+    "afterAppRelaunch": []
+  },
+  "openAfterAppRelaunch": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": "ws-404641f5",
+    "state": "running",
+    "owned": true,
+    "mode": "zcode",
+    "pid": 2475497,
+    "socketPath": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:52:39.077Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "afterAppRelaunchDiagnostics": {
+    "workspace_id": "ws-404641f5",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2475497,
+      "started_at": "2026-10-26T14:52:39.004Z",
+      "adapter": "zcode",
+      "runtime": "v22.23.2"
+    },
+    "events": []
+  },
+  "crashReopen": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": "ws-404641f5",
+    "state": "running",
+    "owned": true,
+    "mode": "zcode",
+    "pid": 2475547,
+    "socketPath": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:52:40.156Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "crashDiagnostics": {
+    "workspace_id": "ws-404641f5",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2475547,
+      "started_at": "2026-10-26T14:52:40.118Z",
+      "adapter": "zcode",
+      "runtime": "v22.23.2"
+    },
+    "events": []
+  },
+  "invalidConfigOpen": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": null,
+    "state": "disconnected",
+    "owned": true,
+    "mode": "zcode",
+    "pid": null,
+    "socketPath": null,
+    "lastRefreshAt": null,
+    "error": "服务启动失败：(node:2475566) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nCannot connect to the configured ZCode MCP bridge.",
+    "detail": "本应用启动的服务"
+  },
+  "linkedConfigOpen": {
+    "foregroundDir": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws",
+    "workspaceId": "ws-404641f5",
+    "state": "running",
+    "owned": true,
+    "mode": "mock",
+    "pid": 2475592,
+    "socketPath": "/tmp/rd-g2-rework-pkg-GlhsQ7/ws/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:52:41.759Z",
+    "error": null,
+    "detail": "本应用启动的服务"
+  },
+  "linkedConfig": {
+    "endpointStillLink": true,
+    "targetUnchanged": true
+  },
+  "linkedConfigDiagnostics": {
+    "workspace_id": "ws-404641f5",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2475592,
+      "started_at": "2026-10-26T14:52:41.656Z",
+      "adapter": "mock",
+      "runtime": "v22.23.2"
+    },
+    "events": []
+  },
+  "checks": {
+    "mockRunning": true,
+    "zcodeRunning": true,
+    "restartKeptZcode": true,
+    "restartSameWorkspace": true,
+    "reopenKeptZcode": true,
+    "appRelaunchKeptZcode": true,
+    "crashReopenKeptZcode": true,
+    "invalidConfigFailedWithoutMock": true,
+    "externalConnector": true,
+    "recentRemoved": true,
+    "workspacePreserved": true
+  }
+}

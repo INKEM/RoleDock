@@ -1,0 +1,11 @@
+(node:2469524) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-26-p6-g2-rework-independent/revalidate-gui.mjs:15
+ const unwrap=r=>{if(!r.ok)throw new Error(r.error.message);return r.result;};
+                                 ^
+
+Error: 当前工作空间没有可用的 owner 连接。
+    at unwrap (file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-26-p6-g2-rework-independent/revalidate-gui.mjs:15:34)
+    at file:///home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-26-p6-g2-rework-independent/revalidate-gui.mjs:31:15
+
+Node.js v22.23.2

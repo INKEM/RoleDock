@@ -1,0 +1,2 @@
+  ✓  1 packages/desktop/test/e2e/probe.e2e.spec.ts:34:1 › G0 probe lifecycle: named IPC, checks, dialog, window-close vs owned service, single instance, quit reap (5.6s)
+  1 passed (6.6s)

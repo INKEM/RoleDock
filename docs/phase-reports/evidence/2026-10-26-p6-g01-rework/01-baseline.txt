@@ -1,0 +1,15 @@
+== git HEAD ==
+d9743365256459a773a5319791cf3b7bb2e5fbe7
+== status 行数 ==
+53
+== 本轮返工改动文件 ==
+ M docs/toolchain.md
+ M packages/protocol/src/types.ts
+ M packages/service/src/index.ts
+ M tests/integration/service-restart.process.test.ts
+?? docs/phase-reports/P6-G0-development.md
+?? docs/phase-reports/P6-G1-development.md
+?? docs/spec/desktop-gui-contract.md
+?? packages/desktop/test/e2e-shell/
+?? packages/desktop/test/probe-contract.test.ts
+?? packages/desktop/test/shell-contract.test.ts

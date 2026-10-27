@@ -1,0 +1,20 @@
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:2362573) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2363926) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2364284) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2364492) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  9 passed (9)
+      Tests  100 passed (100)
+   Start at  20:10:11
+   Duration  26.15s (tests 86%, import 12%, transform 1%)
+
+    Isolate  9 workers spawned · ~195ms startup each (spawn + environment, per file)
+             at least ~1.56s faster with isolate: false — reuses workers across files instead of one per file
+

@@ -1,0 +1,8 @@
+== G0 探针 dev 真实窗口 E2E（Playwright _electron，DISPLAY=:0）==
+$ ROLEDOCK_E2E_OUT=docs/phase-reports/evidence/2026-10-25-p6-g0/screenshots npx playwright test --config packages/desktop/playwright.config.ts
+
+Running 1 test using 1 worker
+
+  ✓  1 packages/desktop/test/e2e/probe.e2e.spec.ts:34:1 › G0 probe lifecycle: named IPC, checks, dialog, window-close vs owned service, single instance, quit reap (5.7s)
+
+  1 passed (6.8s)

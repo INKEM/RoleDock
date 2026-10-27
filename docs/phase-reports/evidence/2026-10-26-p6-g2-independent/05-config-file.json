@@ -1,0 +1,7 @@
+{
+  "returnedPath": "/tmp/rd-g2-file-hr47jn/ws/.roledock/launcher-config.json",
+  "targetBefore": "SYNTHETIC_EXISTING_USER_NOTES",
+  "targetAfter": "{\n  \"kind\": \"zcode\",\n  \"cliPath\": \"/synthetic/zcode.cjs\",\n  \"connectorPath\": \"/synthetic/connector.mjs\"\n}",
+  "targetModeAfter": "600",
+  "targetPreserved": false
+}

@@ -1,0 +1,1 @@
+Initial baseline helper wrote the 129-file hash manifest, then Node execFileSync(git) returned EPERM despite git stdout. Baseline HEAD and status were captured successfully using direct shell git commands. This is not a product verification result.

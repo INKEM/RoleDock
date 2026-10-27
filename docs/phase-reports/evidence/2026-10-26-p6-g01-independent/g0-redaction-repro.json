@@ -1,0 +1,32 @@
+{
+  "source": "packages/desktop/src/probe/shared/bridge.ts",
+  "input": {
+    "authorization_id": "auth-public",
+    "active_authorization": {
+      "authorization_id": "auth-public"
+    },
+    "content_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "host_session_id": "0123456789abcdef0123456789abcdef",
+    "event_ref": "event-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "token": "SYNTHETIC_SENTINEL_NOT_A_CREDENTIAL",
+    "message": "Authorization: Bearer SYNTHETIC_SENTINEL_NOT_A_CREDENTIAL rejected"
+  },
+  "output": {
+    "authorization_id": "auth-public",
+    "active_authorization": {
+      "authorization_id": "auth-public"
+    },
+    "content_hash": "[masked]",
+    "host_session_id": "[masked]",
+    "event_ref": "event-[masked]",
+    "message": "Authorization: Bearer [masked] rejected"
+  },
+  "checks": {
+    "authorization_id_preserved": true,
+    "active_authorization_preserved": true,
+    "secret_field_removed": true,
+    "content_hash_preserved": false,
+    "host_session_id_preserved": false,
+    "event_ref_preserved": false
+  }
+}

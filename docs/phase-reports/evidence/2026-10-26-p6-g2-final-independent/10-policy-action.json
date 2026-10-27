@@ -1,0 +1,9 @@
+{
+  "kind": "mock-policy-action-boundary",
+  "readBeforeRevokeSucceeded": true,
+  "nextReadAfterRevoke": {
+    "rejected": true,
+    "code": "PERMISSION_DENIED",
+    "message": "Workspace policy denies documents.read."
+  }
+}

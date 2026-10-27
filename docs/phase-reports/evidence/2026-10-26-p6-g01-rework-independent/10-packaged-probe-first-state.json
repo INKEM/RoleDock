@@ -1,0 +1,50 @@
+{
+  "mode": "packaged",
+  "runtimeNode": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/node/node",
+  "runtimeVersion": null,
+  "service": {
+    "state": "running",
+    "pid": null,
+    "workspaceRoot": null,
+    "socketPath": null,
+    "workspaceId": null,
+    "error": "stop incomplete: exitCode=null socketRemoved=true"
+  },
+  "events": [
+    {
+      "at": "2026-10-26T05:45:57.673Z",
+      "event": "runtime-resolved",
+      "detail": "packaged: /home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/node/node"
+    },
+    {
+      "at": "2026-10-26T05:45:59.014Z",
+      "event": "service-starting",
+      "detail": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app/linux-unpacked/resources/runtime/vendor/service-bundle.mjs"
+    },
+    {
+      "at": "2026-10-26T05:46:22.021Z",
+      "event": "service-failed",
+      "detail": "Timed out after 20000ms."
+    },
+    {
+      "at": "2026-10-26T05:46:24.215Z",
+      "event": "service-stopping",
+      "detail": "pid=2214059"
+    },
+    {
+      "at": "2026-10-26T05:46:24.222Z",
+      "event": "service-exit",
+      "detail": "code=null signal=SIGTERM"
+    },
+    {
+      "at": "2026-10-26T05:46:24.423Z",
+      "event": "service-stopped",
+      "detail": "exitCode=null socketRemoved=true"
+    },
+    {
+      "at": "2026-10-26T05:46:24.615Z",
+      "event": "service-stop-verified",
+      "detail": "exitCode=null socketRemoved=true"
+    }
+  ]
+}

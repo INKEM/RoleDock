@@ -1,0 +1,5 @@
+{
+  "kind": "packaged-shell",
+  "status": "目录：/tmp/roledock-packaged-shell-ws-efaGFkworkspace_id：ws-dd709c94状态：running（本应用启动）pid：2134238　socket：/tmp/roledock-packaged-shell-ws-efaGFk/.roledock/service.sock最后刷新：2026-10-25T18:00:19.281Z提示：关闭窗口不会停止该服务；退出应用才会停止本应用启动的服务。",
+  "screenshot": "docs/phase-reports/evidence/2026-10-26-p6-g1/05-packaged-shell.png"
+}

@@ -1,0 +1,39 @@
+{
+  "expectedAId": "ws-767632ae",
+  "bId": "ws-4ab3c6ad",
+  "identityFileAfterStop": false,
+  "opened": {
+    "foregroundDir": "/tmp/rd-g2-id-oHFRtW/a",
+    "workspaceId": "ws-4ab3c6ad",
+    "state": "running",
+    "owned": false,
+    "mode": "mock",
+    "pid": 2471995,
+    "socketPath": "/tmp/rd-g2-id-oHFRtW/b/.roledock/service.sock",
+    "lastRefreshAt": "2026-10-26T14:47:09.756Z",
+    "error": null,
+    "detail": "附着的外部服务（退出应用不会停止它）"
+  },
+  "installThroughA": {
+    "ok": true,
+    "result": {
+      "pack": {
+        "name": "solo-archivist",
+        "version": "0.1.0",
+        "content_hash": "7b9d4b76afce867c825e8bbc8c0d34fb62e8cd198513190e36cf6394028e2880"
+      },
+      "roles": [
+        {
+          "id": "archivist",
+          "title": "Archivist",
+          "initialized": false
+        }
+      ],
+      "reinstalled": false,
+      "content_repaired": false
+    }
+  },
+  "rolesInB": [
+    "archivist"
+  ]
+}

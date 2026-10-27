@@ -1,0 +1,18 @@
+{
+  "kind": "packaged-g2",
+  "connectorBundleCheck": "✅ connector_bundle（ok）— 连接器可由锁定 Node 加载（--check 通过）",
+  "zcodeCliCheck": "✅ zcode_cli（ok）— CLI 版本：0.17.0",
+  "connectionTest": "握手成功：server=roledock-zcode-reference@0.5.0，工具 9 个（零会话、零模型轮）",
+  "status": "目录：/tmp/roledock-packaged-g2-ws-aNQim8workspace_id：ws-2ba6143b状态：running（本应用启动）　模式：zcodepid：2444151　socket：/tmp/roledock-packaged-g2-ws-aNQim8/.roledock/service.sock最后刷新：2026-10-26T14:13:22.565Z提示：关闭窗口不会停止该服务；退出应用才会停止本应用启动的服务。",
+  "diagnostics": {
+    "workspace_id": "ws-2ba6143b",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 2444151,
+      "started_at": "2026-10-26T14:13:19.100Z",
+      "adapter": "zcode",
+      "runtime": "v22.23.2"
+    },
+    "events": []
+  }
+}

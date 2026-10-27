@@ -1,0 +1,13 @@
+
+Running 6 tests using 1 worker
+
+  ✓  1 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:69:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › empty workspace start; two windows one writer; window close keeps service; quit reaps owned (7.2s)
+  ✓  2 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:154:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › external service is attached, never killed; UI restart attaches to the same workspace (4.7s)
+  ✓  3 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:200:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › foreign or broken owner endpoints refused without overwrite; owned crash recovers (8.9s)
+  ✓  4 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:251:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › G1-R02: concurrent first opens of one directory share a single ready result (2.8s)
+  ✓  5 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:278:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › unauthorized IPC is rejected and the bridge stays closed (493ms)
+  ✓  6 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:301:1 › G1-R03: relaunching after closing all windows restores the shell UI, same writer (4.6s)
+
+  6 passed (29.9s)
+  ✓  1 packages/desktop/test/e2e/probe.e2e.spec.ts:34:1 › G0 probe lifecycle: named IPC, checks, dialog, window-close vs owned service, single instance, quit reap (4.3s)
+  1 passed (4.9s)

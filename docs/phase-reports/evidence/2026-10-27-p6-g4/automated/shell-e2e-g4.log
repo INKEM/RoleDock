@@ -1,0 +1,16 @@
+(node:504131) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:504143) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:504335) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:504384) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:504392) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 packages/desktop/test/e2e-shell/g4.e2e.spec.ts:66:3 › P6-G4 session observability, revoke surface and restart restoration › anchor → GUI timeline → double authorization → restart keeps generation → revoke preview → revoked display (13.5s)
+
+  1 passed (14.5s)

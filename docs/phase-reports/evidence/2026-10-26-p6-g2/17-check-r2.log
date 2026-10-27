@@ -1,0 +1,406 @@
+
+> roledock@0.1.0-alpha.0 check
+> npm run typecheck && npm run test
+
+
+> roledock@0.1.0-alpha.0 typecheck
+> tsc -b --force && tsc -p tsconfig.check.json
+
+
+> roledock@0.1.0-alpha.0 test
+> npm run build && vitest run
+
+
+> roledock@0.1.0-alpha.0 build
+> tsc -b
+
+
+ RUN  v5.0.4 /home/inkem/Personal/RoleDock
+
+(node:2499101) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/rework.test.ts (46 tests) 183866ms
+   ✓ R09 native resume handle (1)
+     ✓ passes the persisted host creation key for initial and successor sessions 3883ms
+   ✓ R02/R03 actual policy and production boundary (3)
+     ✓ denies no-grant and revoked actions without revisions, candidates or receipts, including direct service 3176ms
+     ✓ exposes no store, fixture appointment, receipt signer or low-level mutations in production 2615ms
+     ✓ ignores forged, unrelated and nonexistent-version receipts; real target reads work 3788ms
+   ✓ R04/R05 knowledge boundaries (5)
+     ✓ preserves stale proposal baseline and content; adoption conflicts 3600ms
+     ✓ rejects traversal import before database changes 3202ms
+     ✓ rejects absolute import before database changes 2999ms
+     ✓ rejects symlink import before database changes 2992ms
+     ✓ rejects checkpoint import before database changes 2827ms
+   ✓ R06–R09 fixed knowledge, host loading and recovery (4)
+     ✓ loads role material on first open, inherits committed summary and bodies, rejects stale summary bundle 5378ms
+     ✓ recovers persisted provisioning before/after external create (false) with immutable payload 4008ms
+     ✓ recovers persisted provisioning before/after external create (true) with immutable payload 4190ms
+     ✓ freezes request bodies on receipt and loads only shareable knowledge with a limited scope 4789ms
+   ✓ R10–R14 execution boundaries (15)
+     ✓ rejects missing context isolation before host spending 3204ms
+     ✓ rejects missing temp_writes isolation before host spending 3199ms
+     ✓ rejects missing results isolation before host spending 3209ms
+     ✓ rejects missing capability_scope isolation before host spending 3198ms
+     ✓ checks policy at creation, execution and post-await commit 8396ms
+     ✓ cancellation during needs_input response never revives terminal state 4416ms
+     ✓ cancellation during completed response never revives terminal state 4178ms
+     ✓ cancellation during budget response never revives terminal state 3820ms
+     ✓ deadline crossed during result retrieval prevents completion/needs_input (false) 5795ms
+     ✓ deadline crossed during result retrieval prevents completion/needs_input (true) 5600ms
+     ✓ reserves turns before spending and registers actual host answer hash 9192ms
+     ✓ leaves running host results pending and retries terminal cleanup without rerunning 3997ms
+     ✓ reconciles a lost turn ack across coordinator restart without replaying side effects 4601ms
+     ✓ uses bound lookup for uncertain creates and preserves explicit uncertainty without lookup 12801ms
+     ✓ proves ten overlapping independent requests and overlapping duplicate deliveries 18396ms
+   ✓ additional independent-review counterexamples (8)
+     ✓ reclaims cancelled waiting hosts after cancel failure, preserving retry when close also fails (false) 4207ms
+     ✓ reclaims cancelled waiting hosts after cancel failure, preserving retry when close also fails (true) 3808ms
+     ✓ keeps branch listing and proposal baseline fixed after a newer publish 4214ms
+     ✓ records refused as a known failure and closes host 3788ms
+     ✓ records missing-body as a known failure and closes host 3977ms
+     ✓ lazy expiry of a waiting request also reclaims its host 5412ms
+     ✓ keeps logical open idempotency when knowledge drifts during host creation 5406ms
+     ✓ does not reuse another initiator's request idempotency key 2988ms
+   ✓ user session keys cannot collide with internal request hosts or inject primary history 4414ms
+   ✓ cancelling a migrated legacy key collision cannot cancel or close a primary host 4181ms
+(node:2500172) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/anchor.test.ts (19 tests) 152736ms
+   ✓ external connection and anchor authority (Mock) (19)
+     ✓ loads fixed instructions into the original conversation before activation; replay and binding restore keep one generation 5336ms
+     ✓ rejects identity spoofing, unknown grants, privileged tools and cross-conversation grant consumption with zero head changes 9993ms
+     ✓ cannot derive authorization from model text 6197ms
+     ✓ cannot derive authorization from tool text 5001ms
+     ✓ cannot derive authorization from document text 5207ms
+     ✓ keeps source replay's original baseline, denies ceiling escalation and same anchor key with different authorization 6585ms
+     ✓ human-event idempotency ignores object key order while detecting an actual changed grant 5411ms
+     ✓ two overlapping successors have one CAS winner and a replay never overwrites it 9212ms
+     ✓ coalesces same-key overlap, detects different keys while loading, and does not activate a revoked grant 6982ms
+     ✓ re-prepares changed knowledge, including actual new body, without widening the authorization generation 9212ms
+     ✓ release plus knowledge drift cannot revive a failed anchor or reload a released successor 6993ms
+     ✓ restores uncertain material delivery after writer restart by querying the old key, without replaying the load 6393ms
+     ✓ does not blind-reload an unknown outcome and cannot activate a mismatched confirmation 11597ms
+     ✓ transient reconciliation errors preserve uncertainty and block a fresh key from replaying a material load 6802ms
+     ✓ enforces effective scopes and revocation on direct SDK operations as well as session tools 6020ms
+     ✓ release withdraws delegated task authority, retains snapshots, and new anchoring advances the released generation 8996ms
+     ✓ withdrawing a running task denies branch candidates even when host close fails 9795ms
+     ✓ expired grants cannot activate; expiry invalidates a live binding and prevents new requests to an unserved role 16991ms
+     ✓ missing identity/load/reconcile capabilities are explicit and never produce an active binding 10010ms
+(node:2501194) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ adapters/zcode/test/zcode-adapter.test.ts (33 tests) 102578ms
+   ✓ ZCode restricted connector contract (fixtures) (13)
+     ✓ initializes a role through the core SDK with a fixture material load (B4 production declarations) 3405ms
+     ✓ ten overlapping RoleDock jobs are refused without spending a host turn or creating artifacts 9214ms
+     ✓ coalesces creation overlap and restores the original confirmed mapping after restart 1170ms
+     ✓ unknown accepted creation survives restart and cannot be blindly retried or returned absent 415ms
+     ✓ stores a complete matching answer, replay spends no turn, and changed input conflicts 2579ms
+     ✓ lost send confirmation preserves intent across restart even if a later answer exists 1005ms
+     ✓ gap trace cannot masquerade as completed 1408ms
+     ✓ old trace cannot masquerade as completed 1202ms
+     ✓ multiple trace cannot masquerade as completed 1206ms
+     ✓ truncated trace cannot masquerade as completed 1583ms
+     ✓ wrong-host trace cannot masquerade as completed 1794ms
+     ✓ budget limits prevent new sends; actual oversize output and host close are never fake successes 1607ms
+   ✓ ZCode B1 session identity verification (fixtures) (5)
+     ✓ refuses verification when the connector does not declare zcode_verify_session 394ms
+     ✓ verifies authoritatively, binds the subject once and treats a later conflict as definitive false 997ms
+     ✓ absent sessions are definitive false; connector failures and malformed or mismatched answers stay uncertain 413ms
+     ✓ keeps the subject binding across restart and never fabricates a negative from a failed connector 809ms
+     ✓ registers a real session through the authority once identity is verified (B2 declaration flip) 3578ms
+   ✓ ZCode B2 trusted-entry human events (fixtures) (2)
+     ✓ fails honestly without a wired source and returns record facts through the wired store view 401ms
+     ✓ completes the core recordHuman chain over the CLI-written store record with a fixture-flipped declaration 3010ms
+   ✓ ZCode B3 anchor material load (fixtures) (4)
+     ✓ refuses material load when the connector does not declare the load tools 395ms
+     ✓ drives the full core anchor chain through a fixture load confirmation to CAS activation 4586ms
+     ✓ an unconfirmed load surfaces as uncertain, never as a fake confirmation 591ms
+   ✓ ZCode B4 resource control and inheritance (fixtures) (3)
+     ✓ closes a session authoritatively and refuses later operations on the closed handle 1214ms
+     ✓ cancel is an honest stop signal and connector errors stay uncertain 1394ms
+     ✓ hands off to a new material-loaded host session: generation 2, old primary superseded 7404ms
+   ✓ ZCode B5-3 managed request chain (fixtures) (6)
+     ✓ declares full isolation only in managed mode and keeps external declarations 390ms
+     ✓ verifies the sandbox once, accepts scope/temp_dir, records them, and never re-verifies 1814ms
+     ✓ refuses managed sessions when the connector is not sandboxed, before any host action 790ms
+     ✓ refuses managed sessions on an egress whitelist mismatch (fail-closed) 594ms
+     ✓ executes ten sequential RoleDock requests end-to-end through the executor gate 46601ms
+(node:2501987) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/requests.test.ts (13 tests) 81441ms
+   ✓ requests.create preconditions (4)
+     ✓ requires read receipts or an exception rationale 3247ms
+     ✓ returns ROLE_UNINITIALIZED when the target has no primary instance 4595ms
+     ✓ rejects nested auto-requests from consultation sessions 3393ms
+     ✓ is idempotent: same key same content returns the original; different content conflicts 2396ms
+   ✓ isolated execution (10 concurrent requests) (1)
+     ✓ executes ten queued requests without mixing messages, files, results or scopes 21014ms
+   ✓ requests concurrent with handoff (1)
+     ✓ queued requests keep their receive-time snapshot; new requests bind the new generation 6381ms
+   ✓ state machine, budgets and late results (4)
+     ✓ moves to awaiting_input on needs_input, resumes after the initiator's reply 8404ms
+     ✓ enforces the turn budget as a capability-scope boundary 5806ms
+     ✓ rejects late results after cancellation and duplicate completions 3404ms
+     ✓ expires overdue requests lazily and reclaims their temp dirs 4787ms
+   ✓ permission matrix over requests (2)
+     ✓ rejects cross-identity read, reply, cancel and adopt 6994ms
+     ✓ rejects adoption of cancelled or late results 4004ms
+   ✓ handoff interplay with candidates (1)
+     ✓ gives stale-branch candidates no formal write permission after a handoff 7013ms
+(node:2503343) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/service/test/service.test.ts (7 tests) 61939ms
+   ✓ shared writer and authenticated Unix socket connections (5)
+     ✓ owner/trusted/two Agent clients share one writer while each has a separate authority boundary 9138ms
+     ✓ the service consumes outbox, commits the actual fixture answer and never injects it into the original conversations 8401ms
+     ✓ a pending external load cannot become active after session release 5578ms
+     ✓ expired target grants are withdrawn and cancelled while an external turn is still awaiting acknowledgment 14604ms
+     ✓ restarting the service invalidates old connection tokens while persistent binding can be restored through newly authenticated enrollment 8212ms
+   ✓ B2 trusted-entry human event write face (owner only) (1)
+     ✓ owner submits a verbatim event for a registered session; trusted channel and contract violations are refused 6801ms
+   ✓ G-min owner confirmation surface over the service (1)
+     ✓ lists sessions with live authorization summaries on the owner face only 9204ms
+(node:2503737) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/handoff.test.ts (12 tests) 51311ms
+   ✓ sessions.open — first and second creation (2)
+     ✓ initializes generation 1 without a handoff, then inherits as generation 2 with correct references 5302ms
+     ✓ requires inherit=latest on an initialized role and rejects consultation sessions as primary 3999ms
+   ✓ handoff failure and recovery modes (4)
+     ✓ re-prepares when knowledge changes during preparation 4600ms
+     ✓ keeps the old primary pointer when the adapter fails to create the host 4799ms
+     ✓ does not blindly recreate sessions on uncertain creation; recovery honors capability 7595ms
+     ✓ is idempotent on the same creation key for the initialize path 2392ms
+   ✓ concurrent activation and successor rights (2)
+     ✓ lets exactly one activation win; the loser gets GENERATION_CONFLICT and cannot publish 6599ms
+     ✓ keeps predecessor sessions and host transcripts unpolluted by the handoff 5409ms
+   ✓ sessions.resume (3)
+     ✓ resumes natively without advancing the generation when the adapter declares it 1992ms
+     ✓ points at semantic inheritance when the adapter lacks native resume 3606ms
+     ✓ rejects unknown sessions 1812ms
+   ✓ role contract freezing (1)
+     ✓ freezes the role's registered pack contract into the bundle 3205ms
+(node:2504104) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/cli/test/cli.test.ts (22 tests) 39924ms
+   ✓ cli implemented operations (P1) (4)
+     ✓ installs a pack via roles install and lists it via roles list 1309ms
+     ✓ installs the demo-team example via CLI and resolves a role 1407ms
+     ✓ reports an unknown role as NOT_FOUND with exit code 1 1396ms
+     ✓ admin grant/policy work through the owner entry 1611ms
+   ✓ cli P2 operations (3)
+     ✓ documents publish requires a session 1403ms
+     ✓ publishes and reads through a session id end to end 3388ms
+     ✓ exports and imports knowledge between two workspace roots 6413ms
+   ✓ cli P3 session operations (2)
+     ✓ opens a session through the full handoff via the CLI 5184ms
+     ✓ requires a handoff on an initialized role without inherit 1990ms
+   ✓ P5: adapter selection, adoption and owner diagnostics (3)
+     ✓ drives a full handoff through the process bridge and reports diagnostics 4800ms
+     ✓ adopts a request result through --adopt-artifact and flips the inbox to read 9206ms
+   ✓ cli B2 trusted-entry human event submission (1)
+     ✓ stores the CLI-console event for a registered session and rejects mismatched identity 1808ms
+ ✓ tests/integration/demo.test.ts (2 tests) 54281ms
+   ✓ re-runnable end-to-end demo (process bridge) (2)
+     ✓ passes run 1/2 through all seven steps 26079ms
+     ✓ passes run 2/2 through all seven steps 28200ms
+(node:2505701) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/documents.test.ts (11 tests) 31608ms
+   ✓ documents.publish (5)
+     ✓ publishes v1, bumps knowledge_revision, and keeps history immutable 3004ms
+     ✓ rejects a stale expected_revision with REVISION_CONFLICT; loser content survives as a candidate 2787ms
+     ✓ rejects wrong expected_generation with GENERATION_CONFLICT 2419ms
+     ✓ rejects an old-generation session with INVALID_STATE_TRANSITION 2790ms
+     ✓ rejects non-owner publishes and undeclared document keys 2594ms
+   ✓ documents.read and visibility (3)
+     ✓ enforces the visibility matrix across roles and session kinds 4396ms
+     ✓ records read receipts bound to the true calling session; forgery fails 3399ms
+     ✓ filters documents.list by calling identity 3020ms
+   ✓ candidates (2)
+     ✓ adopts a candidate after re-validating its baseline; stale adoption keeps the candidate 3392ms
+     ✓ proposing on an unpublished foreign document is denied 2392ms
+   ✓ testing fixture boundary (1)
+     ✓ is not reachable from the SDK operation surface or the coordinator object 1412ms
+(node:2505835) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/knowledge-transfer.test.ts (7 tests) 28659ms
+   ✓ knowledge.export (3)
+     ✓ share scope carries only public and project documents, never checkpoints 2470ms
+     ✓ workspace scope includes everything plus checkpoints 2778ms
+     ✓ can filter a single role 2418ms
+   ✓ knowledge.import into another workspace (second adapter) (4)
+     ✓ round-trips shared documents as candidates with verified hashes 4591ms
+     ✓ rejects tampered bundle files without touching the database 4206ms
+     ✓ skips private/role entries even in a hand-edited bundle, and unknown roles 5194ms
+     ✓ keeps a stale-baseline candidate but its adoption conflicts 7001ms
+(node:2506220) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/install.test.ts (9 tests) 15390ms
+   ✓ role pack installer (9)
+     ✓ installs a pack, copies content into the workspace, and seeds uninitialized heads 1609ms
+     ✓ reinstalling identical content is idempotent 1966ms
+     ✓ repairs lost pack content on identical reinstall (R-2 regression) 1606ms
+     ✓ rejects the same name+version with different content as IDEMPOTENCY_CONFLICT 1798ms
+     ✓ rejects role id collisions across packs with ROLE_ALREADY_EXISTS 1622ms
+     ✓ leaves no half-installed pack when the transaction fails mid-install 1782ms
+     ✓ rejects a workspace id mismatch 1409ms
+     ✓ registers roles from packs installed before a restart (persistence) 1800ms
+     ✓ writes no grants from requested capabilities 1797ms
+ ✓ tests/integration/anchor-recovery.process.test.ts (3 tests) 11825ms
+   ✓ actual coordinator SIGKILL and persisted anchor intent recovery (fixture) (3)
+     ✓ recovers before-load with exactly one confirmed material load and one generation 4175ms
+     ✓ recovers after-load with exactly one confirmed material load and one generation 3969ms
+     ✓ recovers after-activate with exactly one confirmed material load and one generation 3679ms
+(node:2506407) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/store.test.ts (6 tests) 9462ms
+   ✓ workspace store (6)
+     ✓ opens a fresh workspace, migrates once, and keeps a stable workspace id 1273ms
+     ✓ persists state across close and reopen 1605ms
+     ✓ rolls back a failed transaction without leaving rows 1596ms
+     ✓ rejects a tampered migration checksum on reopen 1800ms
+     ✓ rejects state written by a newer build (unknown migration id) 1598ms
+     ✓ fails a second in-process open with WORKSPACE_LOCKED and recovers after close 1588ms
+(node:2506455) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/runtime-recovery.process.test.ts (4 tests) 16584ms
+   ✓ durable runtime recovery after real coordinator process exits (4)
+     ✓ restores immutable handoff payload before-create without another host or generation 3990ms
+     ✓ restores immutable handoff payload after-create without another host or generation 3801ms
+     ✓ reconciles reserved request before-turn without replaying a side-effecting turn 4382ms
+     ✓ reconciles reserved request after-turn without replaying a side-effecting turn 4408ms
+(node:2506690) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/b2-human-events.test.ts (5 tests) 14541ms
+   ✓ B2 trusted-entry human authorization events (4)
+     ✓ stores a verbatim owner-submitted record and replays it idempotently on identical content 2735ms
+     ✓ binds the event to the registered session identity and rejects mismatch, unknown session and contract violations 2796ms
+     ✓ wires the store-backed source into adapters that attest human events and completes the recordHuman chain 2999ms
+     ✓ exposes the read view independently and returns null for unknown references 2806ms
+   ✓ G-min owner confirmation surface read view (1)
+     ✓ lists registered sessions with their live authorization summary and grants nothing 3204ms
+(node:2506754) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/coordinator.test.ts (7 tests) 8959ms
+   ✓ P1 implemented operations (3)
+     ✓ installs, lists and resolves roles on a real workspace 1545ms
+     ✓ resolves an unknown role with NOT_FOUND 1406ms
+     ✓ validates operation input 1593ms
+   ✓ single-coordinator constraint (1)
+     ✓ fails a second open on the same workspace with WORKSPACE_LOCKED 1404ms
+   ✓ complete operation surface (P4) (2)
+     ✓ implements every specified operation — none report NOT_IMPLEMENTED 1409ms
+     ✓ uses only registered error codes across the surface 1596ms
+(node:2506814) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/examples-install.test.ts (4 tests) 11619ms
+   ✓ example role packs install end to end (4)
+     ✓ installs both example packs and survives a restart 3229ms
+     ✓ reinstalling identical example packs is idempotent 2206ms
+     ✓ the owner can grant a requested capability through the admin entry 1784ms
+     ✓ keeps workspaces isolated from each other 4398ms
+(node:2506881) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/checkpoint.test.ts (3 tests) 9943ms
+   ✓ CheckpointBuilder (3)
+     ✓ snapshots exact published revisions and skips unpublished documents 3742ms
+     ✓ captures the knowledge_revision at build time, not a stale view 2793ms
+     ✓ rejects checkpoints for roles without a primary instance 3407ms
+(node:2506972) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/service/test/g2-read-models.test.ts (6 tests) 11706ms
+   ✓ G2 owner read models over the service control plane (6)
+     ✓ roles.get returns pack data, coordination state and requested/granted capabilities 1564ms
+     ✓ policy.list pages the requested-vs-granted table with contract pagination 1781ms
+     ✓ G2-R06: roles.get resolves installed-copy bodies (instructions/templates/schema), not paths 1956ms
+     ✓ G2-R06(re): role materials resolve by pack contract even without extensions; missing material fails loudly 2832ms
+     ✓ workspace.runtimeStatus projects the adapter capabilities (managed declaration) 1796ms
+     ✓ owner-only: session connections cannot call the new read models 1776ms
+(node:2507048) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ adapters/zcode/test/contract.test.ts (10 tests) 7974ms
+   ✓ adapter contract: zcode managed variant (sandboxed) (10)
+     ✓ [zcode-managed] degrades to a restricted level when an isolation scope is missing 388ms
+     ✓ [zcode-managed] creates a session with a bootstrap and confirms it host-side 625ms
+     ✓ [zcode-managed] accepts a session without a bootstrap (optional at the port) 978ms
+     ✓ [zcode-managed] runs turns and reports them via getResult 2614ms
+     ✓ [zcode-managed] cancel prevents further spending and keyed turns do not replay 2792ms
+     ✓ [zcode-managed] closes sessions: state flips and further turns are rejected 389ms
+ ✓ tests/integration/cli.spawn.test.ts (6 tests) 3786ms
+   ✓ roledock CLI subprocess smoke (6)
+     ✓ reports no operation as NOT_IMPLEMENTED — every specified command is wired 1192ms
+     ✓ creates a fresh workspace on demand and reports zero roles via admin policy 1596ms
+(node:2507170) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ adapters/zcode/test/reference-connector.process.test.ts (3 tests) 2773ms
+   ✓ reference connector over a real stdio transport (3)
+     ✓ declares its tool list and verifies session identity through the adapter 1951ms
+     ✓ fails verification uncertain when the injected CLI entry is unusable 455ms
+     ✓ refuses --sandbox (fail-closed) when no sandbox runner is available 365ms
+(node:2507233) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2507240) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/workspace-lock.process.test.ts (1 test) 1885ms
+   ✓ single-coordinator lock across real processes (1)
+     ✓ blocks a second coordinator while a child process holds the workspace, and recovers when it dies 1884ms
+(node:2507256) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/mcp/test/mcp.test.ts (1 test) 5983ms
+   ✓ official MCP SDK stdio and shared service (1)
+     ✓ two real MCP subprocesses use their issued session identity, consume authorizations, and cannot sign grants or impersonate another chat 5981ms
+(node:2507329) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/policy.test.ts (5 tests) 10506ms
+   ✓ capability policy (5)
+     ✓ keeps requested capabilities separate from grants after install 1331ms
+     ✓ denies a self-declared identity with no grant — declarations are not capabilities 1776ms
+     ✓ grants and revokes through the owner entry, and evaluate follows 4008ms
+     ✓ rejects revoking a capability that was never granted 1790ms
+     ✓ rejects grants for unknown roles and malformed capability names 1599ms
+(node:2507404) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/integration/service-restart.process.test.ts (1 test) 3928ms
+   ✓ shared service actual process restart (1)
+     ✓ safely recovers its stale socket and refreshes owner credentials after SIGKILL 3927ms
+ ✓ adapters/process-bridge/test/bridge.test.ts (6 tests) 620ms
+ ✓ adapters/process-bridge/test/contract.test.ts (10 tests) 662ms
+ ✓ tests/integration/zcode-diagnostic-cleanup.process.test.ts (1 test) 332ms
+   ✓ diagnostic constructor failure disconnects its owned connector process group without exposing stderr 330ms
+(node:2507791) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/service/test/client-timeout.test.ts (3 tests) 319ms
+   ✓ ServiceClient client-side deadline (DESKTOP_GUI_PLAN §9) (3)
+     ✓ rejects with ServiceRequestTimeoutError when the service never answers 313ms
+ ✓ packages/desktop/test/desktop.test.ts (3 tests) 56ms
+ ✓ adapters/zcode/test/sandbox.test.ts (14 tests) 25ms
+(node:2507818) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/core/test/loader.test.ts (10 tests) 20ms
+ ✓ packages/protocol/test/objects.test.ts (30 tests) 15ms
+ ✓ packages/desktop/test/shell-contract.test.ts (8 tests) 10ms
+ ✓ adapters/mock/test/mock-adapter.test.ts (9 tests) 12ms
+ ✓ packages/protocol/test/rolepack.test.ts (22 tests) 16ms
+ ✓ packages/protocol/test/workspace-service-info.test.ts (4 tests) 9ms
+ ✓ tests/conformance/rolepacks.test.ts (15 tests) 15ms
+ ✓ tests/conformance/no-business-roles.test.ts (69 tests) 32ms
+ ✓ packages/protocol/test/anchor-schemas.test.ts (3 tests) 16ms
+ ✓ packages/protocol/test/g2-read-models.test.ts (3 tests) 11ms
+ ✓ adapters/mock/test/contract.test.ts (10 tests) 16ms
+ ✓ packages/desktop/test/launcher-safety.test.ts (3 tests) 11ms
+ ✓ packages/desktop/test/probe-contract.test.ts (7 tests) 13ms
+ ✓ packages/protocol/test/p2-schemas.test.ts (13 tests) 13ms
+ ✓ packages/protocol/test/human-authorization-event.test.ts (3 tests) 11ms
+(node:2507944) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ packages/desktop/test/preflight.test.ts (3 tests) 7ms
+ ✓ packages/protocol/test/envelopes.test.ts (13 tests) 13ms
+ ✓ tests/conformance/ci-workflow.test.ts (3 tests) 5ms
+
+ Test Files  50 passed (50)
+      Tests  511 passed (511)
+   Start at  23:24:41
+   Duration  954.69s (tests 99%, import 1%)
+

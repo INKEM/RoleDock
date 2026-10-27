@@ -1,0 +1,80 @@
+{
+  "mock": {
+    "ok": true,
+    "result": {
+      "foregroundDir": "/tmp/rd-g2-pkg-zkkq8f/ws",
+      "workspaceId": "ws-3c137939",
+      "state": "running",
+      "owned": true,
+      "mode": "mock",
+      "pid": 2424399,
+      "socketPath": "/tmp/rd-g2-pkg-zkkq8f/ws/.roledock/service.sock",
+      "lastRefreshAt": "2026-10-26T13:48:34.052Z",
+      "error": null,
+      "detail": "本应用启动的服务"
+    }
+  },
+  "preflight": {
+    "ok": true,
+    "result": [
+      {
+        "name": "node_runtime",
+        "state": "ok",
+        "detail": "锁定运行时 v22.23.2"
+      },
+      {
+        "name": "zcode_cli",
+        "state": "ok",
+        "detail": "CLI 版本：0.17.0"
+      },
+      {
+        "name": "connector_bundle",
+        "state": "ok",
+        "detail": "内置连接器就绪"
+      },
+      {
+        "name": "sandbox_runner",
+        "state": "ok",
+        "detail": "bubblewrap bubblewrap 0.6.1（namespace 干跑通过）"
+      },
+      {
+        "name": "userns",
+        "state": "ok",
+        "detail": "unprivileged_userns_clone=1，max_user_namespaces=124252"
+      },
+      {
+        "name": "workspace_dir",
+        "state": "degraded",
+        "detail": "尚未选择工作空间目录"
+      },
+      {
+        "name": "egress_list",
+        "state": "degraded",
+        "detail": "未配置受管出口（将以非受管 restricted 模式声明）"
+      }
+    ]
+  },
+  "connectionTest": {
+    "ok": false,
+    "error": {
+      "code": "NOT_IMPLEMENTED",
+      "message": "Cannot connect to the configured ZCode MCP bridge."
+    }
+  },
+  "zcode": {
+    "ok": true,
+    "result": {
+      "foregroundDir": "/tmp/rd-g2-pkg-zkkq8f/ws",
+      "workspaceId": null,
+      "state": "disconnected",
+      "owned": true,
+      "mode": "zcode",
+      "pid": null,
+      "socketPath": null,
+      "lastRefreshAt": null,
+      "error": "服务启动失败：(node:2424671) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nCannot connect to the configured ZCode MCP bridge.",
+      "detail": "本应用启动的服务"
+    }
+  },
+  "connectorPath": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/linux-unpacked/resources/app.asar/dist-desktop/vendor/zcode-connector.mjs"
+}

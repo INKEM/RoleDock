@@ -1,0 +1,62 @@
+{
+  "manifestValid": true,
+  "installed": {
+    "pack": {
+      "name": "edge-material-pack",
+      "version": "0.1.0",
+      "content_hash": "3ec25cd2ed4c3809edf02344025b0e1ce1bc0a0b96c81fd298be6b98400ea827"
+    },
+    "roles": [
+      {
+        "id": "custodian",
+        "title": "Custodian",
+        "initialized": false
+      }
+    ],
+    "reinstalled": false,
+    "content_repaired": false
+  },
+  "expected": {
+    "instructions": "# Custodian\n\nTrack provenance and inventory.",
+    "template": "# Inventory\n\n| Item | Origin |\n",
+    "schema": "{\"type\":\"object\",\"required\":[\"origin\"],\"properties\":{\"origin\":{\"type\":\"string\"}},\"additionalProperties\":false}"
+  },
+  "actual": {
+    "workspace_id": "ws-8e817cd8",
+    "role_id": "custodian",
+    "title": "Custodian",
+    "instructions": "materials/guide",
+    "pack": {
+      "name": "edge-material-pack",
+      "version": "0.1.0",
+      "content_hash": "3ec25cd2ed4c3809edf02344025b0e1ce1bc0a0b96c81fd298be6b98400ea827"
+    },
+    "initialized": false,
+    "generation": 0,
+    "knowledge_revision": 0,
+    "current_instance_id": null,
+    "requested_capabilities": [
+      "documents.read"
+    ],
+    "granted_capabilities": [],
+    "documents": [
+      {
+        "key": "inventory",
+        "visibility": "project",
+        "template": "materials/layout"
+      }
+    ],
+    "output_schemas": [
+      {
+        "key": "inventory-result",
+        "schema": "materials/record"
+      }
+    ]
+  },
+  "checks": {
+    "instructionsExact": false,
+    "templateExact": false,
+    "schemaExact": false,
+    "installedSnapshotUnaffectedBySourceEdit": true
+  }
+}

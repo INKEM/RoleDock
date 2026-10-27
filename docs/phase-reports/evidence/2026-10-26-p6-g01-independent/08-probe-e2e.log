@@ -1,0 +1,11 @@
+(node:2165687) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:2165736) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2165736) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+  ✓  1 packages/desktop/test/e2e/probe.e2e.spec.ts:34:1 › G0 probe lifecycle: named IPC, checks, dialog, window-close vs owned service, single instance, quit reap (6.8s)
+
+  1 passed (7.9s)

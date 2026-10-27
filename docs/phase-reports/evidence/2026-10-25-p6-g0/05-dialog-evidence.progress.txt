@@ -1,0 +1,6 @@
+[dialog-evidence] launched
+[dialog-evidence] window ready
+[dialog-evidence] service running
+[dialog-evidence] page screenshot saved
+[dialog-evidence] xwininfo captured
+[dialog-evidence] probe killed

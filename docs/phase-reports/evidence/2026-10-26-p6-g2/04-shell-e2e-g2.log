@@ -1,0 +1,13 @@
+
+Running 8 tests using 1 worker
+
+  ✓  1 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:43:3 › P6-G2 workspaces, preflight, roles and policy › install custom role, inspect details, edit policy with read-back; recent list removable; no session entry (3.7s)
+  ✓  2 packages/desktop/test/e2e-shell/g2.e2e.spec.ts:96:3 › P6-G2 workspaces, preflight, roles and policy › real ZCode launcher branch (gated on local CLI) or honest restricted display (4.8s)
+  ✓  3 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:69:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › empty workspace start; two windows one writer; window close keeps service; quit reaps owned (3.4s)
+  ✓  4 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:154:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › external service is attached, never killed; UI restart attaches to the same workspace (3.6s)
+  ✓  5 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:200:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › foreign or broken owner endpoints refused without overwrite; owned crash recovers (7.1s)
+  ✓  6 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:251:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › G1-R02: concurrent first opens of one directory share a single ready result (2.7s)
+  ✓  7 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:278:3 › P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9) › unauthorized IPC is rejected and the bridge stays closed (674ms)
+  ✓  8 packages/desktop/test/e2e-shell/shell.e2e.spec.ts:301:1 › G1-R03: relaunching after closing all windows restores the shell UI, same writer (5.3s)
+
+  8 passed (31.9s)

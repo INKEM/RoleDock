@@ -1,0 +1,260 @@
+{
+  "collected_at": "2026-10-27T12:38:02.924Z",
+  "workspace": {
+    "workspace_id": "ws-6f63f73c",
+    "service": {
+      "version": "0.1.0-alpha.0",
+      "pid": 165145,
+      "started_at": "2026-10-27T12:26:59.950Z",
+      "adapter": "zcode",
+      "runtime": "v22.23.2"
+    }
+  },
+  "runtime": {
+    "workspace_id": "ws-6f63f73c",
+    "observed_at": "2026-10-27T12:38:02.986Z",
+    "runtime": {
+      "adapter": "zcode",
+      "level": "restricted",
+      "isolation": {
+        "context": false,
+        "temp_writes": false,
+        "results": false,
+        "capability_scope": false
+      }
+    }
+  },
+  "roles": {
+    "roles": [
+      {
+        "role_id": "builder",
+        "title": "Builder",
+        "pack": {
+          "name": "demo-team",
+          "version": "0.1.0",
+          "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+        },
+        "initialized": true,
+        "generation": 1,
+        "knowledge_revision": 0,
+        "requested_capabilities": [
+          "documents.read",
+          "documents.propose",
+          "documents.publish",
+          "requests.create"
+        ],
+        "granted_capabilities": [
+          "documents.read"
+        ]
+      },
+      {
+        "role_id": "explainer",
+        "title": "Explainer",
+        "pack": {
+          "name": "demo-team",
+          "version": "0.1.0",
+          "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+        },
+        "initialized": false,
+        "generation": 0,
+        "knowledge_revision": 0,
+        "requested_capabilities": [
+          "documents.read",
+          "documents.propose"
+        ],
+        "granted_capabilities": []
+      },
+      {
+        "role_id": "reviewer",
+        "title": "Reviewer",
+        "pack": {
+          "name": "demo-team",
+          "version": "0.1.0",
+          "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+        },
+        "initialized": false,
+        "generation": 0,
+        "knowledge_revision": 0,
+        "requested_capabilities": [
+          "documents.read",
+          "documents.propose",
+          "requests.create"
+        ],
+        "granted_capabilities": []
+      }
+    ]
+  },
+  "external_sessions": [
+    {
+      "session": {
+        "external_session_id": "ext-51b7252c-b4be-4586-9c05-fd97e73e4014",
+        "workspace_id": "ws-6f63f73c",
+        "adapter": "zcode",
+        "host_session_id": "session_ef398d93c64146db2e7691b11fbaf813",
+        "connection_subject": "desktop-event-bridge",
+        "state": "connected",
+        "created_at": "2026-10-27T12:15:05.981Z",
+        "capability_ceiling": [
+          "documents.propose",
+          "documents.publish",
+          "documents.read",
+          "requests.create"
+        ]
+      },
+      "active_authorization": {
+        "authorization_id": "auth-5d2ef4aa-ac4b-4e25-967f-fbee376ee3bd",
+        "role_id": "builder",
+        "expires_at": "2026-10-27T21:00:00.000Z",
+        "source": {
+          "kind": "human-event",
+          "event_ref": "gui-96c7aa5a102a922029f5459d",
+          "actor_id": "owner"
+        }
+      }
+    },
+    {
+      "session": {
+        "external_session_id": "ext-c3124951-966f-4834-acb8-7413762aee7f",
+        "workspace_id": "ws-6f63f73c",
+        "adapter": "zcode",
+        "host_session_id": "session_3935575d0b4d84472274f9f3c1062e06",
+        "connection_subject": "desktop-event-bridge",
+        "state": "connected",
+        "created_at": "2026-10-27T12:32:48.899Z",
+        "capability_ceiling": [
+          "documents.propose",
+          "documents.publish",
+          "documents.read",
+          "requests.create"
+        ]
+      },
+      "active_authorization": {
+        "authorization_id": "auth-02233320-83a6-4c75-ac61-c5ced73748dc",
+        "role_id": "builder",
+        "expires_at": "2026-10-27T21:00:00.000Z",
+        "source": {
+          "kind": "human-event",
+          "event_ref": "gui-059ef6f4d643eb55d29b33d0",
+          "actor_id": "owner"
+        }
+      }
+    }
+  ],
+  "confirmations": {
+    "workspace_id": "ws-6f63f73c",
+    "observed_at": "2026-10-27T12:38:03.013Z",
+    "items": [
+      {
+        "external_session_id": "ext-51b7252c-b4be-4586-9c05-fd97e73e4014",
+        "host_session_id": "session_ef398d93c64146db2e7691b11fbaf813",
+        "connection_subject": "desktop-event-bridge",
+        "created_at": "2026-10-27T12:15:05.981Z",
+        "events": [
+          {
+            "event_ref": "gui-9a9e08278031302e0c41c2c5",
+            "actor_id": "owner",
+            "role_id": "builder",
+            "capabilities": [
+              "documents.propose",
+              "documents.publish",
+              "documents.read",
+              "requests.create"
+            ],
+            "inherit": "initialize",
+            "expires_at": "2026-10-27T14:00:00.000Z",
+            "entry": "gui-confirm",
+            "recorded_at": "2026-10-27T12:17:36.814Z",
+            "authorization": {
+              "authorization_id": "auth-d08daf22-92f5-493d-afb6-25420332c69b",
+              "created_at": "2026-10-27T12:27:00.069Z",
+              "revoked_at": null,
+              "expected_generation": 0
+            }
+          },
+          {
+            "event_ref": "gui-96c7aa5a102a922029f5459d",
+            "actor_id": "owner",
+            "role_id": "builder",
+            "capabilities": [
+              "documents.propose",
+              "documents.publish",
+              "documents.read",
+              "requests.create"
+            ],
+            "inherit": "initialize",
+            "expires_at": "2026-10-27T21:00:00.000Z",
+            "entry": "gui-confirm",
+            "recorded_at": "2026-10-27T12:19:04.286Z",
+            "authorization": {
+              "authorization_id": "auth-5d2ef4aa-ac4b-4e25-967f-fbee376ee3bd",
+              "created_at": "2026-10-27T12:27:00.110Z",
+              "revoked_at": null,
+              "expected_generation": 0
+            }
+          }
+        ],
+        "anchor_attempt": {
+          "attempt_id": "anchor-1bf2a72d-2483-40ce-89a6-a5fb365e90e0",
+          "authorization_id": "auth-5d2ef4aa-ac4b-4e25-967f-fbee376ee3bd",
+          "state": "active",
+          "created_at": "2026-10-27T12:33:54.362Z",
+          "error": null,
+          "load": {
+            "host_session_id": "session_ef398d93c64146db2e7691b11fbaf813",
+            "load_key": "load-e6517a0b-ae4c-4ab2-bcad-441f2e004238",
+            "content_hash": "e3ac41e357a6c1511b184cab135c39321c3db6a23a4f9c102f3e3fd712bbbe3e",
+            "load_version": 1
+          }
+        },
+        "binding": {
+          "session_id": "sess-d70d62ee-7b7c-4b95-a0b1-a8b2f5895b37",
+          "role_id": "builder",
+          "generation": 1,
+          "state": "active",
+          "created_at": "2026-10-27T12:34:06.288Z"
+        }
+      },
+      {
+        "external_session_id": "ext-c3124951-966f-4834-acb8-7413762aee7f",
+        "host_session_id": "session_3935575d0b4d84472274f9f3c1062e06",
+        "connection_subject": "desktop-event-bridge",
+        "created_at": "2026-10-27T12:32:48.899Z",
+        "events": [
+          {
+            "event_ref": "gui-059ef6f4d643eb55d29b33d0",
+            "actor_id": "owner",
+            "role_id": "builder",
+            "capabilities": [
+              "documents.propose",
+              "documents.publish",
+              "documents.read",
+              "requests.create"
+            ],
+            "inherit": "takeover",
+            "expires_at": "2026-10-27T21:00:00.000Z",
+            "entry": "gui-confirm",
+            "recorded_at": "2026-10-27T12:33:05.143Z",
+            "authorization": {
+              "authorization_id": "auth-02233320-83a6-4c75-ac61-c5ced73748dc",
+              "created_at": "2026-10-27T12:33:10.138Z",
+              "revoked_at": null,
+              "expected_generation": 0
+            }
+          }
+        ],
+        "anchor_attempt": null,
+        "binding": null
+      }
+    ],
+    "next_cursor": null
+  },
+  "pending_events": "(trusted-only; not readable here by design)",
+  "mcp_env_file": {
+    "path": "/home/inkem/Personal/RoleDock-g3-demo/.roledock/mcp-session.env",
+    "mode": 384,
+    "keys": [
+      "ROLEDOCK_SERVICE_SOCKET",
+      "ROLEDOCK_SESSION_TOKEN"
+    ]
+  }
+}

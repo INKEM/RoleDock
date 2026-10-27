@@ -1,0 +1,23 @@
+  • electron-builder  version=26.18.0 os=6.8.0-147-generic
+  • loaded configuration  file=/home/inkem/Personal/RoleDock/packages/desktop/electron-builder.shell.yml
+  • packageManager not detected by file, falling back to environment detection  resolvedPackageManager=npm detected=/home/inkem/Personal/RoleDock/packages/desktop
+  • detected workspace root for project using lock file  pm=npm config=undefined resolved=/home/inkem/Personal/RoleDock projectDir=/home/inkem/Personal/RoleDock/packages/desktop
+  • executing @electron/rebuild  electronVersion=44.9.3 arch=x64 buildFromSource=false workspaceRoot=/home/inkem/Personal/RoleDock projectDir=./ appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=linux arch=x64 electron=44.9.3 appOutDir=dist-app-shell/linux-unpacked
+  • downloaded      label=electron progress=100%
+  • downloaded electron zip extracted successfully  output=/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/linux-unpacked
+  • searching for node modules  pm=npm searchDir=/home/inkem/Personal/RoleDock/packages/desktop
+  • duplicate dependency references  dependencies=["ajv@8.20.0","@roledock/core@0.1.0-alpha.0","@roledock/protocol@0.1.0-alpha.0","@roledock/protocol@0.1.0-alpha.0","@roledock/protocol@0.1.0-alpha.0"]
+  ⨯ Application entry file "dist-desktop/shell/main.mjs" in the "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/linux-unpacked/resources/app.asar" is corrupted: Error: "dist-desktop/shell/main.mjs" was not found in this archive  failedTask=build stackTrace=Error: Application entry file "dist-desktop/shell/main.mjs" in the "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/linux-unpacked/resources/app.asar" is corrupted: Error: "dist-desktop/shell/main.mjs" was not found in this archive
+    at error (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/asar/asarFileChecker.ts:7:12)
+    at checkFileInArchive (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/asar/asarFileChecker.ts:16:11)
+    at LinuxPackager.checkFileInPackage (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/platformPackager.ts:640:7)
+    at LinuxPackager.sanityCheckPackage (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/platformPackager.ts:688:5)
+    at LinuxPackager.doPack (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/platformPackager.ts:354:5)
+    at LinuxPackager.pack (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/platformPackager.ts:167:5)
+    at Packager.doBuild (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/packager.ts:539:11)
+    at executeFinally (/home/inkem/Personal/RoleDock/node_modules/builder-util/src/promise.ts:12:14)
+    at Packager.build (/home/inkem/Personal/RoleDock/node_modules/app-builder-lib/src/packager.ts:459:31)
+    at executeFinally (/home/inkem/Personal/RoleDock/node_modules/builder-util/src/promise.ts:12:14)

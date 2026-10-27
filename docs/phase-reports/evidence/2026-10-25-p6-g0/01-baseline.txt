@@ -1,0 +1,34 @@
+== git HEAD ==
+d9743365256459a773a5319791cf3b7bb2e5fbe7
+2026-10-25 21:21:49 +0800
+
+== git status --short ==
+ M AGENTS.md
+ M README.md
+ M docs/DESKTOP_GUI_PLAN.md
+ M docs/DEVELOPMENT_PLAN.md
+ M prompts/06-open-source-candidate.md
+ M prompts/06G-desktop-management.md
+ M prompts/COMMON.md
+ M prompts/README.md
+?? docs/adr/0013-desktop-orchestration-and-owner-views.md
+?? docs/phase-reports/evidence/2026-10-25-p6-g0/
+?? prompts/06G0-contract-and-spike.md
+?? prompts/06G1-shell-and-runtime.md
+?? prompts/06G2-workspaces-and-roles.md
+?? prompts/06G3-session-authorization.md
+?? prompts/06G4-session-observability.md
+?? prompts/06G5-knowledge.md
+?? prompts/06G6-requests-and-inbox.md
+?? prompts/06G7-release-validation.md
+
+== diff --stat (tracked) ==
+ AGENTS.md                           |   4 +-
+ README.md                           |   6 +-
+ docs/DESKTOP_GUI_PLAN.md            | 400 ++++++++++++++++++++++++++----------
+ docs/DEVELOPMENT_PLAN.md            |  42 ++--
+ prompts/06-open-source-candidate.md |   4 +-
+ prompts/06G-desktop-management.md   |  21 +-
+ prompts/COMMON.md                   |   2 +-
+ prompts/README.md                   |  32 ++-
+ 8 files changed, 355 insertions(+), 156 deletions(-)

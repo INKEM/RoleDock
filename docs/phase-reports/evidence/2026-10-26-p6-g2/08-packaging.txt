@@ -1,0 +1,6 @@
+== G2 打包（electron-builder.shell.yml，dir）==
+package-exit=0；产物 dist-app-shell/linux-unpacked/roledock-desktop（vendor 含 zcode-connector.mjs）
+
+== 打包冒烟（空工作空间，packaged-shell-evidence.mjs）==
+状态卡：workspace_id=ws-… 状态=running（本应用启动）
+证据：06-packaged-shell.json + 06-packaged-shell.png

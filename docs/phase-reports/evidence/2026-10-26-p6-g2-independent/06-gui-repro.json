@@ -1,0 +1,130 @@
+{
+  "recent": {
+    "afterRemovePaths": [
+      "/tmp/rd-g2-gui-B3j6Sy/a"
+    ],
+    "stillRecorded": true,
+    "workspaceDirectoryExists": true
+  },
+  "roleDetails": {
+    "rpc": {
+      "workspace_id": "ws-43e86732",
+      "role_id": "reviewer",
+      "title": "Reviewer",
+      "instructions": "roles/reviewer.md",
+      "description": "Reviews delivered work and records structured review results.",
+      "pack": {
+        "name": "demo-team",
+        "version": "0.1.0",
+        "content_hash": "4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771"
+      },
+      "initialized": false,
+      "generation": 0,
+      "knowledge_revision": 0,
+      "current_instance_id": null,
+      "requested_capabilities": [
+        "documents.read",
+        "documents.propose",
+        "requests.create"
+      ],
+      "granted_capabilities": [],
+      "documents": [
+        {
+          "key": "reviews",
+          "title": "Review notes",
+          "visibility": "project"
+        }
+      ],
+      "output_schemas": [
+        {
+          "key": "review-result",
+          "schema": "schemas/review-result.json"
+        }
+      ]
+    },
+    "visibleText": "职责：roles/reviewer.md\n描述：Reviews delivered work and records structured review results.\n角色包：demo-team@0.1.0　内容哈希：4751a9615fe66b7965653716ccb8b823e0167e0b0f9babe06560b676417ba771\n协调状态：未初始化（尚无主代次）　主指针：（无）\n文档模板：reviews（project）\n输出 Schema：review-result",
+    "templateText": "# Review notes\n\n| Date | Reviewed item | Findings |\n| --- | --- | --- |\n",
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Review result",
+      "type": "object",
+      "properties": {
+        "reviewed_item": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verdict": {
+          "enum": [
+            "approved",
+            "approved-with-changes",
+            "changes-requested",
+            "rejected"
+          ]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "severity": {
+                "enum": [
+                  "blocker",
+                  "major",
+                  "minor",
+                  "note"
+                ]
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "recommended_action": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "severity",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "reviewed_item",
+        "verdict",
+        "findings"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "restart": {
+    "beforeAdapter": "zcode",
+    "afterAdapter": "mock",
+    "sameWorkspace": true,
+    "status": {
+      "foregroundDir": "/tmp/rd-g2-gui-B3j6Sy/a",
+      "workspaceId": "ws-43e86732",
+      "state": "running",
+      "owned": true,
+      "mode": "mock",
+      "pid": 2421909,
+      "socketPath": "/tmp/rd-g2-gui-B3j6Sy/a/.roledock/service.sock",
+      "lastRefreshAt": "2026-10-26T13:45:46.560Z",
+      "error": null,
+      "detail": "本应用启动的服务"
+    },
+    "persistedKind": "zcode"
+  },
+  "identity": {
+    "directoryChosen": "/tmp/rd-g2-gui-B3j6Sy/a",
+    "expectedWorkspaceId": "ws-43e86732",
+    "actualWorkspaceId": "ws-c2ba3e37",
+    "bWorkspaceId": "ws-c2ba3e37",
+    "attached": true,
+    "roleCountBeforeB": 0,
+    "rolesInBAfterInstallThroughA": [
+      "archivist"
+    ]
+  }
+}

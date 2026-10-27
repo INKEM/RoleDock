@@ -1,0 +1,69 @@
+G0 R03 independent static revalidation (2026-10-26)
+No product files changed.
+Finding: checkpoints.list exposes metadata only, not Checkpoint.handoff_summary.body or todos[{description,done}]. The contract redefines todos as absent/stale binding references, which cannot display persisted role todos.
+
+
+packages/protocol/src/types.ts
+112: export interface UserDecisionRef {
+113:   summary: string;
+114:   document_key?: Id;
+115:   revision?: number;
+116: }
+117: 
+118: export interface CheckpointTodo {
+119:   description: string;
+120:   done: boolean;
+121: }
+122: 
+123: export interface CheckpointSource {
+124:   kind: "document" | "request" | "external";
+125:   document_key?: Id;
+126:   revision?: number;
+127:   description?: string;
+128: }
+129: 
+130: export interface Checkpoint {
+131:   checkpoint_id: Id;
+132:   workspace_id: Id;
+133:   role_id: Id;
+134:   generation: number;
+135:   knowledge_revision: number;
+136:   document_snapshots: DocumentSnapshot[];
+137:   handoff_summary: {
+138:     format: "markdown";
+139:     body: string;
+140:     content_hash: Sha256;
+141:   };
+142:   user_decision_refs?: UserDecisionRef[];
+143:   todos: CheckpointTodo[];
+144:   sources: CheckpointSource[];
+145:   created_by_instance_id: Id;
+146:   created_at: Iso8601Timestamp;
+
+docs/spec/desktop-gui-contract.md
+45: | 角色知识（G5） | 文档目录、当前正文 | `documents.list`（G5，owner 投影）；`documents.read`（G5，owner 版，正文按 §3） |
+46: | | 历史、修订比较 | `documents.listRevisions`（G5）；比较规则见该行与 §3 |
+47: | | checkpoint 摘要/待办 | `checkpoints.list`（G5）；"待办"由 `sessions.listBindings` 引用的 `checkpoint_id` 与本表对照组合（缺失/过期即待办），不设单独操作 |
+48: | | 候选（来源/基线/正文） | `documents.listCandidates`（G5）；`proposals.submit`（G5/G6，owner 提议） |
+
+docs/spec/desktop-gui-contract.md
+71: | `documents.list` | G5 | 读 | 分页、按 role 过滤 | 目录：document_key、latest_revision、visibility、updated_at（不含正文） |
+72: | `documents.read`（owner 版） | G5 | 读 | `{ role_id, document_key, revision? }` | 正文按 §3 矩阵 + `content_hash`（原始字节）；不可见正文 → 元数据 + 哈希，响应显式标注 `body_included: false` |
+73: | `documents.listRevisions` | G5 | 读 | `{ role_id, document_key }` 分页 | 修订列表：revision、content_hash、visibility、来源、created_at；**比较规则**：owner 可见正文可全文比对；不可见正文仅元数据/哈希对照，不借任何接口取回正文 |
+74: | `checkpoints.list` | G5 | 读 | 分页、按 role 过滤 | checkpoint 摘要：checkpoint_id、role、generation、knowledge_revision、material_hash、created_at；"待办"组合规则见 §2.2 |
+75: | `documents.listCandidates` | G5 | 读 | 分页、按 role/来源过滤 | 候选：candidate_id、目标 role/document_key、**候选正文全文**（候选是明确提交待审的新内容，owner 可见）、原始基线 revision、当前基线 revision、来源（branch/owner/import）；基线正文本身按 §3 可见性（不可见基线只给哈希对照） |
+
+docs/DESKTOP_GUI_PLAN.md
+158: | 页面 | 核心内容与动作 | 特别需要防止的误导 |
+159: | --- | --- | --- |
+160: | 工作空间与连接 | 最近目录、新建／打开、预检、版本、服务启停、连接器／helper 配置、受管状态、诊断 | “已连接”不等于“所有隔离能力已验证”；mock 与真实接入清楚区分 |
+161: | 角色库 | 包安装、职责／文档模板／输出 Schema、版本哈希、需求和实际策略、当前主代次 | `initialized` 仅表示已有代次，不能等价于有可服务主实例；结合 current_instance_id 和有效 binding |
+162: | 授权与会话 | 当前原会话身份、授权范围／来源／到期、确认进度、锚定／载入／代次、继承关系、撤销 | 确认不是绑定；takeover 不是普通刷新；旧会话不会自动变成新角色 |
+163: | 角色知识 | 文档目录、当前／历史、来源与可见性、修订比较、checkpoint 摘要／待办、候选、导入导出 | 草稿／候选不是正式知识；导出不携带权限或私人聊天；冲突不丢编辑 |
+164: | 请求收件箱 | 发起／目标、接收代次与快照、问题、期限与已报告用量、产物、候选、回收状态 | 已取消不等于宿主已经终止；结果完成不等于已采纳；报告缺失的用量显示未知 |
+
+prompts/06G5-knowledge.md
+7: ## 工作
+8: 
+9: 1. 按已定可见性提供 owner 文档／修订／候选读模型；正文经服务按需读取，渲染层不读对象路径或开库。
+10: 2. 实现文档目录、历史比较、来源／可见性、checkpoint 摘要／待办、候选基线与冲突、导出／导入原生选择和结果清单。

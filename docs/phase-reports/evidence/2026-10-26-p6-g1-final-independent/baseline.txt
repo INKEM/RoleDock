@@ -1,0 +1,61 @@
+d9743365256459a773a5319791cf3b7bb2e5fbe7
+ M .gitignore
+ M AGENTS.md
+ M README.md
+ M docs/DESKTOP_GUI_PLAN.md
+ M docs/DEVELOPMENT_PLAN.md
+ M docs/toolchain.md
+ M package-lock.json
+ M package.json
+ M packages/desktop/package.json
+ M packages/desktop/src/index.ts
+ M packages/desktop/tsconfig.json
+ M packages/protocol/src/types.ts
+ M packages/protocol/src/validate.ts
+ M packages/service/src/index.ts
+ M prompts/06-open-source-candidate.md
+ M prompts/06G-desktop-management.md
+ M prompts/COMMON.md
+ M prompts/README.md
+ M tests/integration/service-restart.process.test.ts
+ M tsconfig.check.json
+?? docs/adr/0013-desktop-orchestration-and-owner-views.md
+?? docs/phase-reports/P6-G0-development.md
+?? docs/phase-reports/P6-G0-final-review.md
+?? docs/phase-reports/P6-G0-review.md
+?? docs/phase-reports/P6-G0-rework-review.md
+?? docs/phase-reports/P6-G1-development.md
+?? docs/phase-reports/P6-G1-review.md
+?? docs/phase-reports/P6-G1-rework-review.md
+?? docs/phase-reports/evidence/2026-10-25-p6-g0-independent/
+?? docs/phase-reports/evidence/2026-10-25-p6-g0/
+?? docs/phase-reports/evidence/2026-10-26-p6-g01-independent/
+?? docs/phase-reports/evidence/2026-10-26-p6-g01-rework-independent/
+?? docs/phase-reports/evidence/2026-10-26-p6-g01-rework/
+?? docs/phase-reports/evidence/2026-10-26-p6-g1-final-independent/
+?? docs/phase-reports/evidence/2026-10-26-p6-g1/
+?? docs/spec/desktop-gui-contract.md
+?? packages/desktop/electron-builder.shell.yml
+?? packages/desktop/electron-builder.yml
+?? packages/desktop/playwright.config.ts
+?? packages/desktop/playwright.shell.config.ts
+?? packages/desktop/scripts/
+?? packages/desktop/src/gmin/
+?? packages/desktop/src/probe/
+?? packages/desktop/src/shell/
+?? packages/desktop/test-results/
+?? packages/desktop/test/e2e-shell/
+?? packages/desktop/test/e2e/
+?? packages/desktop/test/probe-contract.test.ts
+?? packages/desktop/test/shell-contract.test.ts
+?? packages/protocol/schemas/workspace-service-info.schema.json
+?? packages/protocol/test/workspace-service-info.test.ts
+?? packages/service/test/client-timeout.test.ts
+?? prompts/06G0-contract-and-spike.md
+?? prompts/06G1-shell-and-runtime.md
+?? prompts/06G2-workspaces-and-roles.md
+?? prompts/06G3-session-authorization.md
+?? prompts/06G4-session-observability.md
+?? prompts/06G5-knowledge.md
+?? prompts/06G6-requests-and-inbox.md
+?? prompts/06G7-release-validation.md

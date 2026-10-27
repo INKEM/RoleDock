@@ -1,0 +1,28 @@
+{"kind":"roledock-shell","mode":"dev","runtime":"v22.23.2","userData":"/home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-27-p6-g3/real-session/user-data"}
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+[120331:1027/183444.655568:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.filetransfer to kAtomsToCache
+[120331:1027/183444.655620:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.files to kAtomsToCache
+/home/inkem/Personal/RoleDock/node_modules/electron/dist/electron exited with signal SIGTERM
+{"kind":"roledock-shell","mode":"dev","runtime":"v22.23.2","userData":"/home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-27-p6-g3/real-session/user-data"}
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+[131131:1027/184904.686480:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.filetransfer to kAtomsToCache
+[131131:1027/184904.687347:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.files to kAtomsToCache
+/home/inkem/Personal/RoleDock/node_modules/electron/dist/electron exited with signal SIGTERM
+{"kind":"roledock-shell","mode":"dev","runtime":"v22.23.2","userData":"/home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-27-p6-g3/real-session/user-data"}
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+[135625:1027/185540.061197:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.filetransfer to kAtomsToCache
+[135625:1027/185540.061340:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.files to kAtomsToCache
+/home/inkem/Personal/RoleDock/node_modules/electron/dist/electron exited with signal SIGTERM
+{"kind":"roledock-shell","mode":"dev","runtime":"v22.23.2","userData":"/home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-27-p6-g3/real-session/user-data"}
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+{"kind":"shell-reaped-owned-service","dir":"/home/inkem/Personal/RoleDock-g3-demo","forced":false}
+/home/inkem/Personal/RoleDock/node_modules/electron/dist/electron exited with signal SIGTERM
+{"kind":"roledock-shell","mode":"dev","runtime":"v22.23.2","userData":"/home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-27-p6-g3/real-session/user-data"}
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+MESA: warning: Driver does not support the 0x7d67 PCI ID.
+[157916:1027/202711.327111:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.filetransfer to kAtomsToCache
+[157916:1027/202711.327254:ERROR:ui/gfx/x/atom_cache.cc:236] Add application/vnd.portal.files to kAtomsToCache

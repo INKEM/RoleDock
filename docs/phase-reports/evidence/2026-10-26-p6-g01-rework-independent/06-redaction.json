@@ -1,0 +1,48 @@
+[
+  {
+    "path": "packages/desktop/src/probe/shared/bridge.ts",
+    "output": {
+      "authorization_id": "auth-public",
+      "content_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "host_session_id": "abcdef0123456789abcdef0123456789",
+      "event_ref": "event-9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef",
+      "nested": [
+        {
+          "content_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        }
+      ],
+      "message": "Authorization: Bearer [masked] rejected"
+    },
+    "checks": {
+      "publicHashExact": true,
+      "hostIdExact": true,
+      "eventRefExact": true,
+      "nestedHashExact": true,
+      "secretRemoved": true,
+      "labeledTextMasked": true
+    }
+  },
+  {
+    "path": "packages/desktop/src/shell/shared/redact.ts",
+    "output": {
+      "authorization_id": "auth-public",
+      "content_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "host_session_id": "abcdef0123456789abcdef0123456789",
+      "event_ref": "event-9876543210abcdef9876543210abcdef9876543210abcdef9876543210abcdef",
+      "nested": [
+        {
+          "content_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        }
+      ],
+      "message": "Authorization: Bearer [masked] rejected"
+    },
+    "checks": {
+      "publicHashExact": true,
+      "hostIdExact": true,
+      "eventRefExact": true,
+      "nestedHashExact": true,
+      "secretRemoved": true,
+      "labeledTextMasked": true
+    }
+  }
+]

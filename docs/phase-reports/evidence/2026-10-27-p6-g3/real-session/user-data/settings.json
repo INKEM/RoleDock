@@ -1,0 +1,19 @@
+{
+  "defaultWorkspaceDir": null,
+  "exitStopsOwnedServices": true,
+  "launcher": {
+    "kind": "zcode",
+    "cliPath": "/opt/ZCode/resources/glm/zcode.cjs",
+    "credentialHelper": "/home/inkem/Personal/RoleDock/docs/phase-reports/evidence/2026-10-24-p5-h-b3/credential-helper.mjs",
+    "provider": null,
+    "model": "GLM-5.3",
+    "managedEgress": []
+  },
+  "recentWorkspaces": [
+    {
+      "path": "/home/inkem/Personal/RoleDock-g3-demo",
+      "label": "RoleDock-g3-demo",
+      "lastOpenedAt": "2026-10-27T12:27:00.035Z"
+    }
+  ]
+}

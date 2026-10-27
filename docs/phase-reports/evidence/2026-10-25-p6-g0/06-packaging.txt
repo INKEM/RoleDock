@@ -1,0 +1,23 @@
+== electron-builder 打包（packages/desktop，electron-builder 26.18.0）==
+
+-- dir 目标（解压即跑开发产物）--
+$ cd packages/desktop && npx electron-builder --linux dir --publish never
+exit=0；产物 dist-app/linux-unpacked/{roledock-desktop-probe, resources/{app.asar, runtime/{node,schemas,vendor}}}
+electron zip 经 HTTPS 代理下载（app-builder 遵循 HTTPS_PROXY）progress=100%
+
+-- 打包产物自检（无窗口）--
+$ ./dist-app/linux-unpacked/roledock-desktop-probe --selfcheck
+exit=0
+{"kind":"desktop-probe-selfcheck","mode":"packaged","runtimeNode":".../resources/runtime/node/node","runtimeVersion":"v22.23.2","pass":true,"checks":[{"name":"runtime_version","pass":true,"detail":"service runtime v22.23.2 (expected v22.23.2); source=packaged"},{"name":"workspace_info","pass":true},{"name":"sqlite_single_writer","pass":true,"detail":"second connection: errcode=5 (ERR_SQLITE_ERROR) message=\"database is locked\""},{"name":"mcp_subprocess","pass":true,"detail":"initialize+listTools OK (14 tools); authorizations.get ok=true"}]}
+
+-- 打包窗口探针（真实窗口 UI 全链）--
+$ node scripts/packaged-evidence.mjs dist-app/linux-unpacked/roledock-desktop-probe <evidence>/screenshots
+{"kind":"packaged-probe","checks":["✅ runtime_version …source=packaged","✅ workspace_info ws-bd9c592e","✅ sqlite_single_writer errcode=5","✅ mcp_subprocess 14 tools"]}
+截图: screenshots/e2e-5-packaged-checks.png
+
+-- deb 目标（.deb 首选候选可行性）--
+第1次: 失败 exit=1 — missing homepage 元数据
+第2次: 失败 exit=1 — fpm: Parent directory does not exist: dist-app/@roledock（npm scope 路径 fpm 不自建父目录）
+修复: package.json homepage=https://roledock.example（RFC2606 占位，真实主页 P6-R 前定）+ electron-builder.yml linux.artifactName + 预创建 dist-app/@roledock/
+第3次: exit=0，产物 dist-app/@roledock/desktop-0.1.0-alpha.0-amd64.deb (133124492 字节)
+结论: deb 可行；scope 目录需预创建的怪癖记入 G7 打包验收注意项；只维护 deb 一个首发安装格式

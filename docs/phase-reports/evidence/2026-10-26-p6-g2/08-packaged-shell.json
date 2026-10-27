@@ -1,0 +1,5 @@
+{
+  "kind": "packaged-shell",
+  "status": "目录：/tmp/roledock-packaged-shell-ws-wZQra0workspace_id：ws-5047f1da状态：running（本应用启动）　模式：mockpid：2400148　socket：/tmp/roledock-packaged-shell-ws-wZQra0/.roledock/service.sock最后刷新：2026-10-26T13:13:54.021Z提示：关闭窗口不会停止该服务；退出应用才会停止本应用启动的服务。",
+  "screenshot": "docs/phase-reports/evidence/2026-10-26-p6-g2/08-packaged-shell.png"
+}

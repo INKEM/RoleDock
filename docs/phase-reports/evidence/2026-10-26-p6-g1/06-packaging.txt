@@ -1,0 +1,8 @@
+== G1 打包（electron-builder.shell.yml，dir 目标）==
+$ cd packages/desktop && npx electron-builder --config electron-builder.shell.yml --publish never → exit 0
+产物 dist-app-shell/linux-unpacked/roledock-desktop；resources/{app.asar, runtime/{node,schemas,vendor}}
+main 经 extraMetadata 覆盖为 dist-desktop/shell/main.mjs（探针配置与其产物不动）
+
+== 打包产物打开空工作空间（scripts/packaged-shell-evidence.mjs）==
+状态卡：workspace_id=ws-dd709c94 状态=running（本应用启动）pid=2134238
+证据：05-packaged-shell.json + 05-packaged-shell.png

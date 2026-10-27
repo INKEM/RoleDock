@@ -1,0 +1,9 @@
+
+> roledock@0.1.0-alpha.0 desktop:build
+> npm run build && node packages/desktop/scripts/build.mjs
+
+
+> roledock@0.1.0-alpha.0 build
+> tsc -b
+
+probe build ok -> /home/inkem/Personal/RoleDock/packages/desktop/dist-desktop

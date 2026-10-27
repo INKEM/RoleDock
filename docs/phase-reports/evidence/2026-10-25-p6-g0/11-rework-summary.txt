@@ -1,0 +1,12 @@
+== P6-G0 返工验证（2026-10-26，按 P6-G0-review.md R01–R04）==
+
+R01: npx vitest run packages/desktop/test/probe-contract.test.ts → 6/6 PASS
+  - authorization_id/active_authorization 保留；session_token/owner_credential_token/api_key 拒绝
+  - 'Authorization: Bearer SYNTHETIC_SENTINEL_NOT_A_CREDENTIAL rejected' → 'Authorization: Bearer [masked] rejected'
+  - 普通散文/document_key 不动；base64 形态不在掩盖范围（尽力而为边界固化）
+R02/R03: 契约文档 v2（desktop-gui-contract.md §2.2 页面映射 / §2.3 补 5 操作 / §3.1 四层脱敏 / §6 逐状态取消矩阵）——纯文档，由验收方复核
+R04: ADR-0013 状态回退为候选定档/待独立验收 + 修订历史；DESKTOP_GUI_PLAN §5.1 指针同步
+
+回归：npx playwright test（真实窗口全生命周期）→ 1 passed (10.7s)
+全量：npm run check → exit 0，43 文件 / 462 测试全绿（本文件为完整日志）
+探针运行时行为/打包布局无变化；core/service/mcp/协议源码零改动
