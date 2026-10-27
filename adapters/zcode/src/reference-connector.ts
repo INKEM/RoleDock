@@ -33,6 +33,11 @@ const truncate = (value: unknown, limit = MAX_TEXT): string => {
   const text = typeof value === "string" ? value : JSON.stringify(value);
   return text.length > limit ? `${text.slice(0, limit)}\n… (${text.length - limit} more characters)` : text;
 };
+/** Tool INPUT may reference either a connector-created conversation (sess_*)
+ * or the user's persisted desktop session (session_<hex>; P6-G3 spike) —
+ * the original sessions G3 registers and anchors. */
+const REFERENCED_SESSION_ID = /^sess(?:ion)?_[\w-]+$/;
+/** session/create output is always a fresh instance-scoped sess_* conversation. */
 const SESSION_ID = /^sess_[\w-]+$/;
 /** Anchor load protocol (docs/zcode-connector-tools.md §4.3). */
 export const loadHeader = (loadKey: string): string => `roledock-anchor-load/${loadKey}`;
@@ -45,7 +50,7 @@ function requireDirectory(value: unknown, name: string): string {
   return value;
 }
 function requireSessionId(value: unknown): string {
-  if (typeof value !== "string" || !SESSION_ID.test(value)) throw new Error("Invalid ZCode session ID");
+  if (typeof value !== "string" || !REFERENCED_SESSION_ID.test(value)) throw new Error("Invalid ZCode session ID");
   return value;
 }
 
@@ -287,6 +292,17 @@ export class AppServerClient {
 
   markActive(sessionId: string): void { this.#active.add(sessionId); }
 
+  /**
+   * G3 discovery (docs/zcode-connector-tools.md §4.6): workspace-store-level
+   * session enumeration (P6-G3 spike: a fresh app-server lists persisted
+   * workspace sessions without any attach). Metadata only — no resume, no
+   * read, no model turn.
+   */
+  async listSessions(workspacePath: string): Promise<Array<Record<string, unknown>>> {
+    const listed = await this.call("session/list", { workspace: { workspacePath, workspaceKey: workspacePath } }) as { sessions?: Array<Record<string, unknown>> } | undefined;
+    return Array.isArray(listed?.sessions) ? listed!.sessions.filter(entry => !!entry && typeof entry === "object") : [];
+  }
+
   get provider(): string | undefined { return this.#provider ?? this.#resolvedProvider; }
   get model(): string | undefined { return this.#model; }
 
@@ -503,6 +519,7 @@ function tool(name: string, description: string, properties: Record<string, obje
 
 export const REFERENCE_TOOLS: readonly Tool[] = [
   tool("zcode_create_session", "Create a ZCode CLI conversation in a workspace. Returns its session ID; a model account is only needed when sending turns.", { workspacePath: string, mode: { type: "string", enum: ["build", "edit", "plan", "yolo"], description: "Permission mode declaration; the reference connector defaults to plan" } }, ["workspacePath"]),
+  tool("zcode_list_sessions", "List persisted ZCode sessions for a workspace (metadata only: IDs, titles, status). Read-only: never creates or attaches a session and spends no model turn.", { workspacePath: string }, ["workspacePath"]),
   tool("zcode_verify_session", "Authoritative session identity: confirm existence via session/resume. No model turn is spent.", { sessionId: string, workspacePath: string }),
   tool("zcode_send", "Send one turn to an existing ZCode conversation. Requires the connector to be configured with --provider/--model and a credential helper; returns immediately.", { sessionId: string, message: string, workspacePath: string, reasoningLevel: { type: "string", enum: ["low", "high", "max"] } }, ["sessionId", "message"]),
   tool("zcode_status", "Read execution status, recent events, final answer and pending permission/input requests.", { sessionId: string, workspacePath: string, afterSeq: { type: "integer", minimum: 0 } }, ["sessionId"]),
@@ -529,6 +546,10 @@ async function dispatch(name: string, args: Record<string, unknown>, host: AppSe
     return host.verify(sessionId, workspacePath);
   }
   if (name === "zcode_sandbox_status") return host.sandboxStatus;
+  if (name === "zcode_list_sessions") {
+    const workspacePath = requireDirectory(args.workspacePath, "workspacePath");
+    return { sessions: await host.listSessions(workspacePath) };
+  }
   const sessionId = requireSessionId(args.sessionId);
   if (name === "zcode_send") {
     if (typeof args.message !== "string" || !args.message.trim()) throw new Error("message must be a non-empty string");

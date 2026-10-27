@@ -13,6 +13,7 @@ import type {
   TurnResult,
   ExternalMaterialLoad,
   ExternalLoadLookup,
+  HostSessionInfo,
   HumanAuthorizationEvent,
 } from "@roledock/core";
 
@@ -125,6 +126,10 @@ export class MockHarnessAdapter implements HarnessAdapter {
     if (!session) return { state: "unknown" };
     const confirmation = session.confirmations.get(loadKey);
     return confirmation ? { state: "loaded", confirmation: { ...confirmation } } : { state: "absent" };
+  }
+  /** G3 discovery: fixture metadata only; discovery never creates or attaches. */
+  async listHostSessions(): Promise<HostSessionInfo[]> {
+    return [...this.externalSessions.keys()].map(host_session_id => ({ host_session_id, title: null, status: "idle", kind: "fixture", updated_at: null }));
   }
 
   /** Test/inspection access to a host session's transcript and loaded bundle. */

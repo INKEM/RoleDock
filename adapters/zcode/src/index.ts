@@ -4,10 +4,13 @@ import { isAbsolute, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { RoleDockError } from "@roledock/protocol";
 import type { AnchorConfirmation } from "@roledock/protocol";
-import type { AdapterCapabilities, AdapterSessionHandle, AdapterSessionResult, CreateSessionInput, ExternalLoadLookup, ExternalMaterialLoad, HarnessAdapter, HumanAuthorizationEvent, HumanAuthorizationSource, TurnInput, TurnResult } from "@roledock/core";
+import type { AdapterCapabilities, AdapterSessionHandle, AdapterSessionResult, CreateSessionInput, ExternalLoadLookup, ExternalMaterialLoad, HarnessAdapter, HostSessionInfo, HumanAuthorizationEvent, HumanAuthorizationSource, TurnInput, TurnResult } from "@roledock/core";
 import { loadHeader } from "./reference-connector.js";
 
 export { connectZCodeConnector } from "./connector.js";
+// Read-only preflight helpers (P6-G2 desktop shell); pure/no-side-effect.
+export { probeSandboxRunner, planEgress } from "./sandbox.js";
+export type { SandboxRunnerInfo, EgressPlan } from "./sandbox.js";
 export interface ZCodeToolCaller {
   call(name: string, input: Record<string, unknown>): Promise<unknown>;
   /** docs/zcode-connector-tools.md §2: tool names the connector declared at handshake. */
@@ -143,7 +146,10 @@ export class ZCodeAdapter implements HarnessAdapter {
    * Declared since B2: the B1 real probe evidence passed review scoping.
    */
   async verifyExternalSession(hostSessionId: string, connectionSubject: string): Promise<boolean> {
-    if (typeof hostSessionId !== "string" || !/^sess_[\w-]+$/.test(hostSessionId)) throw new RoleDockError("VALIDATION_FAILED", "Invalid host session id format.");
+    // sess_* are connector/instance-created conversations; session_<hex> are
+    // the user's PERSISTED DESKTOP sessions (P6-G3 spike) — the original
+    // sessions G3 anchors. Both are valid original-session references.
+    if (typeof hostSessionId !== "string" || !/^sess(?:ion)?_[\w-]+$/.test(hostSessionId)) throw new RoleDockError("VALIDATION_FAILED", "Invalid host session id format.");
     if (typeof connectionSubject !== "string" || !connectionSubject.trim()) throw new RoleDockError("VALIDATION_FAILED", "Expected a connection subject.");
     if (!this.#tools.tools?.has("zcode_verify_session")) throw new RoleDockError("ADAPTER_CAPABILITY_MISSING", "Connector does not declare zcode_verify_session.", { details: { capability: "current_session_identity" } });
     const now = new Date().toISOString();
@@ -154,7 +160,12 @@ export class ZCodeAdapter implements HarnessAdapter {
     }
     let output: Record<string, unknown>;
     try { output = record(await this.#tools.call("zcode_verify_session", { sessionId: hostSessionId, workspacePath: this.#workspace })); }
-    catch { throw uncertain("Session verification was not confirmed by the connector."); }
+    catch (error) {
+      // Keep the connector-layer cause attached (desktop-gui-contract §2.1
+      // diagnosability): a bare "not confirmed" hides register-blockers.
+      const detail = (error as { details?: { connector_error?: unknown } }).details?.connector_error;
+      throw uncertain(`Session verification was not confirmed by the connector${detail ? `: ${String(detail).slice(0, 200)}` : "."}`);
+    }
     if (output.sessionId !== hostSessionId || typeof output.exists !== "boolean") throw uncertain("Malformed session verification answer.");
     if (output.exists !== true) {
       this.recordVerification(hostSessionId, connectionSubject, false, now);
@@ -214,6 +225,28 @@ export class ZCodeAdapter implements HarnessAdapter {
     try { return { state: "loaded", confirmation: await this.reconcileMaterialLoad(hostSessionId, loadKey) }; }
     catch { return { state: "unknown" }; }
   }
+  /**
+   * G3 (ADR-0014 §9.1): workspace-store-level discovery of the user's real
+   * sessions. Read-only — never creates, attaches or spends a model turn.
+   * The connector must declare zcode_list_sessions; otherwise discovery is
+   * honestly unavailable and the desktop falls back to paste-a-reference.
+   */
+  async listHostSessions(): Promise<HostSessionInfo[]> {
+    if (!this.#tools.tools?.has("zcode_list_sessions")) throw new RoleDockError("ADAPTER_CAPABILITY_MISSING", "Connector does not declare zcode_list_sessions.", { details: { capability: "host_session_discovery" } });
+    const answer = record(await this.#tools.call("zcode_list_sessions", { workspacePath: this.#workspace })) as { sessions?: unknown };
+    if (!Array.isArray(answer.sessions)) throw uncertain("Malformed host session discovery answer.");
+    return answer.sessions.flatMap(entry => {
+      const item = record(entry);
+      if (typeof item.sessionId !== "string" || !item.sessionId) return [];
+      return [{
+        host_session_id: item.sessionId,
+        title: typeof item.title === "string" && item.title.trim() ? item.title : null,
+        status: typeof item.status === "string" && item.status.trim() ? item.status : null,
+        kind: typeof item.sessionKind === "string" && item.sessionKind.trim() ? item.sessionKind : null,
+        updated_at: typeof item.updatedAt === "number" && Number.isFinite(item.updatedAt) ? new Date(item.updatedAt).toISOString() : null,
+      }];
+    });
+  }
   private async reconcileMaterialLoad(hostSessionId: string, loadKey: string): Promise<AnchorConfirmation> {
     const row = this.#db.prepare("SELECT content_hash FROM material_loads WHERE load_key = ?").get(loadKey) as { content_hash: string };
     const answer = record(await this.#tools.call("zcode_lookup_load", { sessionId: hostSessionId, workspacePath: this.#workspace, loadKey, contentHash: row.content_hash }));
@@ -240,7 +273,9 @@ export class ZCodeAdapter implements HarnessAdapter {
    * honestly; the capability declaration stays false until acceptance.
    */
   async readHumanAuthorization(hostSessionId: string, eventRef: string): Promise<HumanAuthorizationEvent | null> {
-    if (typeof hostSessionId !== "string" || !/^sess_[\w-]+$/.test(hostSessionId)) throw new RoleDockError("VALIDATION_FAILED", "Invalid host session id format.");
+    // Original sessions may be persisted desktop conversations (session_<hex>)
+    // or connector-created ones (sess_*); see verifyExternalSession.
+    if (typeof hostSessionId !== "string" || !/^sess(?:ion)?_[\w-]+$/.test(hostSessionId)) throw new RoleDockError("VALIDATION_FAILED", "Invalid host session id format.");
     if (typeof eventRef !== "string" || !eventRef.trim()) throw new RoleDockError("VALIDATION_FAILED", "Expected an event reference.");
     if (!this.#source) throw new RoleDockError("NOT_IMPLEMENTED", "No human authorization source is wired into this adapter.");
     const record = await this.#source.readEvent(hostSessionId, eventRef);
