@@ -6,10 +6,13 @@ import { dirname, isAbsolute } from "node:path";
 import { randomBytes } from "node:crypto";
 import { Coordinator, ExternalSessionAuthority, WorkspaceAdmin } from "@roledock/core";
 import type { HarnessAdapter, SessionConnection } from "@roledock/core";
+import type { WorkspaceServiceInfo, WorkspaceRuntimeStatus, RoleDetails, PolicyListPage, AuthorizationConfirmationsPage, PendingHumanEventsPage, HostSessionDiscovery, SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview } from "@roledock/protocol";
 import { RoleDockError, toErrorEnvelope, validate } from "@roledock/protocol";
 import type { ErrorEnvelope } from "@roledock/protocol";
 
 export interface ServiceCredential { socket_path: string; token: string }
+/** Bump together with packages/service/package.json (non-sensitive projection). */
+export const SERVICE_VERSION = "0.1.0-alpha.0";
 interface OwnerPrincipal { kind: "owner" }
 interface TrustedPrincipal { kind: "trusted"; subject: string; ceiling: string[] }
 interface SessionPrincipal { kind: "session"; connection: SessionConnection }
@@ -30,6 +33,9 @@ export class WorkspaceService {
   readonly #principals = new Map<string, Principal>();
   readonly #server: Server;
   readonly #socketPath: string;
+  readonly #adapterName: string;
+  readonly #capabilities: ReturnType<HarnessAdapter["getCapabilities"]>;
+  readonly #startedAt = new Date().toISOString();
   #timer: ReturnType<typeof setInterval> | undefined;
   #worker: Promise<void> | undefined;
   #maintenance: Promise<void> | undefined;
@@ -40,6 +46,8 @@ export class WorkspaceService {
     this.#authority = new ExternalSessionAuthority(this.#coordinator, adapter);
     this.#admin = WorkspaceAdmin.forCoordinator(this.#coordinator);
     this.#socketPath = socketPath;
+    this.#adapterName = adapter.getCapabilities().adapter;
+    this.#capabilities = adapter.getCapabilities();
     this.ownerCredential = this.issue({ kind: "owner" });
     this.#server = createServer(async (req, res) => {
       const reply = (value: unknown, status = 200) => { res.writeHead(status, { "content-type": "application/json" }); res.end(JSON.stringify(value)); };
@@ -90,7 +98,7 @@ export class WorkspaceService {
   private async invoke(principal: Principal, operation: string, input: unknown): Promise<unknown> {
     if (principal.kind === "session") return principal.connection.call(operation, input);
     const data = object(input);
-    if (["connections.trust", "externalSessions.register", "externalSessions.list", "authorizations.recordHuman", "authorizations.recordOwner", "authorizations.revoke", "authorizations.submitHumanEvent"].includes(operation)) {
+    if (["connections.trust", "externalSessions.register", "externalSessions.list", "externalSessions.discover", "authorizations.recordHuman", "authorizations.recordOwner", "authorizations.revoke", "authorizations.revokePreview", "authorizations.submitHumanEvent", "authorizations.pendingEvents", "authorizations.confirmations", "sessions.listBindings", "sessions.listAttempts", "sessions.listLoads"].includes(operation)) {
       const result = validate("service-control-operation", { operation, input });
       if (!result.ok) throw new RoleDockError("VALIDATION_FAILED", "Invalid control operation input.", { details: { errors: result.errors } });
     }
@@ -105,6 +113,24 @@ export class WorkspaceService {
         if (external.connection_subject !== principal.subject) throw new RoleDockError("PERMISSION_DENIED", "Human event channel belongs to another session subject.");
         return this.#authority.recordHumanAuthorization(data, principal.ceiling);
       }
+      // G3 (ADR-0014): trusted event-progress bridge reads its own subject's
+      // pending events; the subject comes from the principal, never input.
+      if (operation === "authorizations.pendingEvents") {
+        if (Object.keys(data).length > 0) throw new RoleDockError("VALIDATION_FAILED", "authorizations.pendingEvents takes no input; the subject comes from the trusted connection.");
+        const page = this.#authority.listPendingHumanEvents(principal.subject);
+        const checked = validate<PendingHumanEventsPage>("pending-human-events", page);
+        if (!checked.ok) throw new RoleDockError("INTERNAL", "authorizations.pendingEvents projection failed schema validation.", { details: { errors: checked.errors } });
+        return page;
+      }
+      // G3 (ADR-0014 §9.1): read-only host session discovery for the
+      // desktop bridge; never creates sessions or consumes model turns.
+      if (operation === "externalSessions.discover") {
+        if (Object.keys(data).length > 0) throw new RoleDockError("VALIDATION_FAILED", "externalSessions.discover takes no input.");
+        const discovery = await this.#authority.discoverHostSessions();
+        const checked = validate<HostSessionDiscovery>("host-session-discovery", discovery);
+        if (!checked.ok) throw new RoleDockError("INTERNAL", "externalSessions.discover projection failed schema validation.", { details: { errors: checked.errors } });
+        return discovery;
+      }
       throw new RoleDockError("PERMISSION_DENIED", "Trusted event channel cannot call owner or Agent operations.");
     }
     if (operation === "connections.trust") {
@@ -116,14 +142,85 @@ export class WorkspaceService {
     if (operation === "authorizations.submitHumanEvent") return this.#authority.submitHumanEvent(data);
     // G-min: owner confirmation surface read view.
     if (operation === "externalSessions.list") return this.#authority.listExternalSessions();
+    // G3 (desktop-gui-contract §9): owner confirmation progress chain view.
+    if (operation === "authorizations.confirmations") {
+      const page = this.#authority.listConfirmations(data);
+      const checked = validate<AuthorizationConfirmationsPage>("authorization-confirmations", page);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "authorizations.confirmations projection failed schema validation.", { details: { errors: checked.errors } });
+      return page;
+    }
     if (operation === "authorizations.revoke") return this.#authority.revoke(data);
+    // G4 (desktop-gui-contract §2.3): owner read views of bindings, anchor
+    // attempts, material loads and the revoke impact preview. Projection
+    // only, owner principal; schema-enforced at the transport boundary.
+    if (operation === "sessions.listBindings") {
+      const page = this.#authority.listBindings(data);
+      const checked = validate<SessionBindingsPage>("session-bindings", page);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "sessions.listBindings projection failed schema validation.", { details: { errors: checked.errors } });
+      return page;
+    }
+    if (operation === "sessions.listAttempts") {
+      const page = this.#authority.listAttempts(data);
+      const checked = validate<AnchorAttemptsPage>("anchor-attempts", page);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "sessions.listAttempts projection failed schema validation.", { details: { errors: checked.errors } });
+      return page;
+    }
+    if (operation === "sessions.listLoads") {
+      const page = this.#authority.listLoads(data);
+      const checked = validate<AnchorLoadsPage>("anchor-loads", page);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "sessions.listLoads projection failed schema validation.", { details: { errors: checked.errors } });
+      return page;
+    }
+    if (operation === "authorizations.revokePreview") {
+      const preview = this.#authority.revokePreview(data);
+      const checked = validate<RevokePreview>("revoke-preview", preview);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "authorizations.revokePreview projection failed schema validation.", { details: { errors: checked.errors } });
+      return preview;
+    }
     const adminMethods: Record<string, keyof WorkspaceAdmin> = { "policy.show": "showPolicy", "policy.grant": "grant", "policy.revoke": "revoke", "admin.inbox": "showInbox", "admin.events": "showEvents" };
+    // G2 read models with Schema enforcement at the transport boundary.
+    if (operation === "roles.get") {
+      const details = await (this.#admin.roleDetails as (input: unknown) => RoleDetails)(data);
+      const checked = validate<RoleDetails>("role-details", details);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "roles.get projection failed schema validation.", { details: { errors: checked.errors } });
+      return details;
+    }
+    if (operation === "policy.list") {
+      const page = (this.#admin.listPolicy as (input: unknown) => PolicyListPage)(data);
+      const checked = validate<PolicyListPage>("policy-list", page);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "policy.list projection failed schema validation.", { details: { errors: checked.errors } });
+      return page;
+    }
     const adminMethod = adminMethods[operation];
     if (adminMethod) return (this.#admin[adminMethod] as (input: unknown) => unknown).call(this.#admin, data);
     const ownerMethods: Record<string, keyof Coordinator> = { "roles.install": "installRolePack", "roles.list": "listRoles", "roles.resolve": "resolveRole", "knowledge.export": "exportKnowledge", "knowledge.import": "importKnowledge" };
     const ownerMethod = ownerMethods[operation];
     if (ownerMethod) return (this.#coordinator[ownerMethod] as (input: unknown) => Promise<unknown>).call(this.#coordinator, data);
-    if (operation === "workspace.info") return { workspace_id: this.workspaceId };
+    if (operation === "workspace.info") {
+      // G1 extension (desktop-gui-contract §2.3): limited, non-sensitive
+      // runtime projection — no argv, no filesystem paths, no credentials —
+      // validated against the protocol Schema at the transport boundary.
+      const projection = {
+        workspace_id: this.workspaceId,
+        service: { version: SERVICE_VERSION, pid: process.pid, started_at: this.#startedAt, adapter: this.#adapterName, runtime: process.version },
+      };
+      const checked = validate<WorkspaceServiceInfo>("workspace-service-info", projection);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "workspace.info projection failed schema validation.", { details: { errors: checked.errors } });
+      return projection;
+    }
+    if (operation === "workspace.runtimeStatus") {
+      // G2: service-side adapter capability projection (managed declaration
+      // and basis). Runner/egress/connection checks are desktop preflight.
+      const capabilities = this.#capabilities;
+      const projection = {
+        workspace_id: this.workspaceId,
+        observed_at: new Date().toISOString(),
+        runtime: { adapter: capabilities.adapter, level: capabilities.level, isolation: { ...capabilities.isolation } },
+      };
+      const checked = validate<WorkspaceRuntimeStatus>("workspace-runtime-status", projection);
+      if (!checked.ok) throw new RoleDockError("INTERNAL", "workspace.runtimeStatus projection failed schema validation.", { details: { errors: checked.errors } });
+      return projection;
+    }
     throw new RoleDockError("PERMISSION_DENIED", "Operation is not available to this principal.");
   }
   private schedule(): void {
@@ -163,7 +260,15 @@ async function recoverStaleSocket(path: string): Promise<void> {
 export class ServiceClient {
   readonly #credential: ServiceCredential;
   constructor(credential: ServiceCredential) { this.#credential = { ...credential }; }
-  call<T = unknown>(operation: string, input: unknown = {}): Promise<T> {
+  /**
+   * Client-side deadline (DESKTOP_GUI_PLAN §9): the request is destroyed and
+   * rejects with ServiceRequestTimeoutError when the wait is exhausted.
+   * Cancelling the wait never cancels the already-submitted action — callers
+   * must reconcile via persisted state instead of blind retries.
+   */
+  call<T = unknown>(operation: string, input: unknown = {}, options: { timeoutMs?: number } = {}): Promise<T> {
+    const timeoutMs = options.timeoutMs ?? 30_000;
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return Promise.reject(new ServiceRequestTimeoutError(operation, timeoutMs));
     return new Promise((resolve, reject) => {
       const body = JSON.stringify({ operation, input });
       const req = request({ socketPath: this.#credential.socket_path, path: "/rpc", method: "POST", agent: false,
@@ -179,7 +284,23 @@ export class ServiceClient {
         });
         res.on("error", reject);
       });
-      req.on("error", reject); req.end(body);
+      const timer = setTimeout(() => req.destroy(new ServiceRequestTimeoutError(operation, timeoutMs)), timeoutMs);
+      timer.unref?.();
+      req.on("error", error => { clearTimeout(timer); reject(error); });
+      req.on("close", () => clearTimeout(timer));
+      req.end(body);
     });
+  }
+}
+
+/** Client-side wait deadline exhausted; the submitted action may still have run. */
+export class ServiceRequestTimeoutError extends Error {
+  readonly operation: string;
+  readonly timeoutMs: number;
+  constructor(operation: string, timeoutMs: number) {
+    super(`Service request "${operation}" exceeded the ${timeoutMs}ms client deadline; the submitted action may still complete and must be reconciled, not blindly retried.`);
+    this.name = "ServiceRequestTimeoutError";
+    this.operation = operation;
+    this.timeoutMs = timeoutMs;
   }
 }
