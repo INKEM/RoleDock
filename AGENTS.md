@@ -12,7 +12,7 @@ RoleDock 是一个通用 Agent 角色协议与参考运行时：支持自定义�
 
 2026-10-27 P6-G 进度：G0–G2 已独立验收 PASS（`P6-G0/G1/G2-final-review.md`）。P6-G3 开发完成（`P6-G3-development.md`）：真实 ZCode 桌面原会话经 GUI 发现/登记→受信桥自动 recordHuman→原会话 Agent 显式 `sessions.anchor`→真实材料载入→active binding（generation 1）全链真机证据在 `phase-reports/evidence/2026-10-27-p6-g3/`；ADR-0014（原会话受信接入与凭据交接）与 desktop-gui-contract §9 定档；G-min 随机 event_ref 缺陷已修复为内容寻址幂等。
 
-2026-10-28 P6-G 进度(覆盖上行状态):**G3、G4 均已独立验收 PASS**(`P6-G3-review.md`、`P6-G4-review.md`;G4 真机补充证据裁定为"材料待采",按 `evidence/2026-10-27-p6-g4/STEPS.md` 随 G5 跟进)。**P6-G5 实施中**:实施计划已留档(`P6-G5-plan.md`,用户预授权免审批,含"不实施 proposals.submit、编辑器本地草稿+导入流程提交候选"的裁定);G5 交付 owner 知识只读视图(文档目录/正文/修订/候选 + checkpoint 摘要/详情)与 #/knowledge 知识页。G5 之后 G6(`prompts/06G6-requests-and-inbox.md`)、G7 同样"先计划留档后实施"。全链自动化门禁:G4 时点 `npm run check` 533/533、shell E2E 13/13。
+2026-10-28 P6-G 进度(覆盖上行状态):**G3、G4 均已独立验收 PASS**(`P6-G3-review.md`、`P6-G4-review.md`;G4 真机补充证据裁定为"材料待采",按 `evidence/2026-10-27-p6-g4/STEPS.md` 随 G5 跟进)。**P6-G5 实施中**:实施计划已留档(`P6-G5-plan.md`,用户预授权免审批,含"不实施 proposals.submit、编辑器本地草稿+导入流程提交候选"的裁定);G5 交付 owner 知识只读视图(文档目录/正文/修订/候选 + checkpoint 摘要/详情)与 #/knowledge 知识页。**P6-G5 开发完成待独立验收**(`P6-G5-development.md`):owner 知识只读视图 6 操作(目录/按需正文按 §3.2 矩阵/修订/候选/ checkpoint 摘要与详情)已实现并注册 Schema(契约 v8);#/knowledge 知识页(阅读、两版比较、候选基线冲突显示、本地草稿、导出导入——导入只建候选);`proposals.submit` 按计划裁定本轮未实施。`npm run check` 543/543、shell E2E 14/14(含 g5 全链),自动化证据在 `phase-reports/evidence/2026-10-28-p6-g5/`。G5 验收 PASS 后按同模式推进 G6(`prompts/06G6-requests-and-inbox.md`)、G7(先计划留档后实施)。
 
 ## 命令
 
