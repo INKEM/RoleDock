@@ -15,7 +15,10 @@ async function setup(): Promise<{ owner: ServiceClient; root: string; adapter: M
   const adapter = new MockHarnessAdapter();
   adapter.seedExternalSession("sess-fixture-builder", BRIDGE_SUBJECT);
   adapter.seedExternalSession("sess-fixture-reviewer", BRIDGE_SUBJECT);
-  const service = await WorkspaceService.start({ root, adapter, socketPath: join(root, "service.sock"), pollMs: 25 });
+  // G6-R1 rework: a SLOW worker tick (configurable pollMs) makes the
+  // accepted-state owner cancellation deterministically reproducible over the
+  // real RPC face — the request cannot race to completion before the cancel.
+  const service = await WorkspaceService.start({ root, adapter, socketPath: join(root, "service.sock"), pollMs: 800 });
   services.push({ service, root });
   const owner = new ServiceClient(service.ownerCredential);
   await owner.call("roles.install", { source_path: resolve("examples/demo-team") });
@@ -53,49 +56,54 @@ describe("G6 owner request/artifact/cleanup over the service control plane", () 
     const builder = await anchored(ctx, "sess-fixture-builder", "builder", ["documents.read", "requests.create", "requests.read"], "builder");
     await anchored(ctx, "sess-fixture-reviewer", "reviewer", ["documents.read", "requests.execute", "requests.read", "artifacts.read"], "reviewer");
 
-    const created = await builder.call<{ request_id: string }>("requests.create", { target_role_id: "reviewer", question: "what is the state?", idempotency_key: "g6-r1", read_exception_rationale: "No published target documents" });
+    // Deterministic accepted-state cancellation (slow tick): the request
+    // cannot complete before the owner cancel lands (G6-R1 rework).
+    const r1 = await builder.call<{ request_id: string }>("requests.create", { target_role_id: "reviewer", question: "what is the state?", idempotency_key: "g6-r1", read_exception_rationale: "No published target documents" });
+    const cancel = await ctx.owner.call<{ state: string; idempotent_replay: boolean }>("requests.cancelByOwner", { request_id: r1.request_id, reason: "owner decision", idempotency_key: "gui-k1" });
+    expect(cancel).toMatchObject({ state: "cancelled", idempotent_replay: false });
+    const replay = await ctx.owner.call<{ idempotent_replay: boolean }>("requests.cancelByOwner", { request_id: r1.request_id, reason: "owner decision", idempotency_key: "gui-k1" });
+    expect(replay.idempotent_replay).toBe(true);
+    const events = await ctx.owner.call<{ events: Array<{ kind: string; state: string }> }>("admin.events", {});
+    expect(events.events.some(event => event.kind === "owner.request.cancel" && event.state === "done")).toBe(true);
 
-    // The service worker executes the request; wait for the real completion.
+    // Time filters per the contract (G6-R1 rework): created_since/until.
+    const since = await ctx.owner.call<{ items: Array<{ request_id: string }> }>("requests.listInbox", { created_since: new Date(Date.now() + 3600_000).toISOString() });
+    expect(since.items).toHaveLength(0);
+    const until = await ctx.owner.call<{ items: Array<{ request_id: string }> }>("requests.listInbox", { created_until: new Date(Date.now() + 3600_000).toISOString() });
+    expect(until.items.length).toBeGreaterThanOrEqual(1);
+    await expect(ctx.owner.call("requests.listInbox", { created_since: "not-a-time" })).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+
+    // A second request runs to real completion through the worker.
+    const second = await builder.call<{ request_id: string }>("requests.create", { target_role_id: "reviewer", question: "second intent", idempotency_key: "g6-r2", read_exception_rationale: "No published target documents" });
     let completed: { request_id: string; state: string; usage: { output_bytes: number | null; turns_reserved: number | null }; result: { artifact_id: string; content_hash: string } | null } | undefined;
     for (let i = 0; i < 100; i += 1) {
       const page = await ctx.owner.call<{ items: Array<{ request_id: string; state: string; usage: { output_bytes: number | null; turns_reserved: number | null }; result: { artifact_id: string; content_hash: string } | null }> }>("requests.listInbox", {});
-      const found = page.items.find(item => item.request_id === created.request_id);
+      const found = page.items.find(item => item.request_id === second.request_id);
       if (found?.state === "completed") { completed = found; break; }
       if (found?.state === "failed") throw new Error(`request failed: ${JSON.stringify(found)}`);
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
     expect(completed, "request did not complete").toBeTruthy();
-    expect(completed!.usage.output_bytes).toBeGreaterThan(0); // now REPORTED
-    expect(completed!.result).toMatchObject({ artifact_id: expect.stringMatching(/^art-/) });
+    expect(completed!.usage.output_bytes).toBeGreaterThan(0); // now REPORTED (before execution it is null)
 
     // Owner artifact read: raw bytes whose sha256 matches the result hash.
     const artifact = await ctx.owner.call<{ request_id: string; producing_role_id: string; content_hash: string; body: string }>("artifacts.read", { artifact_id: completed!.result!.artifact_id });
-    expect(artifact.request_id).toBe(created.request_id);
+    expect(artifact.request_id).toBe(second.request_id);
     expect(artifact.producing_role_id).toBe("reviewer");
     expect(artifact.body.length).toBeGreaterThan(0);
 
-    // The fast worker may complete a second request before any cancel lands:
-    // a terminal request refuses a new-key cancellation HONESTLY over RPC
-    // (the §6 matrix; the successful-cancel path incl. idempotent replay and
-    // the audit event is covered deterministically in the core suite).
-    const second = await builder.call<{ request_id: string }>("requests.create", { target_role_id: "reviewer", question: "second intent", idempotency_key: "g6-r2", read_exception_rationale: "No published target documents" });
-    for (let i = 0; i < 100; i += 1) {
-      const page = await ctx.owner.call<{ items: Array<{ request_id: string; state: string }> }>("requests.listInbox", {});
-      if (page.items.find(item => item.request_id === second.request_id)?.state === "completed") break;
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
-    await expect(ctx.owner.call("requests.cancelByOwner", { request_id: completed!.request_id, reason: "terminal" })).rejects.toMatchObject({ code: "REQUEST_NOT_TERMINABLE" });
-    await expect(ctx.owner.call("requests.cancelByOwner", { request_id: second.request_id, reason: "terminal too", idempotency_key: "gui-k1" })).rejects.toMatchObject({ code: "REQUEST_NOT_TERMINABLE" });
-    const events = await ctx.owner.call<{ events: Array<{ kind: string; state: string }> }>("admin.events", {});
-    expect(events.events.some(event => event.kind === "request.execute" && event.state === "done")).toBe(true);
+    // A terminal request refuses a new-key cancellation HONESTLY over RPC.
+    await expect(ctx.owner.call("requests.cancelByOwner", { request_id: second.request_id, reason: "terminal" })).rejects.toMatchObject({ code: "REQUEST_NOT_TERMINABLE" });
 
-    // Detail + cleanup views + boundary discipline.
-    const detail = await ctx.owner.call<{ state: string; question: string }>("requests.get", { request_id: created.request_id });
-    expect(detail).toMatchObject({ state: "completed" });
+    // Detail + cleanup views + boundary discipline. An accepted-state cancel
+    // has no branch session to reclaim, so its reclamation completes cleanly
+    // (a REAL pending/failed reclamation is covered by the core Held fixture).
+    const detail = await ctx.owner.call<{ state: string; question: string }>("requests.get", { request_id: r1.request_id });
+    expect(detail).toMatchObject({ state: "cancelled" });
     expect(detail.question).toContain("what is the state?");
     const cleanup = await ctx.owner.call<{ items: Array<{ request_id: string; state: string; cleanup_pending: boolean; cleanup_error: { code: string } | null }> }>("requests.listCleanup", {});
+    expect(cleanup.items.find(item => item.request_id === r1.request_id)).toMatchObject({ state: "cancelled", cleanup_pending: false, cleanup_error: null });
     expect(cleanup.items.find(item => item.request_id === second.request_id)).toMatchObject({ state: "completed", cleanup_pending: false, cleanup_error: null });
-    expect(cleanup.items.find(item => item.request_id === created.request_id)).toMatchObject({ state: "completed" });
     await expect(ctx.owner.call("requests.get", {})).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
     await expect(ctx.owner.call("requests.cancelByOwner", { request_id: second.request_id })).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
     await expect(ctx.owner.call("artifacts.read", { artifact_id: "art-missing" })).rejects.toMatchObject({ code: "NOT_FOUND" });

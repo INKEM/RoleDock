@@ -506,25 +506,34 @@ export interface SessionInboxEntry {
  */
 export function listSessionInbox(
   store: WorkspaceStore,
-  input: { session_id: string; unread_only?: boolean },
-): { entries: SessionInboxEntry[] } {
+  input: { session_id: string; unread_only?: boolean; cursor?: string; limit?: number },
+): { entries: SessionInboxEntry[]; next_cursor: string | null } {
   const identity = resolveSessionIdentity(store, input.session_id);
   requireSessionCapability(store, identity, "requests.read");
   const ownerRoleId = requireRoleIdentity(identity).roleId;
+  // Paged per desktop-gui-contract §2.1 (offset cursor, policy.list precedent).
+  const limit = input.limit ?? 50;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 200) throw new RoleDockError("VALIDATION_FAILED", "limit must be an integer between 1 and 200.");
+  let offset = 0;
+  if (input.cursor !== undefined && input.cursor !== null) {
+    const decoded = Number(Buffer.from(input.cursor, "base64").toString("utf8"));
+    if (!Number.isInteger(decoded) || decoded < 0) throw new RoleDockError("VALIDATION_FAILED", "cursor is not a valid page offset.");
+    offset = decoded;
+  }
   const rows = store.prepare("SELECT * FROM request_inbox WHERE owner_role_id = ? ORDER BY delivered_at, entry_id")
     .all(ownerRoleId) as unknown as Array<{
     entry_id: string; owner_role_id: string; request_id: string; artifact_id: string;
     content_hash: string; summary: string | null; state: string; delivered_at: string; read_at: string | null;
   }>;
-  const entries = rows
-    .filter(row => !input.unread_only || row.state === "unread")
-    .map(row => {
-      let requestState: CollaborationRequest["state"] | null = null;
-      const request = getRequestRow(store, row.request_id);
-      if (request) requestState = expireIfOverdue(store, request).state;
-      return { ...row, state: row.state as SessionInboxEntry["state"], request_state: requestState };
-    });
-  return { entries };
+  const filtered = rows.filter(row => !input.unread_only || row.state === "unread");
+  const entries = filtered.slice(offset, offset + limit).map(row => {
+    let requestState: CollaborationRequest["state"] | null = null;
+    const request = getRequestRow(store, row.request_id);
+    if (request) requestState = expireIfOverdue(store, request).state;
+    return { ...row, state: row.state as SessionInboxEntry["state"], request_state: requestState };
+  });
+  const next = offset + entries.length < filtered.length ? Buffer.from(String(offset + entries.length)).toString("base64") : null;
+  return { entries, next_cursor: next };
 }
 
 // -- requests.cancelByOwner (G6, desktop-gui-contract §6) ----------------------

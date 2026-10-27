@@ -490,9 +490,16 @@ export class WorkspaceAdmin {
     const { limit, offset } = this.#pageOffset(record);
     const state = optionalString(record, "state");
     const targetRole = optionalString(record, "target_role_id");
+    const createdSince = optionalString(record, "created_since");
+    const createdUntil = optionalString(record, "created_until");
+    for (const [name, value] of [["created_since", createdSince], ["created_until", createdUntil]] as const) {
+      if (value !== undefined && !Number.isFinite(Date.parse(value))) throw new RoleDockError("VALIDATION_FAILED", `${name} must be an ISO date-time.`);
+    }
     let rows = this.store.prepare("SELECT * FROM requests ORDER BY created_at, request_id").all() as unknown as RequestRowLite[];
     if (state !== undefined) rows = rows.filter(row => row.state === state);
     if (targetRole !== undefined) rows = rows.filter(row => row.target_role_id === targetRole);
+    if (createdSince !== undefined) rows = rows.filter(row => row.created_at >= createdSince);
+    if (createdUntil !== undefined) rows = rows.filter(row => row.created_at <= createdUntil);
     const page = rows.slice(offset, offset + limit).map(row => this.#requestSummary(row));
     return { workspace_id: this.store.workspaceId, observed_at: new Date().toISOString(), items: page, next_cursor: this.#cursorAt(offset, page.length, rows.length) };
   }

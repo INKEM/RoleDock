@@ -247,12 +247,20 @@ export class Coordinator {
   async listSessionInbox(input: unknown): Promise<{ entries: SessionInboxEntry[] }> {
     const record = asRecord(input);
     checkWorkspaceId(this.#store, optionalString(record, "workspace_id"));
-    const inboxInput: { session_id: string; unread_only?: boolean } = {
+    const inboxInput: { session_id: string; unread_only?: boolean; cursor?: string; limit?: number } = {
       session_id: requiredString(record, "session_id"),
     };
     if (record.unread_only !== undefined) {
       if (typeof record.unread_only !== "boolean") throw new RoleDockError("VALIDATION_FAILED", 'Input field "unread_only" must be a boolean.');
       inboxInput.unread_only = record.unread_only;
+    }
+    if (record.limit !== undefined) {
+      if (typeof record.limit !== "number" || !Number.isInteger(record.limit)) throw new RoleDockError("VALIDATION_FAILED", 'Input field "limit" must be an integer.');
+      inboxInput.limit = record.limit;
+    }
+    if (record.cursor !== undefined) {
+      if (typeof record.cursor !== "string") throw new RoleDockError("VALIDATION_FAILED", 'Input field "cursor" must be a string.');
+      inboxInput.cursor = record.cursor;
     }
     return listSessionInbox(this.#store, inboxInput);
   }

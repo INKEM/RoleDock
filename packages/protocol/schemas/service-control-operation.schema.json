@@ -678,12 +678,14 @@
         "properties": {
           "input": {
             "type": "object",
-            "description": "G6 owner face: paged request read view with state/role filters. Projection only.",
+            "description": "G6 owner face: paged request read view with state/role/time filters. Projection only.",
             "properties": {
               "cursor": { "type": "string" },
               "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
               "state": { "enum": ["accepted", "queued", "running", "awaiting_input", "completed", "failed", "cancelled", "expired"] },
-              "target_role_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" }
+              "target_role_id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+              "created_since": { "type": "string", "format": "date-time" },
+              "created_until": { "type": "string", "format": "date-time" }
             },
             "additionalProperties": false
           }

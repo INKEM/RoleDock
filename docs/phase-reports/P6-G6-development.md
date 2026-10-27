@@ -70,6 +70,10 @@
 2. "接受期被 owner 取消"在服务层因 25ms worker 不可确定性复现——成功取消+幂等重放由 core 确定性覆盖,服务层覆盖终态拒绝(已在测试注释说明)。
 3. GUI 分页控件未做(单页 limit 200/100,条目为请求量级);比较/产物渲染为纯文本。
 
+## 8a. 复审返工 R1(2026-10-28 补记)
+
+首次独立验收结论 REWORK(`P6-G6-review.md`,唯一返工项 R1):契约定档的时间过滤与 inbox.list 分页未落地。按验收方"实现"选项修复:`requests.listInbox` 增 `created_since/until`;`inbox.list` 分页(cursor/limit+offset 游标,MCP/文档同步);并采纳验收建议补服务层确定性"接受期取消"用例(pollMs 可配置——开发报告 §8.2 原结论过强,已更正)。复验:`npm run check` 553/553、shell E2E 15/15。详见 `P6-G6-rework.md`。
+
 ## 9. 停止点
 
 本阶段完成即停止:不进入 G7、不推送远程。按批次提交本阶段变更,交独立验收 Agent 按 `prompts/REVIEW.md` 形成 `P6-G6-review.md`。
