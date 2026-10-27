@@ -1,16 +1,14 @@
 # RoleDock：通用 Agent 角色框架原型开发计划
 
-版本：0.2 开发蓝图（产品方向调整；现有协议仍为 0.1）
+版本：0.3 开发蓝图（桌面子阶段重编；现有协议仍为 0.1）
 
-日期：2026-10-13
+日期：2026-10-25
 
 目标：独立开源通用基础框架，为后续学术场景提供可复用的角色与协作基础。
 
-> 2026-10-13 修订：桌面 GUI 为主要管理入口，会话只通过外部 Harness 接入。用户在会话中授权角色，Agent 执行显式锚定；具体契约与阶段门槛见 [DESKTOP_GUI_PLAN.md](DESKTOP_GUI_PLAN.md) 和 [ADR-0007](adr/0007-desktop-and-explicit-session-anchor.md)。本轮复验为 P0 PASS、P1–P5 REWORK，另保留 P5 真实宿主 BLOCKED 缺口，见 [复验报告](phase-reports/P0-P5-revalidation.md)。历史通过结论不替代当前复验。
-
-> 2026-10-14 返工验收更新：R01–R15 与 N01 已关闭，P5-R 本地 PASS、P1–P4 PASS，P0 维持 PASS；P5 本地条件 PASS，整体仍因 G01 BLOCKED。返工结论见 [P5-R 独立验收报告](phase-reports/P5-R-review.md)，其最终门禁日志记录334项测试全部通过。P5-A 已独立验收 Linux 本地 PASS，全量门禁日志记录372项测试通过、独立专项29项通过，见 [P5-A 独立报告](phase-reports/P5-A-review.md)；后续 P5-H/GUI 尚未执行。
-
-> 2026-10-14 P5-H 实施更新：用户指定ZCode，已交付可运行受限诊断适配器并取得GLM-5.3实际答案。宿主选择已补齐；[独立验收](phase-reports/P5-H-review.md)确认本地边界通过，人类来源、完整材料确认、请求隔离及资源控制仍存在接口/证据缺口，P5-H/G01保持BLOCKED，见 [开发报告](phase-reports/P5-H-development.md)。全量386测试、独立专项14测试通过；GUI未实施。
+> 2026-10-25 当前门槛：[P5-H B5-4 独立验收](phase-reports/P5-H-b5-4-review.md) PASS，G01-Z03 关闭、P5-H 解除 BLOCKED、P5 整体通过。P5-R/P5-A/G-min 已通过相应独立验收；G-min 仅为最小确认入口，完整桌面 GUI 尚未交付。最新桌面计划见 [DESKTOP_GUI_PLAN.md](DESKTOP_GUI_PLAN.md)，从 P6-G0 开始，依次 G0–G7 后进入 P6-R。
+>
+> 历史证据保留：[2026-10-13 复验](phase-reports/P0-P5-revalidation.md)、[P5-R](phase-reports/P5-R-review.md)、[P5-A](phase-reports/P5-A-review.md)、[P5-H 初验](phase-reports/P5-H-review.md)、[G-min](phase-reports/P6-G-min-review.md)。早期 REWORK/BLOCKED 结论按后续修复和独立验收收口，不作为当前仍待完成的工作。
 
 ## 1. 项目命名与定位
 
@@ -269,21 +267,27 @@ TypeScript、Node、SQLite 库及 MCP SDK 的确切版本由 P0 根据现有环�
 
 ## 8. 分阶段开发计划
 
-阶段按验收结果推进，原 P0–P5 验收标准保留。当前实际结论以2026-10-14 P5-R 独立验收为准；旧工期估算不再用于新增 GUI／锚定工作。
+阶段按验收结果推进，原 P0–P5 历史标准保留。当前以 B5-4 独立验收和实际代码为基础，不重开已经收口的 P5 返工、锚定与沙箱项目。
 
 | 阶段 | 交付 | 当前结论／退出条件 |
 | --- | --- | --- |
-| P0 契约与骨架 | 规范、Schema、ADR、工具链 | 本轮 PASS |
-| P1 角色与存储 | 角色包、身份基础、持久状态 | PASS：引用闭包与文件类型校验返工通过 |
-| P2 文档与知识 | 版本文档、回执、候选、checkpoint、迁移 | PASS：策略、正式入口、基线、导入路径与知识修订返工通过 |
-| P3 会话继承 | 唯一主指针、材料载入、交接恢复 | PASS：实际载入、摘要保留、恢复与幂等结果返工通过 |
-| P4 协作请求 | 独立分支、预算、终态、真实结果与对账 | PASS：执行权限、隔离、迟到返回、预算、结果与恢复返工通过 |
-| P5 Harness 与演示 | 进程桥接、外部宿主、通用演示 | 本地条件 PASS；整体 BLOCKED：真实 Harness G01 未关闭 |
-| P6 GUI 与开源候选 | 桌面管理界面、候选包及文档 | 待实施；须满足 GUI、显式锚定及原 v0.1 门槛 |
+| P0–P4 | 协议、角色包、状态层、知识、交接与独立请求 | PASS；返工关闭见 P5-R 独立报告 |
+| P5-R / P5-A | 运行时返工、受信授权、同会话锚定、共享服务与 MCP | 独立验收 PASS，直接复用 |
+| P5-H / B0–B5-4 | ZCode 真实链、受管请求、载入与对账、隔离证据 | B5-4 独立验收 PASS，P5-H 与 P5 整体解除 BLOCKED |
+| P6-G-min | 受信授权确认页，entry=gui-confirm | 独立验收 PASS；不等于完整 GUI 或桌面安装包 |
+| P6-G0 | 桌面技术探针、owner 查询／操作契约、工具链定档 | 下一可执行子阶段 |
+| P6-G1 | 外壳、IPC、唯一服务与进程生命周期 | G0 PASS 后执行 |
+| P6-G2 | 工作空间、ZCode 配置／预检、角色与策略 | G1 PASS 后执行 |
+| P6-G3 | 原 ZCode 桌面会话、人类确认与 Agent 显式锚定 | G2 PASS 后执行；必须补真实桌面原会话和点击证据 |
+| P6-G4 | 会话／载入观察、撤销与恢复 | G3 PASS 后执行 |
+| P6-G5 | 知识／历史／候选与迁移 | G4 PASS 后执行；正式发布仍由当前角色主实例完成 |
+| P6-G6 | 请求、真实产物、收件箱与明确管理动作 | G5 PASS 后执行 |
+| P6-G7 | 真实桌面全链、恢复、可用性和 Linux 安装包 | G6 PASS 后执行；提交 P6-G 总体验收 |
+| P6-R | 独立开源候选材料与包 | G7 和 P6-G 总体验收 PASS 后执行 |
 
-P5 剩余工作按 P5-R（既有缺陷返工）→ P5-A（授权／锚定契约、共享服务与最小 MCP 会话工具）→ P5-H（真实外部 Harness）执行。原 P6 的会话工具部分前移以支撑锚定。P5-H 完成并通过 P5 总体验收后，执行 P6-G（GUI）→ P6-R（发布候选）。每次只执行一个子阶段，开发报告为“待独立验收”，独立验收通过才进入下一个。
+详细工作、源码能力缺口、操作面映射、交付、退出条件与估算见 [桌面计划](DESKTOP_GUI_PLAN.md)；执行入口见 [prompts/06G-desktop-management.md](../prompts/06G-desktop-management.md)。每次只执行一个子阶段，报告“待独立验收”，独立验收通过后再继续；不得一次完成 G0–G7 后才验收。
 
-详细交付、操作草案、用户流程与验证矩阵见 [桌面实施计划](DESKTOP_GUI_PLAN.md) §8–§10；继续工作提示见 [prompts/README.md](../prompts/README.md)。真实宿主输入缺失时完成不依赖它的修复和契约工作，P5-H 保持 BLOCKED；不把 Mock、桥接夹具或 GUI 设计材料计入真实宿主通过证据。
+桌面 GUI 只管理外部 Harness，会话仍在 ZCode。当前真人授权走内部受信确认入口，保持 `submitHumanEvent → recordHuman → Agent anchor → 材料确认 → CAS` 的语义；不承诺聊天文字即可直接签发授权。owner 查询／控制面和角色动作严格区分；测试连接器主会话的 P5 证据不替代 G3 的真正桌面原会话接入验证。
 
 ## 9. 统一验收与发布门槛
 

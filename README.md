@@ -5,9 +5,9 @@
 
 Role 表示可长期持续的职责身份，Dock 表示角色接入不同 Harness 的统一位置：角色知识持续积累，会话按明确状态接续。
 
-> 状态：**原型开发中；2026-10-14 P5-R 本地返工独立验收 PASS，P0–P4 PASS，P5 整体 BLOCKED（G01）**。协议 0.1 的 18 项 SDK 操作已有代码；依据 [原复验报告](docs/phase-reports/P0-P5-revalidation.md) 完成 R01–R15 与 N01 返工，P5-R时点门禁记录 28 文件、334 项测试全部通过，见 [独立验收报告](docs/phase-reports/P5-R-review.md)。当前P5-H受限实现门禁为36文件、386项测试通过；Mock／fixture和真实模型诊断均不能替代完整角色闭环，G01仍有接口/证据缺口。
+> 状态：**2026-10-25 P5-H B5-4 独立验收 PASS，G01-Z03 关闭，P5-H 与 P5 整体解除 BLOCKED**。P5-R/P5-A/G-min 已验收；最新报告记录 42 文件、449 项测试通过，并有真实受管八步链与十重叠请求证据，见 [B5-4 独立报告](docs/phase-reports/P5-H-b5-4-review.md)。
 
-产品方向已调整为**桌面管理 GUI + 外部 Harness 会话接入**：用户在会话中授权角色，Agent 执行显式锚定，GUI 管理角色、知识与绑定状态。首版不自建聊天 Harness；CLI 保留作开发和诊断入口。P5-A 已实现受信授权、同会话锚定、共享服务和最小 MCP 会话工具，**Linux 本地独立验收 PASS**；其时点门禁记录34文件、372项测试全部通过，独立专项29项通过，见 [P5-A 验收报告](docs/phase-reports/P5-A-review.md)。GUI/真实角色闭环尚未实现，后续顺序见 [实施计划](docs/DESKTOP_GUI_PLAN.md)。
+产品方向为**桌面管理 GUI + 外部 Harness 会话接入**。现有 `packages/desktop` 是 G-min 最小授权确认页；完整桌面应用尚未交付。新计划拆为 P6-G0–G7，从技术／契约、外壳、角色、原 ZCode 桌面会话锚定推进到知识、收件箱和安装验收，见 [桌面实施计划](docs/DESKTOP_GUI_PLAN.md)。不自建聊天 Harness；正式发布和采纳仍由有权角色完成。下一开工入口为 [P6-G0](prompts/06G0-contract-and-spike.md)。
 
 ## 它解决什么问题
 
@@ -52,4 +52,4 @@ Apache-2.0。发布与托管位置在发布阶段（P6）确定。
 
 P5-A 接口与可信边界见 [锚定规范](docs/spec/external-session-anchor.md)、[共享服务用法](docs/service-and-mcp.md)和 [ADR-0009](docs/adr/0009-trusted-connections-and-anchor.md)。原18项本地SDK与新增受信连接面分别列出；不将Mock锚定或MCP进程通信当作真实宿主证据。
 
-P5-H 已按用户指定的 ZCode 实施受限诊断接入，已取得 GLM-5.3 真实答案；独立验收确认本地边界通过、完整角色闭环仍因人类来源、材料确认、隔离及资源控制接口缺口保持 **BLOCKED**，见 [ZCode 接入说明](docs/zcode-integration.md)、[开发报告](docs/phase-reports/P5-H-development.md)及 [独立验收](docs/phase-reports/P5-H-review.md)。诊断成功不代表角色锚定或独立请求完成。
+P5-H 初期的受限诊断已由 B0–B5-4 后续独立验收收口。受管 ZCode 适配器的材料载入、隔离请求、预算与结果链已有真实证据；非受管路径仍 restricted。详见 [ZCode 接入说明](docs/zcode-integration.md)与 [B5-4 独立验收](docs/phase-reports/P5-H-b5-4-review.md)。真正桌面原会话接入、点击流与安装包仍需按 P6-G 验证。

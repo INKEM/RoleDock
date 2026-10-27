@@ -119,3 +119,41 @@ ADR-0011 将 GUI 最小授权确认面自 P6-G 提前;按 ADR-0007 的留白,本
 - 信任分割(ADR-0007 边界):该 Node 进程是受信所有者客户端——持有 owner 凭据(读取 service 写出的 `owner-connection.json`,校验属主与 0600),只代理三个操作(`externalSessions.list`/`roles.list`/`authorizations.submitHumanEvent`);浏览器页面是渲染层,不见凭据、无写库、无宿主命令。
 - 桌面容器(Electron/Taur 等)与完整五页面仍留待 P6-G 正式阶段选择;本基线只验证"本地 GUI ↔ 受信 owner 进程 ↔ 共享服务"的 IPC 形态(同机 loopback HTTP + Bearer)。
 - 证据:真实 ZCode 会话上 GUI 确认 → recordHuman(human-event)→ 锚定全链,见 `phase-reports/evidence/2026-10-24-p5-h-gmin/`。
+
+## P6-G0 桌面技术定档（2026-10-25）
+
+按 `docs/DESKTOP_GUI_PLAN.md` §4/§8 与 ADR-0013 的 G0 决策门，以可运行探针（真实窗口/进程/打包产物）完成定档。新增依赖均为 `@roledock/desktop` devDependencies（探针、构建与 E2E 用），渲染层零运行时框架依赖。证据见 `phase-reports/evidence/2026-10-25-p6-g0/`。
+
+| 组件 | 定档 | 核查依据 |
+| --- | --- | --- |
+| 桌面容器 | **Electron 44.9.3**（精确） | `npm view`：45.0.0 发布仅 4 天（2026-10-21），按仓库稳定线惯例取上一稳定大版本最新补丁 44.9.3（同 43/44/45 官方支持窗口）；engines `node >= 22.12.0`；二进制经官方 GitHub release 下载，`electron --version` → v44.9.3 |
+| 外壳运行时边界 | Electron 自带 Node **24.22.0** 仅作 shell，**不得**用于工作空间服务 | 探针实测 `process.versions`（electron 44.9.3 / node 24.22.0 / chrome 152）；服务子进程强制用锁定 Node 22.23.2 |
+| 渲染层 | **无框架 TypeScript + DOM**（延续 G-min 零运行时依赖哲学）；组件为可测试 TS 模块 | DESKTOP_GUI_PLAN §4"前端使用 TypeScript 模块和可测试组件"；G0 决策（用户确认） |
+| 构建器 | **esbuild 0.28.2**（唯一构建器；main/preload/renderer 及 service、MCP 子进程单文件 bundle） | `npm view` 最新稳定；注意点：嵌入 `@roledock/protocol` 的 bundle 必须放 `vendor/` 且同级上一层放 `schemas/`（协议按 `import.meta.url` 相对读 Schema）；ESM bundle 需 `createRequire` banner（cross-spawn 等动态 require） |
+| E2E | **@playwright/test 1.64.1**（`_electron.launch` 驱动真实窗口；不需要浏览器下载） | `npm view` 最新稳定；engines `node >= 20` |
+| 打包 | **electron-builder 26.18.0**；`dir`=解压即跑开发产物（已验证），**`.deb`=唯一首发安装格式候选**（G7 出包） | `npm view`；deb 实测可出包（133 MB）；怪癖：npm scope 输出子目录需预创建（fpm 不自建父目录）；metadata 需 homepage（占位 `https://roledock.example`，真实主页 P6-R 前定） |
+| MCP 客户端（探针握手用） | **@modelcontextprotocol/sdk 1.32.1**（复用已锁版本） | 与 packages/mcp 同版本，无新增传递依赖线 |
+| 服务运行时获取 | 官方 dist `node-v22.23.2-linux-x64.tar.xz` + 官方 SHASUMS256.txt SHA256 校验（`scripts/fetch-runtime.mjs`），dev 缓存 `.cache/runtime/`、打包进 `resources/runtime/node/`（附 LICENSE） | nodejs.org 官方分发；校验通过 |
+
+安装与代理注意（本机 `http_proxy=127.0.0.1:17891`）：
+
+- electron 的 postinstall/懒下载走 `@electron/get` 5.1.0，其 Node fetch **不读** 代理 env——需 `ELECTRON_GET_USE_PROXY=1`（undici EnvHttpProxyAgent，官方开关）才可下载；electron-builder 的 app-builder（Go）遵循 HTTPS_PROXY，无需额外设置。
+- `npm audit fix` 后 **0 漏洞**（修复 body-parser GHSA-27r3-jxmh-p828 与 fast-uri 4 项公告，均 electron-builder 传递依赖、dev 工具链；package-lock.json 已更新）。
+- 新增 npm scripts：`desktop:runtime`（获取校验 Node 运行时）、`desktop:build`（tsc -b + esbuild 探针 bundle）、`desktop:probe`（dev 探针，真实窗口）、`desktop:e2e`（Playwright 真实窗口全生命周期）、`desktop:package`（dir 打包）。这些命令自 G0 起存在（计划 §16 的"当前不存在"状态解除）。
+- 契约与生命周期矩阵见 `docs/spec/desktop-gui-contract.md`；探针产物路径与单 writer/生命周期实测见 `phase-reports/evidence/2026-10-25-p6-g0/`。
+
+## P6-G1 桌面外壳增量（2026-10-26）
+
+- **共享包变更**：`ServiceClient.call` 增加 `options.timeoutMs`（默认 30s）客户端等待期限，超时拒绝本地 `ServiceRequestTimeoutError`（不进协议错误码注册表；语义=已提交动作需对账，不盲重试）。全部现有消费者行为兼容（默认期限不短于既有 service 30s 服务端超时）。
+- **shell 构建**：新增 `scripts/build-shell.mjs`（产物 `dist-desktop/shell/{main.mjs,preload.cjs,renderer/}`，vendor/schemas 布局与探针一致）与 `scripts/shell.mjs`（dev 启动器，env `ROLEDOCK_SHELL_NODE`）；`desktop:build:shell / desktop:shell / desktop:e2e:shell / desktop:package:shell`。打包配置 `electron-builder.shell.yml`（独立于冻结的探针配置；`extraMetadata.main` 覆盖，产物 `dist-app-shell/`）。G0 探针的 `src/probe/**`、`scripts/build.mjs`、`electron-builder.yml` 冻结不动。
+- 新 E2E 配置 `playwright.shell.config.ts`（`test/e2e-shell/`）；shell 对话框 fixture env `ROLEDOCK_SHELL_DIALOG_FIXTURE`、userData 隔离 env `ROLEDOCK_SHELL_USER_DATA`（均为文档化测试钩子）。
+- G-min 模块化：决策逻辑提取至 `packages/desktop/src/gmin/confirm.ts`；`src/index.ts`（loopback 诊断入口）行为不变（既有 3 项测试回归通过），与 shell 生产确认页共享该模块。
+- 证据：`phase-reports/evidence/2026-10-26-p6-g1/`。
+
+## P6-G2 工作空间/角色增量（2026-10-26）
+
+- **共享包依赖变化**：`@roledock/service` 新增工作区依赖 `@roledock/adapter-zcode`（bin 级 launcher 构造真实 adapter；core 注入点不变），锁文件更新。
+- **service bin 新模式**：`roledock-service --workspace-config <config.json> <root>`——bin 内完成 connector 握手（`connectZCodeConnector`，惰性 app-server，零会话零模型轮）→ `ZCodeAdapter` 构造（`stateDir=<root>/.roledock/zcode-adapter`）→ `WorkspaceService.start`；退出 `closeJournal`+`disconnect`。config JSON（桌面写 `<root>/.roledock/launcher-config.json`，0600）：`{kind:"zcode", cliPath, connectorPath, credentialHelper?, provider?, model?, managed?{egress[]}, journalPath?}`——仅路径与标识，无凭据。`--mock-workspace` 模式保留（诊断）。
+- **桌面**：vendor 新增 `zcode-connector.mjs`（reference-bin bundle）；`@roledock/adapter-zcode` 包入口补只读预检导出（`probeSandboxRunner`/`planEgress`，纯函数）。新 shell 命令无工具链版本变化。
+- 新协议 Schema：`role-details`、`policy-list`、`workspace-runtime-status`（+G1 的 `workspace-service-info`），全部注册并已在 service 传输边界校验。
+- 证据：`phase-reports/evidence/2026-10-26-p6-g2/`。

@@ -4,7 +4,7 @@
 
 首次执行用 P0。只有当前阶段独立验收通过，才执行下一阶段。提示词中的阶段标签、报告路径及待交付接口都是开发目标，不代表已经存在。
 
-2026-10-13 起按 [当前工作区复验](../docs/phase-reports/P0-P5-revalidation.md) 和 [桌面／外部锚定计划](../docs/DESKTOP_GUI_PLAN.md)继续：P0 PASS、P1–P5 REWORK，真实 Harness 另有 BLOCKED 缺口。P0–P5 原提示词保留历史验收要求；当前先执行 P5-R，不能根据旧 PASS 直接开始候选版。
+2026-10-25 当前入口：[B5-4 独立验收](../docs/phase-reports/P5-H-b5-4-review.md)已关闭 G01-Z03、解除 P5-H BLOCKED，P5 整体通过。G-min 已完成，完整 P6-G 尚未实施。按 [桌面计划](../docs/DESKTOP_GUI_PLAN.md)从 **P6-G0** 开始；旧返工和 B 系列提示保留作历史，不重复执行已验收阶段。
 
 | 顺序 | 提示词 | 目标 |
 | --- | --- | --- |
@@ -16,17 +16,21 @@
 | P5 | [05-harness-and-demo.md](05-harness-and-demo.md) | 接入真实 Harness 并完成端到端演示 |
 | P6-R | [06-open-source-candidate.md](06-open-source-candidate.md) | GUI 与真实外部锚定验收后的独立开源候选版 |
 
-当前续作顺序（一次一个子阶段，独立验收后再继续）：
+当前续作顺序（一次一个子阶段，独立验收后继续；总入口 [06G-desktop-management](06G-desktop-management.md)）：
 
-| 阶段 | 提示词 | 门槛 |
+| 阶段 | 提示词 | 交付 |
 | --- | --- | --- |
-| P5-R | [05R-runtime-rework.md](05R-runtime-rework.md) | 关闭复验 R01–R15，复验受影响原阶段 |
-| P5-A | [05A-authorization-and-anchor.md](05A-authorization-and-anchor.md) | 受信授权、现有外部会话锚定、共享服务和最小 MCP 工具 |
-| P5-H 增量 B0–B4 | 按 ADR-0011 与 `docs/zcode-connector-tools.md` 续作，报告 `P5-H-bN-development.md` | B1 会话身份验证、B2 真人授权入口内部接口、B3 材料载入对账、B4 隔离实证与资源控制；每增量独立验收 |
-| G-min | GUI 最小授权确认面（自 P6-G 提前，ADR-0011） | 受信入口确认→recordHuman→锚定全链，关闭 G01-Z01 |
-| P5-H 增量 B5（ADR-0012） | 按 `docs/ADAPTER_SANDBOX_PLAN.md` 续作，报告 `P5-H-b5N-development.md` | 适配器强制隔离（沙箱执行边界）关闭 G01-Z03：B5-0 契约→B5-1 技术验证→B5-2 逃逸证据→B5-3 请求链受管接入→B5-4 翻转收口；每增量独立验收 |
-| P6-G | [06G-desktop-management.md](06G-desktop-management.md) | 桌面管理 GUI，聊天仅通过外部 Harness 接入 |
-| P6-R | [06-open-source-candidate.md](06-open-source-candidate.md) | GUI／锚定／原 v0.1 条件全部有证据 |
+| P6-G0 | [06G0-contract-and-spike](06G0-contract-and-spike.md) | 技术探针、owner API／动作契约和版本定档 |
+| P6-G1 | [06G1-shell-and-runtime](06G1-shell-and-runtime.md) | 外壳、IPC、服务生命周期 |
+| P6-G2 | [06G2-workspaces-and-roles](06G2-workspaces-and-roles.md) | 工作空间／接入预检、角色和策略 |
+| P6-G3 | [06G3-session-authorization](06G3-session-authorization.md) | 原 ZCode 桌面会话、受信确认、Agent 显式锚定 |
+| P6-G4 | [06G4-session-observability](06G4-session-observability.md) | 绑定／载入／代次、撤销与恢复观察 |
+| P6-G5 | [06G5-knowledge](06G5-knowledge.md) | 知识／历史／候选／迁移 |
+| P6-G6 | [06G6-requests-and-inbox](06G6-requests-and-inbox.md) | 请求、产物与收件箱 |
+| P6-G7 | [06G7-release-validation](06G7-release-validation.md) | 桌面全链、可靠性、安装包与总体验收 |
+| P6-R | [06-open-source-candidate](06-open-source-candidate.md) | G7 和 P6-G 总体验收通过后的开源候选 |
+
+历史续作：P5-R → P5-A → P5-H B0–B4／G-min → B5-0…B5-4 均已按相应报告验收；原提示词和证据保留。当前报告命名为 `P6-Gn-development.md`／`P6-Gn-review.md`，不是每个子阶段覆盖同一个 P6-G 报告。
 
 每个阶段完成后，把 [REVIEW.md](REVIEW.md) 交给另一个验收 Agent，给定阶段编号和代码基线。需要返工时使用 [REWORK.md](REWORK.md)。这种开发／验收安排是本项目的实施流程，框架自身仍允许任意角色组织。
 
@@ -45,4 +49,12 @@
 请按 prompts/REVIEW.md 验收 P2。
 基线以当前工作区为准，记录实际提交标识或 diff 摘要。
 独立检查要求和测试，不把开发报告当作结论；产出明确的通过或返工意见。
+```
+
+当前开工示例：
+
+```text
+请读取 prompts/06G0-contract-and-spike.md，只执行 P6-G0。
+根据最新代码和 B5-4 收口验收，先完成技术探针、GUI 操作契约与工具链定档；
+报告写为待独立验收，不提前实现后续页面。
 ```

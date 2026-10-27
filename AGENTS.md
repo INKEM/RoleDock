@@ -8,6 +8,12 @@ RoleDock 是一个通用 Agent 角色协议与参考运行时：支持自定义�
 
 2026-10-25 B0–B4/G-min 与 B5-0…B5-3 已独立验收 PASS（`P5-H-b1…b4-review.md`、`P6-G-min-review.md`、`P5-H-b5-0…b5-3-review.md`），G01-Z01/Z02/Z04 证据完备。隔离由 RoleDock 自有执行边界强制（ADR-0012）：B5-1 bubblewrap 受管 spawn + 出口白名单，B5-2 逃逸矩阵全拦截（验收方独立重跑一致），B5-3 步骤 7–8 真实跑通，B5-4 八步全链复验 + 受管变体进入 conformance 套件 + 验收前置 N1/N2 完成；**四项隔离声明已随受管执行声明翻转（受管变体与 `zcode_sandbox_status` 验证绑定、失败关闭；非受管保持 restricted/false）**。G01-Z03 关闭与 P5-H 解除 BLOCKED 待 B5-4 独立验收裁定（`P5-H-b5-4-development.md`）。
 
+2026-10-25 最新有效门槛（覆盖上述历史状态）：`P5-H-b5-4-review.md` 已独立验收 **PASS**，G01-Z03 关闭、P5-H 解除 BLOCKED、P5 整体通过。G-min 仅为最小确认入口；完整 GUI 按新 `docs/DESKTOP_GUI_PLAN.md` 的 **P6-G0→G1→G2→G3→G4→G5→G6→G7→P6-R** 执行，每次一个子阶段并独立验收。原 ZCode 桌面会话与浏览器点击的产品证据在 G3/G7 补齐，不将既有测试连接器主会话当作完整桌面产品证据。
+
+2026-10-27 P6-G 进度：G0–G2 已独立验收 PASS（`P6-G0/G1/G2-final-review.md`）。P6-G3 开发完成（`P6-G3-development.md`）：真实 ZCode 桌面原会话经 GUI 发现/登记→受信桥自动 recordHuman→原会话 Agent 显式 `sessions.anchor`→真实材料载入→active binding（generation 1）全链真机证据在 `phase-reports/evidence/2026-10-27-p6-g3/`；ADR-0014（原会话受信接入与凭据交接）与 desktop-gui-contract §9 定档；G-min 随机 event_ref 缺陷已修复为内容寻址幂等。
+
+2026-10-28 P6-G 进度（覆盖上行状态）：**G3 已独立验收 PASS**（`P6-G3-review.md`；观察 O1 真机截图补拍/O2 契约补 bridgeStatus/O3 E2E 路径锚定移交 G4）。**P6-G4 开发完成待独立验收**（`P6-G4-development.md`）：owner 只读视图 `sessions.listBindings/listAttempts/listLoads` 与 `authorizations.revokePreview` 已实现并注册 Schema（契约 v7）；GUI"授权与会话"页新增会话观察块（连接与角色有效性分列、代次时间线、载入确认、有界轮询+observed_at 守卫）与撤销影响预览/撤销面（无 owner release）；迁移 8 补 `confirmed_at`/`state_changed_at`（不回填）。`npm run check` 533/533、shell E2E 13/13（含 `g4.e2e.spec.ts` 全链：锚定→观察→双授权→重启代次不变→撤销预览→revoked 分列显示），自动化证据在 `phase-reports/evidence/2026-10-27-p6-g4/`；**真机补充证据（gui-03…07 + backend-state-real.json）按该目录 STEPS.md 待采**。下一步是 G4 独立验收，PASS 后进 `prompts/06G5-knowledge.md`。
+
 ## 命令
 
 ```bash
@@ -28,7 +34,7 @@ CLI 本地运行：`node packages/cli/dist/bin.js --help`（先 `npm run build`�
 - `packages/service` / `packages/mcp` — P5-A 共享单协调器 Unix socket 服务与受信会话 MCP stdio 客户端（Linux 本地独立验收 PASS）；所有者、受信宿主、普通会话三种连接面独立，Agent 无授权签发/管理员工具。
 - `packages/desktop` — G-min 最小授权确认面（ADR-0011）：受信 owner 进程（127.0.0.1）+ 本地确认页（entry=gui-confirm），渲染层零凭据；真实锚定全链证据见 `phase-reports/evidence/2026-10-24-p5-h-gmin/`；完整五页面与桌面容器属 P6-G。
 - `packages/cli` — `roledock` 命令行；默认人类可读，`--json` 输出机器信封；退出码 0 成功 / 1 运行错误 / 2 用法错误。全部 18 个操作已接通（documents/requests/artifacts 需 `--session`）；`--adapter mock|bridge`（默认 mock）选择宿主适配器；`--adopt-artifact` 显式采纳请求结果；`admin inbox/events` 为所有者诊断面。
-- `adapters/` — `mock/`（内存宿主，P3）、`process-bridge/`（真实 fixture-host 子进程桥接，P5，`@roledock/adapter-process-bridge`），两者通过同一契约套件 `tests/conformance/adapter-suite.ts`；`zcode/`（P5-H 用户指定宿主的受限诊断接入，真实模型探针可运行，完整角色闭环仍 BLOCKED，见 P5-H 报告）。`harness-reference/` 完整接入未交付；不放置不可运行的空壳包。
+- `adapters/` — `mock/`（内存宿主，P3）、`process-bridge/`（真实 fixture-host 子进程桥接，P5，`@roledock/adapter-process-bridge`），与 `zcode/` 复用契约套件 `tests/conformance/adapter-suite.ts`；`zcode/`（P5-H 已独立验收收口；受管变体经运行时验证后 full、非受管 restricted，见 B5-4 报告；真实桌面原会话产品接入留 P6-G3）。原 `harness-reference/` 目录设想由实际 zcode 参考接入承接，不额外建立重复空壳包。
 - `examples/` — `demo-team`/`custom-role` 角色包与可重跑端到端演示 `examples/demo.mjs`（蓝图 7 步，机器日志 JSONL）。
 - `docs/spec/` — 规范（对象与状态机、身份与权限、SDK 操作、适配契约）；`docs/adapter-guide.md`（适配实现指南）、`docs/quickstart.md`（CLI 快速上手）。
 - `docs/adr/` — 架构决策记录；改架构先补 ADR。

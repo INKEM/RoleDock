@@ -118,3 +118,12 @@
 ## 5. 证据要求
 
 真实探针运行必须记录:连接器文件 sha256、连接器 `serverInfo` 版本、`tools/list` 结果、官方 CLI 入口文件 sha256、各工具调用结果摘要。Mock/fixture 通过不构成真实宿主证据。
+
+### 4.6 G3:`zcode_list_sessions`(已实现;真机 spike 证据)
+
+原桌面会话产品接入(P6-G3,ADR-0014 §9.1)的只读发现工具。无副作用:不创建、不 resume、不附着任何会话,零模型轮。
+
+- **工具名** `zcode_list_sessions`,入参 `{workspacePath}`(绝对路径);返回 `{sessions:[{sessionId,title,status,sessionKind,updatedAt,workspace}]}`。
+- **语义**:app-server `session/list` 为工作空间存储级枚举——2026-10-27 真机 spike 实证:全新 app-server 实例零附着即返回该工作空间全部持久化会话(含用户正在使用的桌面会话);旧注释"list 不显示未附着会话"对当前 CLI 版本不成立。`sess_*`(实例内存)与 `session_*`(持久化桌面)条目并存,结构上可辨。
+- **消费者**:仅服务端 adapter `listHostSessions`(`externalSessions.discover` trusted 面)与桌面受信桥;不开放给普通 Agent 会话。
+- **证据**:`phase-reports/evidence/2026-10-27-p6-g3/spike-discovery/`(spike-list.mjs / spike-resume.mjs / spike-listonly.mjs 与 FINDINGS.md)。
