@@ -12,7 +12,7 @@ RoleDock 是一个通用 Agent 角色协议与参考运行时：支持自定义�
 
 2026-10-27 P6-G 进度：G0–G2 已独立验收 PASS（`P6-G0/G1/G2-final-review.md`）。P6-G3 开发完成（`P6-G3-development.md`）：真实 ZCode 桌面原会话经 GUI 发现/登记→受信桥自动 recordHuman→原会话 Agent 显式 `sessions.anchor`→真实材料载入→active binding（generation 1）全链真机证据在 `phase-reports/evidence/2026-10-27-p6-g3/`；ADR-0014（原会话受信接入与凭据交接）与 desktop-gui-contract §9 定档；G-min 随机 event_ref 缺陷已修复为内容寻址幂等。
 
-2026-10-28 P6-G 进度（覆盖上行状态）：**G3 已独立验收 PASS**（`P6-G3-review.md`；观察 O1 真机截图补拍/O2 契约补 bridgeStatus/O3 E2E 路径锚定移交 G4）。**P6-G4 开发完成待独立验收**（`P6-G4-development.md`）：owner 只读视图 `sessions.listBindings/listAttempts/listLoads` 与 `authorizations.revokePreview` 已实现并注册 Schema（契约 v7）；GUI"授权与会话"页新增会话观察块（连接与角色有效性分列、代次时间线、载入确认、有界轮询+observed_at 守卫）与撤销影响预览/撤销面（无 owner release）；迁移 8 补 `confirmed_at`/`state_changed_at`（不回填）。`npm run check` 533/533、shell E2E 13/13（含 `g4.e2e.spec.ts` 全链：锚定→观察→双授权→重启代次不变→撤销预览→revoked 分列显示），自动化证据在 `phase-reports/evidence/2026-10-27-p6-g4/`；**真机补充证据（gui-03…07 + backend-state-real.json）按该目录 STEPS.md 待采**。下一步是 G4 独立验收，PASS 后进 `prompts/06G5-knowledge.md`。
+2026-10-28 P6-G 进度(覆盖上行状态):**G3、G4 均已独立验收 PASS**(`P6-G3-review.md`、`P6-G4-review.md`;G4 真机补充证据裁定为"材料待采",按 `evidence/2026-10-27-p6-g4/STEPS.md` 随 G5 跟进)。**P6-G5 实施中**:实施计划已留档(`P6-G5-plan.md`,用户预授权免审批,含"不实施 proposals.submit、编辑器本地草稿+导入流程提交候选"的裁定);G5 交付 owner 知识只读视图(文档目录/正文/修订/候选 + checkpoint 摘要/详情)与 #/knowledge 知识页。G5 之后 G6(`prompts/06G6-requests-and-inbox.md`)、G7 同样"先计划留档后实施"。全链自动化门禁:G4 时点 `npm run check` 533/533、shell E2E 13/13。
 
 ## 命令
 
