@@ -33,6 +33,8 @@ export interface DiscoverReplyView { adapter: string; items: DiscoverCandidateVi
 export type { AuthorizationConfirmationsPage, ConfirmationChainEntry } from "@roledock/protocol";
 /** G4 session observability (owner projections; protocol-typed). */
 export type { SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview } from "@roledock/protocol";
+/** G5 role knowledge (owner projections; protocol-typed). */
+export type { OwnerDocumentListPage, OwnerDocumentRead, OwnerDocumentRevisionsPage, OwnerCandidatesPage, OwnerCheckpointListPage, OwnerCheckpointDetail } from "@roledock/protocol";
 
 export interface ShellSettings { defaultWorkspaceDir: string | null; exitStopsOwnedServices: boolean }
 
@@ -45,6 +47,10 @@ export const SHELL_NAMESPACES = {
   // owner release method here by contract (§5.2).
   sessions: ["listBindings", "listAttempts", "listLoads"] as const,
   authorizations: ["revokePreview", "revoke"] as const,
+  // G5 (desktop-gui-contract §2.3): owner knowledge views. Reads take
+  // explicit role/document keys; export/import resolve files through native
+  // dialogs in the trusted main process — the renderer never touches paths.
+  knowledge: ["listDocuments", "readDocument", "listRevisions", "listCandidates", "listCheckpoints", "getCheckpoint", "export", "import"] as const,
   roles: ["install", "list", "get", "grant", "revoke"] as const,
   settings: ["get", "set"] as const,
   app: ["quit", "version"] as const,

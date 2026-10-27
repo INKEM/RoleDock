@@ -86,7 +86,7 @@ test.describe("P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9)", () => {
           noRequire: typeof require === "undefined",
         };
       });
-      expect(surface.namespaces).toEqual(["app", "authorizations", "confirm", "roles", "sessions", "settings", "workspace"]);
+      expect(surface.namespaces).toEqual(["app", "authorizations", "confirm", "knowledge", "roles", "sessions", "settings", "workspace"]);
       expect(surface.workspace).toEqual(["diagnostics", "open", "openWindow", "pickDirectory", "preflight", "refresh", "removeRecent", "restart", "status", "stop", "testConnection"]);
       expect(surface.noProcess).toBe(true);
       expect(surface.noRequire).toBe(true);
@@ -291,7 +291,7 @@ test.describe("P6-G1 shell lifecycle (DESKTOP_GUI_PLAN §9)", () => {
       });
       expect(result.unknownMethod).toBeUndefined();
       expect(result.payloadRejection).toContain("不接受参数");
-      expect(result.namespaces).toEqual(["app", "authorizations", "confirm", "roles", "sessions", "settings", "workspace"]);
+      expect(result.namespaces).toEqual(["app", "authorizations", "confirm", "knowledge", "roles", "sessions", "settings", "workspace"]);
     } finally {
       app.close().catch(() => undefined);
     }

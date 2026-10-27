@@ -38,6 +38,16 @@ describe("shell named-IPC contract", () => {
     expect(SHELL_NAMESPACES.authorizations).not.toContain("release");
     expect(SHELL_NAMESPACES.sessions).not.toContain("release");
   });
+
+  it("G5: knowledge vocabulary is exactly the six owner read views plus export/import — no owner publish/proposal", () => {
+    expect([...SHELL_NAMESPACES.knowledge].sort()).toEqual(["export", "getCheckpoint", "import", "listCandidates", "listCheckpoints", "listDocuments", "listRevisions", "readDocument"]);
+    // proposals.submit is contract G5/G6 and NOT implemented this phase; there
+    // is no owner publish/adoption channel at all (publishing stays with the
+    // role in its original session).
+    expect(SHELL_NAMESPACES.knowledge).not.toContain("submit");
+    expect(SHELL_NAMESPACES.knowledge).not.toContain("publish");
+    expect(SHELL_NAMESPACES.knowledge).not.toContain("adopt");
+  });
 });
 
 describe("shell redaction (identical layered rules to the probe)", () => {

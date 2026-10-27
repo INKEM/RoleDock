@@ -1,3 +1,5 @@
+import { BrowserWindow } from "electron";
+import { cp } from "node:fs/promises";
 import { WorkspaceSupervisor } from "../supervisor.js";
 import type { WorkspaceHandle } from "../supervisor.js";
 import type { WorkspaceStatus } from "../shared/contract.js";
@@ -11,7 +13,7 @@ import { EventProgressBridge } from "./event-bridge.js";
 import type { BridgeStatus } from "./event-bridge.js";
 import { connectZCodeConnector } from "@roledock/adapter-zcode";
 import type { ServiceClient } from "@roledock/service";
-import type { AuthorizationConfirmationsPage, SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview } from "@roledock/protocol";
+import type { AuthorizationConfirmationsPage, SessionBindingsPage, AnchorAttemptsPage, AnchorLoadsPage, RevokePreview, OwnerDocumentListPage, OwnerDocumentRead, OwnerDocumentRevisionsPage, OwnerCandidatesPage, OwnerCheckpointListPage, OwnerCheckpointDetail } from "@roledock/protocol";
 
 export interface RolesInstallResult { roles: Array<{ id: string; title: string; initialized: boolean }>; reinstalled: boolean }
 
@@ -203,6 +205,78 @@ export class WorkspaceController {
 
   revokeAuthorization(authorizationId: string): Promise<unknown> {
     return this.#ownerClient().call("authorizations.revoke", { authorization_id: authorizationId }, { timeoutMs: 10000 });
+  }
+
+  /** G5 (desktop-gui-contract §2.3): owner knowledge read views. Pure proxies
+   * — input shape is validated in the IPC handler and again at the service
+   * boundary. Bodies arrive per the §3.2 matrix (private/role stay
+   * metadata+hash); the renderer never touches object paths. */
+  knowledgeListDocuments(input: { cursor?: string; limit?: number; role_id?: string } = {}): Promise<OwnerDocumentListPage> {
+    return this.#ownerClient().call<OwnerDocumentListPage>("documents.list", input, { timeoutMs: 5000 });
+  }
+
+  knowledgeReadDocument(input: { role_id: string; document_key: string; revision?: number }): Promise<OwnerDocumentRead> {
+    return this.#ownerClient().call<OwnerDocumentRead>("documents.read", input, { timeoutMs: 5000 });
+  }
+
+  knowledgeListRevisions(input: { role_id: string; document_key: string; cursor?: string; limit?: number }): Promise<OwnerDocumentRevisionsPage> {
+    return this.#ownerClient().call<OwnerDocumentRevisionsPage>("documents.listRevisions", input, { timeoutMs: 5000 });
+  }
+
+  knowledgeListCandidates(input: { cursor?: string; limit?: number; role_id?: string; source?: string } = {}): Promise<OwnerCandidatesPage> {
+    return this.#ownerClient().call<OwnerCandidatesPage>("documents.listCandidates", input, { timeoutMs: 5000 });
+  }
+
+  knowledgeListCheckpoints(input: { cursor?: string; limit?: number; role_id?: string } = {}): Promise<OwnerCheckpointListPage> {
+    return this.#ownerClient().call<OwnerCheckpointListPage>("checkpoints.list", input, { timeoutMs: 5000 });
+  }
+
+  knowledgeGetCheckpoint(input: { checkpoint_id: string }): Promise<OwnerCheckpointDetail> {
+    return this.#ownerClient().call<OwnerCheckpointDetail>("checkpoints.get", input, { timeoutMs: 5000 });
+  }
+
+  /** G5 knowledge export: `knowledge.export` writes the bundle under the
+   * workspace first, then the main process copies it to the directory the
+   * user picked in the native dialog. The renderer receives the summary and
+   * the chosen directory label — never object paths to open. */
+  async knowledgeExport(input: { scope?: "share" | "workspace"; role_id?: string }): Promise<{ export_id: string; entry_count: number; checkpoint_count: number; saved_to: string | null; error: string | null }> {
+    const result = await this.#ownerClient().call<{ export_id: string; bundle_dir: string; entry_count: number; checkpoint_count: number }>("knowledge.export", { ...(input.scope ? { scope: input.scope } : {}), ...(input.role_id ? { role_id: input.role_id } : {}) }, { timeoutMs: 30000 });
+    const fixture = process.env.ROLEDOCK_SHELL_EXPORT_FIXTURE;
+    let target: string | null = fixture ?? null;
+    if (!target) {
+      const { dialog } = await import("electron");
+      const parent = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+      const picked = parent ? await dialog.showOpenDialog(parent, { title: "选择导出目录", properties: ["openDirectory", "createDirectory"] }) : { canceled: true } as const;
+      target = picked.canceled ? null : picked.filePaths[0] ?? null;
+    }
+    if (!target) return { export_id: result.export_id, entry_count: result.entry_count, checkpoint_count: result.checkpoint_count, saved_to: null, error: "已取消:导出包保留在工作空间 .roledock/exports 下。" };
+    try {
+      await cp(result.bundle_dir, target, { recursive: true });
+      return { export_id: result.export_id, entry_count: result.entry_count, checkpoint_count: result.checkpoint_count, saved_to: target, error: null };
+    } catch (error) {
+      return { export_id: result.export_id, entry_count: result.entry_count, checkpoint_count: result.checkpoint_count, saved_to: null, error: (error instanceof Error ? error.message : String(error)).slice(0, 300) };
+    }
+  }
+
+  /** G5 knowledge import: the user picks an export bundle directory; import
+   * only CREATES candidates — adoption/publishing stays with the authorized
+   * role in its original session. */
+  async knowledgeImport(): Promise<{ ok: boolean; created: Array<{ candidate_id: string; target_role_id: string; document_key: string; baseline_revision: number }>; skipped: Array<{ document_key: string; reason: string }>; source_workspace_id: string | null; error: string | null }> {
+    const fixture = process.env.ROLEDOCK_SHELL_IMPORT_FIXTURE;
+    let bundleDir: string | null = fixture ?? null;
+    if (!bundleDir) {
+      const { dialog } = await import("electron");
+      const parent = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+      const picked = parent ? await dialog.showOpenDialog(parent, { title: "选择知识导出包目录", properties: ["openDirectory"] }) : { canceled: true } as const;
+      bundleDir = picked.canceled ? null : picked.filePaths[0] ?? null;
+    }
+    if (!bundleDir) return { ok: false, created: [], skipped: [], source_workspace_id: null, error: "已取消:未选择导出包。" };
+    try {
+      const result = await this.#ownerClient().call<{ source_workspace_id: string; created_candidates: Array<{ candidate_id: string; target_role_id: string; document_key: string; baseline_revision: number }>; skipped: Array<{ document_key: string; reason: string }> }>("knowledge.import", { bundle_dir: bundleDir }, { timeoutMs: 30000 });
+      return { ok: true, created: result.created_candidates, skipped: result.skipped, source_workspace_id: result.source_workspace_id, error: null };
+    } catch (error) {
+      return { ok: false, created: [], skipped: [], source_workspace_id: null, error: (error instanceof Error ? error.message : String(error)).slice(0, 300) };
+    }
   }
 
   bridgeStatus(): BridgeStatus {

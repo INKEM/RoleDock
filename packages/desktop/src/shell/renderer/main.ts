@@ -84,18 +84,20 @@ import { renderWorkspacePage } from "./pages/workspace.js";
 import { renderConfirmPage } from "./pages/confirm.js";
 import { renderSettingsPage } from "./pages/settings.js";
 import { renderRolesPage } from "./pages/roles.js";
+import { renderKnowledgePage } from "./pages/knowledge.js";
 
 const routes: Record<string, (container: HTMLElement) => Promise<void>> = {
   "/workspace": renderWorkspacePage,
   "/confirm": renderConfirmPage,
   "/roles": renderRolesPage,
+  "/knowledge": renderKnowledgePage,
   "/settings": renderSettingsPage,
 };
 
 async function route(): Promise<void> {
   clearError();
   const hash = location.hash.replace(/^#/, "") || "/workspace";
-  for (const [path, id] of [["/workspace", "nav-workspace"], ["/confirm", "nav-confirm"], ["/roles", "nav-roles"], ["/settings", "nav-settings"]] as const) {
+  for (const [path, id] of [["/workspace", "nav-workspace"], ["/confirm", "nav-confirm"], ["/roles", "nav-roles"], ["/knowledge", "nav-knowledge"], ["/settings", "nav-settings"]] as const) {
     document.getElementById(id)?.classList.toggle("active", hash === path);
   }
   const container = document.getElementById("page")!;

@@ -156,6 +156,79 @@ export function registerShellIpc(options: { rendererDir: string; controller: Wor
       assertTrusted(event, urlPrefix);
       return options.controller.revokeAuthorization(stringField(payload, "authorization_id"));
     },
+    // G5 (desktop-gui-contract §2.3): owner knowledge views. Read inputs are
+    // exact role/document keys; export/import resolve files through native
+    // dialogs (or the documented test fixtures) in this trusted process.
+    "knowledge:listDocuments": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input = pagedListInput(payload);
+      const record = payload as Record<string, unknown> | null;
+      const roleId = record && typeof record === "object" && !Array.isArray(record) && record.role_id !== undefined && record.role_id !== null ? stringField(payload, "role_id") : undefined;
+      return options.controller.knowledgeListDocuments({ ...input, ...(roleId !== undefined ? { role_id: roleId } : {}) });
+    },
+    "knowledge:readDocument": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input: { role_id: string; document_key: string; revision?: number } = {
+        role_id: stringField(payload, "role_id"),
+        document_key: stringField(payload, "document_key"),
+      };
+      if (payload && typeof payload === "object" && !Array.isArray(payload) && (payload as Record<string, unknown>).revision !== undefined) {
+        const revision = (payload as Record<string, unknown>).revision;
+        if (!Number.isInteger(revision) || (revision as number) < 1) throw new Error("revision 必须是正整数。");
+        input.revision = revision as number;
+      }
+      return options.controller.knowledgeReadDocument(input);
+    },
+    "knowledge:listRevisions": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input = pagedListInput(payload);
+      return options.controller.knowledgeListRevisions({
+        role_id: stringField(payload, "role_id"),
+        document_key: stringField(payload, "document_key"),
+        ...(input.cursor !== undefined ? { cursor: input.cursor } : {}),
+        ...(input.limit !== undefined ? { limit: input.limit } : {}),
+      });
+    },
+    "knowledge:listCandidates": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input = pagedListInput(payload);
+      const record = payload as Record<string, unknown> | null;
+      const source = record && typeof record === "object" && !Array.isArray(record) && record.source !== undefined ? record.source : undefined;
+      if (source !== undefined && source !== "documents.propose" && source !== "knowledge.import" && source !== "request.result") throw new Error("source 必须是候选来源枚举值。");
+      return options.controller.knowledgeListCandidates({
+        ...input,
+        ...(record && typeof record === "object" && !Array.isArray(record) && record.role_id !== undefined ? { role_id: stringField(payload, "role_id") } : {}),
+        ...(source !== undefined ? { source: source as string } : {}),
+      });
+    },
+    "knowledge:listCheckpoints": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input = pagedListInput(payload);
+      const record = payload as Record<string, unknown> | null;
+      return options.controller.knowledgeListCheckpoints({
+        ...input,
+        ...(record && typeof record === "object" && !Array.isArray(record) && record.role_id !== undefined ? { role_id: stringField(payload, "role_id") } : {}),
+      });
+    },
+    "knowledge:getCheckpoint": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      return options.controller.knowledgeGetCheckpoint({ checkpoint_id: stringField(payload, "checkpoint_id") });
+    },
+    "knowledge:export": (payload, event) => {
+      assertTrusted(event, urlPrefix);
+      const input: { scope?: "share" | "workspace"; role_id?: string } = {};
+      if (payload !== undefined && payload !== null) {
+        if (typeof payload !== "object" || Array.isArray(payload)) throw new Error("导出需要 JSON 对象。");
+        const record = payload as Record<string, unknown>;
+        if (record.scope !== undefined) {
+          if (record.scope !== "share" && record.scope !== "workspace") throw new Error("scope 必须是 share 或 workspace。");
+          input.scope = record.scope;
+        }
+        if (record.role_id !== undefined && record.role_id !== null) input.role_id = stringField(payload, "role_id");
+      }
+      return options.controller.knowledgeExport(input);
+    },
+    "knowledge:import": noPayload(() => options.controller.knowledgeImport()),
     "settings:get": noPayload(() => loadSettingsFile(settingsFile)),
     "settings:set": (payload, event) => {
       assertTrusted(event, urlPrefix);
