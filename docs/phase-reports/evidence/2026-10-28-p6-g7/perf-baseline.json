@@ -1,0 +1,58 @@
+{
+  "kind": "perf-baseline",
+  "measured_at": "2026-10-27T21:04:52.271Z",
+  "environment": {
+    "node": "v22.23.2",
+    "platform": "linux",
+    "note": "in-process coordinator with the mock adapter; NO model turns"
+  },
+  "seed": {
+    "roles": 50,
+    "external_sessions": 200,
+    "requests": 1000,
+    "document_revisions": 1000,
+    "publish_ms": 172825,
+    "request_create_ms": 174385
+  },
+  "service_startup_ms": 264,
+  "process_memory": {
+    "rss_mb": 150,
+    "heap_mb": 27
+  },
+  "read_view_timings": {
+    "documents.list": {
+      "p50_ms": 1.17,
+      "p95_ms": 7.32,
+      "samples": 30
+    },
+    "requests.listInbox": {
+      "p50_ms": 4.06,
+      "p95_ms": 5.67,
+      "samples": 30
+    },
+    "sessions.listBindings": {
+      "p50_ms": 0.02,
+      "p95_ms": 0.11,
+      "samples": 30
+    },
+    "authorizations.confirmations": {
+      "p50_ms": 1.51,
+      "p95_ms": 1.64,
+      "samples": 30
+    },
+    "checkpoints.list": {
+      "p50_ms": 0.01,
+      "p95_ms": 0.04,
+      "samples": 30
+    },
+    "requests.get": {
+      "p50_ms": 3.68,
+      "p95_ms": 4.72,
+      "samples": 30
+    }
+  },
+  "targets": {
+    "note": "plan §15 initial targets (p95≤500ms local query, page update ≤3s) are REFERENCE ONLY — the numbers above are measured as-is on this machine and make no capacity claim",
+    "p95_target_ms": 500
+  }
+}

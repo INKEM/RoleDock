@@ -27,7 +27,9 @@
     "desktop:build:shell": "npm run build && node packages/desktop/scripts/build-shell.mjs",
     "desktop:shell": "npm run desktop:build:shell && npm run desktop:runtime && node packages/desktop/scripts/shell.mjs",
     "desktop:e2e:shell": "npm run desktop:build:shell && npm run desktop:runtime && npx playwright test --config packages/desktop/playwright.shell.config.ts",
-    "desktop:package:shell": "npm run desktop:build:shell && npm run desktop:runtime && cd packages/desktop && npx electron-builder --config electron-builder.shell.yml --publish never"
+    "desktop:package:shell": "npm run desktop:build:shell && npm run desktop:runtime && cd packages/desktop && npx electron-builder --config electron-builder.shell.yml --publish never",
+    "desktop:pack:deb": "npm run desktop:build:shell && node packages/desktop/scripts/pack-deb.mjs",
+    "desktop:perf": "npm run desktop:build:shell && node packages/desktop/scripts/perf-baseline.mjs"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

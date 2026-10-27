@@ -1,0 +1,50 @@
+{
+  "kind": "packaged-g7-smoke",
+  "ok": true,
+  "checks": [
+    {
+      "name": "packaged window opens",
+      "ok": true
+    },
+    {
+      "name": "workspace opens from the packaged app",
+      "ok": true
+    },
+    {
+      "name": "role pack installs and policy grants from the packaged app",
+      "ok": true
+    },
+    {
+      "name": "original session registered; 0600 credential file written",
+      "ok": true
+    },
+    {
+      "name": "human confirmation stored; trusted bridge advanced to authorization",
+      "ok": true
+    },
+    {
+      "name": "agent anchors via packaged MCP; active binding generation 1",
+      "ok": true,
+      "detail": "{\"external_session_id\":\"ext-58ddc1c1-34e2-41a6-a7b8-3600f5386f23\",\"session_id\":\"sess-b3527152-7269-40f8-98f4-9a8621c49a62\",\"instance_id\":\"inst-72491544-a558-484e-9a00-e3a7acd239f3\",\"role_id\":\"builder\",\"generation\":1,\"authorization_id\":\"auth-69963786-87ed-4b9a-a841-d64cc304cd18\",\"state\":\"active\",\"created_at\":\"2026-10-27T20:55:47.476Z\",\"source\":{\"kind\":\"human-event\",\"event_ref\":\"gui-8b375cce1c63c77e2f61cc3f\",\"actor_id\":\"owner\"},\"capabilities\":[\"documents.read\"]}"
+    }
+  ],
+  "screenshot": "/home/inkem/Personal/RoleDock/packages/desktop/dist-app-shell/packaged-g7-evidence.png",
+  "binding": {
+    "external_session_id": "ext-58ddc1c1-34e2-41a6-a7b8-3600f5386f23",
+    "session_id": "sess-b3527152-7269-40f8-98f4-9a8621c49a62",
+    "instance_id": "inst-72491544-a558-484e-9a00-e3a7acd239f3",
+    "role_id": "builder",
+    "generation": 1,
+    "authorization_id": "auth-69963786-87ed-4b9a-a841-d64cc304cd18",
+    "state": "active",
+    "created_at": "2026-10-27T20:55:47.476Z",
+    "source": {
+      "kind": "human-event",
+      "event_ref": "gui-8b375cce1c63c77e2f61cc3f",
+      "actor_id": "owner"
+    },
+    "capabilities": [
+      "documents.read"
+    ]
+  }
+}
